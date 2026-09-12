@@ -435,10 +435,10 @@ export default function Landing() {
     const timers = []
     const observers = []
 
-    if (reducedMotion) {
-      setQuestComplete(true)
-      return undefined
-    }
+    // Reduced-motion styles hide the completion animation entirely, so there is
+    // no state transition to perform here. Keeping this branch state-free also
+    // avoids an unnecessary render when the effect starts.
+    if (reducedMotion) return undefined
 
     if (questLog && 'IntersectionObserver' in window) {
       let played = false

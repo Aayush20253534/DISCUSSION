@@ -33,15 +33,16 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
   }, [hash, pathname])
 
   useEffect(() => {
-    if (!isLanding) {
-      setHeaderScrolled(false)
-      return undefined
-    }
+    if (!isLanding) return undefined
 
     const handleScroll = () => setHeaderScrolled(window.scrollY > 24)
-    handleScroll()
+    const frame = window.requestAnimationFrame(handleScroll)
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', handleScroll)
+    }
   }, [isLanding])
 
   useEffect(() => {
@@ -68,7 +69,7 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
         Skip to content
       </a>
       <header
-        className={`public-header ${isLanding ? 'landing-header' : ''} ${headerScrolled ? 'is-scrolled' : ''} ${menuOpen ? 'menu-open' : ''}`}
+        className={`public-header ${isLanding ? 'landing-header' : ''} ${isLanding && headerScrolled ? 'is-scrolled' : ''} ${menuOpen ? 'menu-open' : ''}`}
       >
         <NavLink className="public-brand" to="/" aria-label="Life RPG home" onClick={closeMenu}>
           <span className="public-brand-compass" aria-hidden="true">

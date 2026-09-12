@@ -4,17 +4,20 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   BookOpen,
   CalendarDays,
+  ChevronDown,
   ChevronRight,
   Compass,
   HelpCircle,
   LogOut,
   Map,
+  Menu,
   PanelLeftClose,
   PanelLeftOpen,
   Settings,
   ShoppingBag,
   Sparkles,
   UserRound,
+  X,
 } from 'lucide-react'
 import { useQuestSync } from '../quests/hooks.js'
 import { useEconomySync } from '../economy/hooks.js'
@@ -45,6 +48,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const equippedTheme = equippedItem(user, 'THEME')
   const equippedThemeKey = equippedTheme?.assetKey
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState('')
@@ -52,6 +56,8 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const mainRef = useRef(null)
   const guideReturnFocusRef = useRef(null)
   const previousPath = useRef(pathname)
+  const dashboardWorld = Boolean(user && pathname === '/')
+  const userInitial = user?.displayName?.trim()?.charAt(0)?.toUpperCase() || 'A'
   useEffect(() => {
     const key = equippedThemeKey
     if (key) document.documentElement.dataset.rewardTheme = key
@@ -79,6 +85,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
       mainRef.current?.focus({ preventScroll: true })
       window.scrollTo({ top: 0, behavior: 'instant' })
       previousPath.current = pathname
+      setMobileMenuOpen(false)
     }
   }, [pathname, user])
 
@@ -109,18 +116,18 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   }
 
   return (
-    <div className={`app-shell ${collapsed ? 'sidebar-collapsed' : ''}`}>
+    <div className={`app-shell ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
       <aside className="sidebar">
-        <NavLink to="/" className="brand" aria-label="Life RPG home">
+        <NavLink to="/" className="brand" aria-label="Life RPG home" onClick={() => setMobileMenuOpen(false)}>
           <span className="brand-mark">
-            <Compass size={29} strokeWidth={1.4} />
+            <Compass size={34} strokeWidth={1.25} />
           </span>
           <span className="brand-word">
-            life<span>rpg</span>
-            <small>MAKE EVERY DAY A QUEST</small>
+            <strong>LIFE RPG</strong>
+            <small>THE ADVENTURER&apos;S ATLAS</small>
           </span>
         </NavLink>
         <div className="sidebar-section-label">YOUR ADVENTURE</div>
@@ -133,46 +140,47 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
               aria-label={label}
               title={collapsed ? label : undefined}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
             >
               <Icon size={20} strokeWidth={1.6} />
               <span>{label}</span>
             </NavLink>
           ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="journey-note">
+            <span className="journey-divider" aria-hidden="true">◇</span>
+            <p>
+              Every great story
+              <br />
+              starts with a
+              <br />
+              small step.
+            </p>
+          </div>
           {user && (
             <button
               type="button"
-              className="nav-link sidebar-signout sidebar-signout-primary"
+              className="nav-link sidebar-signout dashboard-sidebar-signout"
               onClick={signOut}
               disabled={signingOut}
               aria-label={signingOut ? 'Signing out' : 'Sign out'}
               title={collapsed ? (signingOut ? 'Signing out…' : 'Sign out') : undefined}
             >
-              <LogOut size={20} strokeWidth={1.6} />
+              <LogOut size={18} strokeWidth={1.6} />
               <span>{signingOut ? 'Signing out…' : 'Sign out'}</span>
             </button>
           )}
           {signOutError && user && (
-            <p className="sidebar-signout-error sidebar-signout-error-primary" role="alert">
-              {signOutError}
-            </p>
+            <p className="sidebar-signout-error" role="alert">{signOutError}</p>
           )}
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="journey-note">
-            <Sparkles size={20} />
-            <p>
-              Every great story
-              <br />
-              starts with a small step.
-            </p>
-            <span>YOURS INCLUDED.</span>
-          </div>
-          <nav aria-label="Support navigation">
+          <nav className="sidebar-support-nav" aria-label="Support navigation">
             <NavLink
               to="/settings"
               title={collapsed ? 'Preferences' : undefined}
               aria-label="Preferences"
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
             >
               <Settings size={19} />
               <span>Preferences</span>
@@ -189,6 +197,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
           <NavLink
             to="/character"
             className="sidebar-profile"
+            onClick={() => setMobileMenuOpen(false)}
             aria-label={user ? 'View your character' : 'Sign in to create a character'}
           >
             <Portrait avatarKey={user?.character?.avatarKey} frameKey={equippedFrame?.assetKey} />
@@ -200,9 +209,28 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
           </NavLink>
         </div>
       </aside>
+      {dashboardWorld && (
+        <button
+          type="button"
+          className="mobile-sidebar-scrim"
+          aria-label="Close navigation"
+          tabIndex={mobileMenuOpen ? 0 : -1}
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
       <div className="workspace">
         <header className="topbar">
           <div className="topbar-left">
+            {dashboardWorld && (
+              <button
+                className="icon-button mobile-menu-button"
+                aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
+                aria-expanded={mobileMenuOpen}
+                onClick={() => setMobileMenuOpen((open) => !open)}
+              >
+                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            )}
             <button
               className="icon-button collapse-button"
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -211,6 +239,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
             >
               {collapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}
             </button>
+            {dashboardWorld && <Map className="topbar-map-icon" size={18} strokeWidth={1.5} />}
             <Compass className="mobile-brand" size={22} />
             <span>THE EVERYDAY ADVENTURE</span>
           </div>
@@ -231,8 +260,27 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
             >
               <HelpCircle size={19} />
             </button>
+            {user && dashboardWorld && (
+              <>
+                <NavLink to="/settings" className="icon-button topbar-settings" aria-label="Open settings">
+                  <Settings size={19} />
+                </NavLink>
+                <NavLink to="/character" className="topbar-profile-link" aria-label="Open your character">
+                  <span className="topbar-avatar-initial">{userInitial}</span>
+                  <ChevronDown size={15} />
+                </NavLink>
+              </>
+            )}
           </div>
         </header>
+        {dashboardWorld && (
+          <div className="dashboard-ambience" aria-hidden="true">
+            <span className="dashboard-lightning-flash" />
+            <span className="dashboard-mist dashboard-mist-one" />
+            <span className="dashboard-mist dashboard-mist-two" />
+            <span className="dashboard-lantern-glow" />
+          </div>
+        )}
         <main id="main-content" tabIndex={-1} ref={mainRef}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div

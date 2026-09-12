@@ -102,7 +102,16 @@ function withPlatformDefaults(source) {
   if (normalized.RENDER === 'true' && normalized.RENDER_EXTERNAL_URL) {
     normalized.CLIENT_ORIGIN ||= normalized.RENDER_EXTERNAL_URL
     normalized.PUBLIC_APP_URL ||= normalized.RENDER_EXTERNAL_URL
-    normalized.TRUST_PROXY_HOPS ||= '1'
+
+    // Render always terminates public HTTP traffic at its proxy/load-balancer layer and forwards
+    // the client chain in X-Forwarded-For. A stale dashboard value of TRUST_PROXY_HOPS=0 would
+    // otherwise disable Express proxy trust and make express-rate-limit reject every proxied
+    // request with ERR_ERL_UNEXPECTED_X_FORWARDED_FOR. Keep local/non-Render deployments explicit,
+    // but make the Render runtime safe by construction.
+    const configuredProxyHops = Number(normalized.TRUST_PROXY_HOPS)
+    if (!Number.isFinite(configuredProxyHops) || configuredProxyHops < 1) {
+      normalized.TRUST_PROXY_HOPS = '1'
+    }
   }
   return normalized
 }

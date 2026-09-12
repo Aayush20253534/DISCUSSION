@@ -40,6 +40,18 @@ test('Render production defaults use the public service URL without weakening lo
   assert.equal(render.PUBLIC_APP_URL, 'https://life-rpg.onrender.com')
   assert.equal(render.TRUST_PROXY_HOPS, 1)
 
+  // Render sits behind its own proxy. A stale/legacy dashboard value of 0 must not disable
+  // Express proxy trust or express-rate-limit will reject Render's X-Forwarded-For header.
+  const renderWithStaleProxySetting = parseEnv({
+    NODE_ENV: 'production',
+    RENDER: 'true',
+    RENDER_EXTERNAL_URL: 'https://life-rpg.onrender.com',
+    TRUST_PROXY_HOPS: '0',
+    DATABASE_URL: 'postgresql://user:secret@localhost/db',
+    JWT_SECRET: 'render-production-secret-'.repeat(4),
+  })
+  assert.equal(renderWithStaleProxySetting.TRUST_PROXY_HOPS, 1)
+
   const customDomain = parseEnv({
     NODE_ENV: 'production',
     RENDER: 'true',

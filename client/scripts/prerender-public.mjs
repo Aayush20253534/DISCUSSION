@@ -20,10 +20,10 @@ const origin = publicOrigin()
 const pages = [
   {
     path: '/',
-    title: 'Life RPG · Turn everyday progress into an adventure',
+    title: 'Life RPG · The Adventurer’s Atlas',
     description:
-      'Life RPG turns real-world tasks into quests with XP, attributes, streaks, gold, and cosmetic rewards.',
-    body: `<main><h1>Your everyday life, turned into an adventure.</h1><p>Turn real-world tasks into quests, earn XP and gold, strengthen five attributes, build streaks, and unlock cosmetic rewards.</p><p><a href="/signup">Start your adventure</a> · <a href="/how-it-works">See how it works</a></p></main>`,
+      'Turn goals into quests, build your attributes, earn XP, collect rewards, and turn everyday progress into your own adventure.',
+    body: `<main><p>YOUR STORY BEGINS HERE</p><h1>Your everyday life, turned into an adventure.</h1><p>Turn goals into quests. Build your attributes. Earn XP, collect rewards, and discover how far consistent effort can take you.</p><p><a href="/signup">Begin Your Journey</a> · <a href="/#journey">Explore the Atlas</a></p></main>`,
   },
   {
     path: '/how-it-works',

@@ -7,36 +7,67 @@ import './public.css'
 
 export default function PublicShell({ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [headerScrolled, setHeaderScrolled] = useState(false)
   const { moving } = useInteractionFeedback()
   const { pathname } = useLocation()
   const mainRef = useRef(null)
   const previousPath = useRef(pathname)
+  const isLanding = pathname === '/'
+
   useEffect(() => {
     if (previousPath.current !== pathname) {
       mainRef.current?.focus({ preventScroll: true })
       window.scrollTo({ top: 0, behavior: 'instant' })
+      setMenuOpen(false)
       previousPath.current = pathname
     }
   }, [pathname])
+
   useEffect(() => {
-    if (!menuOpen) return
+    if (!isLanding) {
+      setHeaderScrolled(false)
+      return undefined
+    }
+
+    const handleScroll = () => setHeaderScrolled(window.scrollY > 24)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [isLanding])
+
+  useEffect(() => {
+    if (!menuOpen) return undefined
+
     const closeOnEscape = (event) => {
       if (event.key === 'Escape') setMenuOpen(false)
     }
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
   }, [menuOpen])
+
+  const closeMenu = () => setMenuOpen(false)
+
   return (
-    <div className="public-site">
+    <div className={`public-site ${isLanding ? 'public-site-landing' : ''}`}>
       <a className="skip-link" href="#public-main">
         Skip to content
       </a>
-      <header className="public-header">
-        <NavLink className="public-brand" to="/" aria-label="Life RPG home" onClick={() => setMenuOpen(false)}>
-          <Compass size={27} strokeWidth={1.5} />
+      <header
+        className={`public-header ${isLanding ? 'landing-header' : ''} ${headerScrolled ? 'is-scrolled' : ''} ${menuOpen ? 'menu-open' : ''}`}
+      >
+        <NavLink className="public-brand" to="/" aria-label="Life RPG home" onClick={closeMenu}>
+          <span className="public-brand-compass" aria-hidden="true">
+            <Compass size={28} strokeWidth={1.35} />
+          </span>
           <span>
-            life<em>rpg</em>
-            <small>MAKE EVERY DAY A QUEST</small>
+            {isLanding ? 'LIFE RPG' : <>life<em>rpg</em></>}
+            <small>{isLanding ? "THE ADVENTURER'S ATLAS" : 'MAKE EVERY DAY A QUEST'}</small>
           </span>
         </NavLink>
         <button
@@ -50,21 +81,34 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
         </button>
         <nav
           id="public-navigation"
-          className={`public-nav ${menuOpen ? 'open' : ''}`}
+          className={`public-nav ${menuOpen ? 'open' : ''} ${isLanding ? 'landing-nav' : ''}`}
           aria-label="Public navigation"
         >
-          <NavLink to="/" end onClick={() => setMenuOpen(false)}>
-            Home
-          </NavLink>
-          <NavLink to="/how-it-works" onClick={() => setMenuOpen(false)}>
-            How it works
-          </NavLink>
-          <NavLink className="public-login" to="/login" onClick={() => setMenuOpen(false)}>
-            <LogIn size={15} /> Sign in
-          </NavLink>
-          <NavLink className="button button-gold public-start" to="/signup" onClick={() => setMenuOpen(false)}>
-            Start your adventure
-          </NavLink>
+          {isLanding ? (
+            <>
+              <span className="landing-nav-center">
+                <a className="landing-nav-link" href="#top" onClick={closeMenu}>Home</a>
+                <a className="landing-nav-link" href="#journey" onClick={closeMenu}>The Journey</a>
+                <NavLink className="landing-nav-link" to="/how-it-works" onClick={closeMenu}>How It Works</NavLink>
+                <a className="landing-nav-link" href="#about" onClick={closeMenu}>About</a>
+              </span>
+              <span className="landing-nav-actions">
+                <NavLink className="public-login landing-login" to="/login" onClick={closeMenu}>Login</NavLink>
+                <NavLink className="landing-nav-cta" to="/signup" onClick={closeMenu}>Begin Your Journey</NavLink>
+              </span>
+            </>
+          ) : (
+            <>
+              <NavLink to="/" end onClick={closeMenu}>Home</NavLink>
+              <NavLink to="/how-it-works" onClick={closeMenu}>How it works</NavLink>
+              <NavLink className="public-login" to="/login" onClick={closeMenu}>
+                <LogIn size={15} /> Sign in
+              </NavLink>
+              <NavLink className="button button-gold public-start" to="/signup" onClick={closeMenu}>
+                Start your adventure
+              </NavLink>
+            </>
+          )}
         </nav>
       </header>
       <main id="public-main" tabIndex={-1} ref={mainRef}>

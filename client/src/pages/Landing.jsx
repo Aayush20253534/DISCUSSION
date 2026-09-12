@@ -1,5 +1,6 @@
-import { ArrowRight, BookOpen, Diamond, Gift, Sparkles, Swords, Trophy } from 'lucide-react'
+import { ArrowRight, BookOpen, Compass, Diamond, Gift, Sparkles, Swords, Trophy } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { usePageMeta } from '../lib/meta.js'
 
@@ -47,6 +48,7 @@ const systems = [
 export default function Landing() {
   const heroRef = useRef(null)
   const [lightning, setLightning] = useState(false)
+  const [loaderPhase, setLoaderPhase] = useState('loading')
 
   usePageMeta({
     title: 'Life RPG · The Adventurer’s Atlas',
@@ -54,6 +56,64 @@ export default function Landing() {
       'Turn goals into quests, build your attributes, earn XP, collect rewards, and turn everyday progress into your own adventure.',
     path: '/',
   })
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const mobile = window.matchMedia('(max-width: 720px)').matches
+    const source = mobile ? '/landing-1.png' : '/Landing.png'
+    const previousOverflow = document.body.style.overflow
+    let cancelled = false
+    let finishing = false
+    let leaveTimer
+    let fallbackTimer
+
+    document.body.style.overflow = 'hidden'
+
+    const image = new Image()
+    image.decoding = 'async'
+    image.fetchPriority = 'high'
+    image.src = source
+
+    const imageReady = typeof image.decode === 'function'
+      ? image.decode().catch(() => undefined)
+      : new Promise((resolve) => {
+          if (image.complete) {
+            resolve()
+            return
+          }
+          image.onload = resolve
+          image.onerror = resolve
+        })
+
+    const fontsReady = document.fonts?.ready
+      ? Promise.resolve(document.fonts.ready).catch(() => undefined)
+      : Promise.resolve()
+
+    const minimumHold = new Promise((resolve) => {
+      window.setTimeout(resolve, reducedMotion ? 120 : 1100)
+    })
+
+    const finishLoading = () => {
+      if (cancelled || finishing) return
+      finishing = true
+      setLoaderPhase('leaving')
+      leaveTimer = window.setTimeout(() => {
+        if (cancelled) return
+        setLoaderPhase('done')
+        document.body.style.overflow = previousOverflow
+      }, reducedMotion ? 120 : 760)
+    }
+
+    Promise.all([imageReady, fontsReady, minimumHold]).then(finishLoading)
+    fallbackTimer = window.setTimeout(finishLoading, reducedMotion ? 500 : 3400)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(leaveTimer)
+      window.clearTimeout(fallbackTimer)
+      document.body.style.overflow = previousOverflow
+    }
+  }, [])
 
   useEffect(() => {
     const hero = heroRef.current
@@ -140,12 +200,55 @@ export default function Landing() {
     }
   }, [])
 
+  const loader = loaderPhase !== 'done' && typeof document !== 'undefined'
+    ? createPortal(
+        <div
+          className={`landing-loader ${loaderPhase === 'leaving' ? 'is-leaving' : ''}`}
+          role="status"
+          aria-live="polite"
+          aria-label="Loading Life RPG"
+        >
+          <div className="landing-loader-clouds" aria-hidden="true" />
+          <div className="landing-loader-flash" aria-hidden="true" />
+          <svg className="landing-loader-bolt" viewBox="0 0 640 820" aria-hidden="true">
+            <defs>
+              <filter id="landing-loader-electric-glow" x="-80%" y="-30%" width="260%" height="180%">
+                <feGaussianBlur stdDeviation="6" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <path className="landing-loader-bolt-glow" d="M420 -20 L390 118 L430 152 L363 268 L400 304 L320 432 L353 465 L277 586 L301 615 L240 780" />
+            <path className="landing-loader-bolt-core" d="M420 -20 L390 118 L430 152 L363 268 L400 304 L320 432 L353 465 L277 586 L301 615 L240 780" />
+            <path className="landing-loader-bolt-branch branch-one" d="M363 268 L300 322 L259 403" />
+            <path className="landing-loader-bolt-branch branch-two" d="M320 432 L404 493 L448 566" />
+            <path className="landing-loader-bolt-branch branch-three" d="M277 586 L205 626 L168 702" />
+          </svg>
+          <div className="landing-loader-center">
+            <span className="landing-loader-compass" aria-hidden="true">
+              <Compass size={34} strokeWidth={1.15} />
+            </span>
+            <strong>LIFE RPG</strong>
+            <small>THE ADVENTURER'S ATLAS</small>
+            <span className="landing-loader-rule" aria-hidden="true" />
+            <span className="landing-loader-status">ENTERING THE ATLAS</span>
+            <span className="landing-loader-progress" aria-hidden="true"><i /></span>
+          </div>
+        </div>,
+        document.body,
+      )
+    : null
+
   return (
-    <div className="marketing-page landing-page">
+    <>
+      {loader}
+      <div className="marketing-page landing-page">
       <section
         ref={heroRef}
         id="top"
-        className={`landing-cinematic-hero ${lightning ? 'is-lightning' : ''}`}
+        className={`landing-cinematic-hero ${lightning ? 'is-lightning' : ''} ${loaderPhase !== 'loading' ? 'is-revealed' : ''}`}
         aria-labelledby="landing-title"
       >
         <div className="landing-world" aria-hidden="true">
@@ -259,6 +362,7 @@ export default function Landing() {
         <p>No leaderboard. No fake urgency. Just a clearer reason to show up for yourself.</p>
         <Link className="button button-gold" to="/signup">Create your character <ArrowRight size={17} /></Link>
       </section>
-    </div>
+      </div>
+    </>
   )
 }

@@ -1,4 +1,5 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   BookOpen,
@@ -22,6 +23,7 @@ import { useAuth } from '../auth/useAuth.js'
 import { Modal, PageSkeleton } from './ui.jsx'
 import PublicShell from '../public/PublicShell.jsx'
 import { applyPageMeta } from '../lib/meta.js'
+import { useInteractionFeedback } from '../interactions/interaction-context.js'
 
 const navigation = [
   { to: '/', label: 'Overview', icon: Map },
@@ -33,6 +35,7 @@ const navigation = [
 
 export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }) {
   const { user } = useAuth()
+  const { moving } = useInteractionFeedback()
   useQuestSync()
   useEconomySync()
   const equippedFrame = equippedItem(user, 'AVATAR_FRAME')
@@ -43,6 +46,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const [guideOpen, setGuideOpen] = useState(false)
   const { pathname } = useLocation()
   const mainRef = useRef(null)
+  const guideReturnFocusRef = useRef(null)
   const previousPath = useRef(pathname)
   useEffect(() => {
     const key = equippedThemeKey
@@ -141,7 +145,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
             </NavLink>
             <button
               className="nav-link"
-              onClick={() => setGuideOpen(true)}
+              onClick={(event) => { guideReturnFocusRef.current = event.currentTarget; setGuideOpen(true) }}
               aria-label="Open field guide"
             >
               <HelpCircle size={19} />
@@ -189,16 +193,27 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
             <button
               className="icon-button guide-button"
               aria-label="How Life RPG works"
-              onClick={() => setGuideOpen(true)}
+              onClick={(event) => { guideReturnFocusRef.current = event.currentTarget; setGuideOpen(true) }}
             >
               <HelpCircle size={19} />
             </button>
           </div>
         </header>
         <main id="main-content" tabIndex={-1} ref={mainRef}>
-          <Suspense fallback={<PageSkeleton />}>
-            <Outlet context={{ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }} />
-          </Suspense>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              className="route-stage"
+              key={pathname}
+              initial={moving ? { opacity: 0, y: 8 } : false}
+              animate={{ opacity: 1, y: 0 }}
+              exit={moving ? { opacity: 0, y: -5 } : { opacity: 1 }}
+              transition={{ duration: moving ? 0.18 : 0 }}
+            >
+              <Suspense fallback={<PageSkeleton />}>
+                <Outlet context={{ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }} />
+              </Suspense>
+            </motion.div>
+          </AnimatePresence>
         </main>
         <footer className="app-footer">
           <span>Life is the adventure. You are the hero.</span>
@@ -230,6 +245,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
         onOpenChange={setGuideOpen}
         title="Real life. A little more magical."
         description="Turn the things you want to do into an adventure you want to return to."
+        returnFocusRef={guideReturnFocusRef}
       >
         <ol className="guide-steps">
           <li>

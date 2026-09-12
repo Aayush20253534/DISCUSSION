@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import * as Dialog from '@radix-ui/react-dialog'
+import { motion } from 'motion/react'
 import {
   Archive,
   Check,
@@ -18,11 +19,13 @@ import {
 import { QUEST_DIFFICULTIES, formatQuestDate, formatCompletionDate } from '@life-rpg/shared'
 import { useAuth } from '../auth/useAuth.js'
 import { AttributeTag } from '../components/ui.jsx'
+import { useInteractionFeedback } from '../interactions/interaction-context.js'
 import { apiGet } from '../lib/api.js'
 import RewardPreview from '../progression/RewardPreview.jsx'
 import { useQuestMutation, useAccountError } from './hooks.js'
 
 export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplete }) {
+  const { moving } = useInteractionFeedback()
   const { user } = useAuth()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [error, setError] = useState('')
@@ -68,15 +71,26 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplet
   return (
     <Dialog.Root open onOpenChange={(open) => !open && close()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content
-          className="dialog-content quest-detail"
-          onCloseAutoFocus={(event) => {
-            event.preventDefault()
-            document.querySelector('[data-quest-focus]')?.focus()
-          }}
-        >
-          <button
+        <Dialog.Overlay asChild>
+          <motion.div
+            className="dialog-overlay"
+            initial={moving ? { opacity: 0 } : false}
+            animate={{ opacity: 1 }}
+            transition={{ duration: moving ? 0.16 : 0 }}
+          />
+        </Dialog.Overlay>
+        <Dialog.Content asChild>
+          <motion.div
+            className="dialog-content quest-detail"
+            initial={moving ? { opacity: 0, marginTop: 14 } : false}
+            animate={{ opacity: 1, marginTop: 0 }}
+            transition={moving ? { type: 'spring', stiffness: 330, damping: 29, mass: 0.7 } : { duration: 0 }}
+            onCloseAutoFocus={(event) => {
+              event.preventDefault()
+              document.querySelector('[data-quest-focus]')?.focus()
+            }}
+          >
+            <button
             className="icon-button dialog-close"
             onClick={close}
             disabled={mutation.isPending}
@@ -303,6 +317,7 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplet
               </div>
             </>
           )}
+        </motion.div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

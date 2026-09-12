@@ -1,0 +1,75 @@
+.interaction-toasts {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 120;
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.interaction-toast {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  padding: 12px 14px;
+  border: 1px solid #4b6256;
+  border-radius: 10px;
+  background: #17282cf2;
+  box-shadow: 0 14px 45px #07100d66;
+  backdrop-filter: blur(10px);
+}
+.interaction-toast-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #dfc98d;
+  background: #2c3d31;
+  border: 1px solid #65704b;
+}
+.interaction-toast strong,
+.interaction-toast small {
+  display: block;
+}
+.interaction-toast strong {
+  color: #edf0e3;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.interaction-toast small {
+  margin-top: 4px;
+  color: #aebfb6;
+  font-size: 9px;
+  line-height: 1.55;
+}
+.interaction-toast-level {
+  border-color: #756641;
+  background: #252b26f2;
+}
+.interaction-toast-level .interaction-toast-icon {
+  color: #f2d88f;
+  box-shadow: 0 0 0 5px #d8bd7130;
+}
+.interaction-toast-purchase {
+  border-color: #675c45;
+}
+.interaction-toast-equip {
+  border-color: #4f635c;
+}
+.route-stage {
+  min-height: 100%;
+}
+@media (max-width: 760px) {
+  .interaction-toasts {
+    right: 16px;
+    bottom: 84px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .interaction-toast {
+    transition: none !important;
+  }
+}

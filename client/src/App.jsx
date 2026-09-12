@@ -2,6 +2,7 @@ import { lazy, Suspense, useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MotionConfig } from 'motion/react'
+import InteractionProvider from './interactions/InteractionProvider.jsx'
 import AppShell from './components/AppShell.jsx'
 import AuthProvider from './auth/AuthProvider.jsx'
 import AccountGate from './auth/AccountGate.jsx'
@@ -46,11 +47,12 @@ export default function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <MotionConfig reducedMotion={gentleMotion ? 'user' : 'always'}>
-          <div data-motion={gentleMotion ? 'on' : 'off'}>
-            <BrowserRouter>
-              <AuthProvider>
-                <Suspense fallback={<PageSkeleton />}>
-                  <Routes>
+          <InteractionProvider gentleMotion={gentleMotion} soundEnabled={soundEnabled}>
+            <div data-motion={gentleMotion ? 'on' : 'off'}>
+              <BrowserRouter>
+                <AuthProvider>
+                  <Suspense fallback={<PageSkeleton />}>
+                    <Routes>
                     <Route element={<AccountGate mode="guest" />}>
                       <Route path="login" element={<Authenticate key="login" />} />
                       <Route path="signup" element={<Authenticate key="signup" signup />} />
@@ -82,11 +84,12 @@ export default function App() {
                         <Route path="*" element={<NotFound />} />
                       </Route>
                     </Route>
-                  </Routes>
-                </Suspense>
-              </AuthProvider>
-            </BrowserRouter>
-          </div>
+                    </Routes>
+                  </Suspense>
+                </AuthProvider>
+              </BrowserRouter>
+            </div>
+          </InteractionProvider>
         </MotionConfig>
       </QueryClientProvider>
     </ErrorBoundary>

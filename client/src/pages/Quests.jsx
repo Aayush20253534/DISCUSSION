@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useSearchParams } from 'react-router-dom'
 import {
   Archive,
@@ -32,6 +33,7 @@ import CompleteQuest from '../progression/CompleteQuest.jsx'
 import QuestDetails from '../quests/QuestDetails.jsx'
 import { useQuestMutation, useQuests, useQuestSummary } from '../quests/hooks.js'
 import { sampleQuests } from '../data/preview.js'
+import { useInteractionFeedback } from '../interactions/interaction-context.js'
 import '../quests.css'
 import '../progression/progression.css'
 
@@ -59,6 +61,7 @@ export default function Quests() {
   return <QuestJournal key={user.id} />
 }
 function QuestJournal() {
+  const { moving } = useInteractionFeedback()
   const [params, setParams] = useSearchParams()
   const raw = Object.fromEntries([...params].filter(([key]) => key in defaults))
   const parsed = questListSchema.safeParse(raw)
@@ -420,18 +423,29 @@ function QuestJournal() {
             </div>
           ) : data.quests.length ? (
             <div className="saved-quest-list">
-              {data.quests.map((quest) => (
-                <QuestRow
-                  key={quest.id}
-                  quest={quest}
-                  today={data.today}
-                  busy={mutation.isPending}
-                  onOpen={(item) => setDetailId(item.id)}
-                  onEdit={(item) => setEditor({ quest: item })}
-                  onArchive={archive}
-                  onComplete={setCompleting}
-                />
-              ))}
+              <AnimatePresence initial={false} mode="popLayout">
+                {data.quests.map((quest) => (
+                  <motion.div
+                    className="quest-motion-row"
+                    key={quest.id}
+                    layout={moving}
+                    initial={moving ? { opacity: 0, y: 8 } : false}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={moving ? { opacity: 0, x: 18, scale: 0.99 } : { opacity: 0 }}
+                    transition={{ duration: moving ? 0.2 : 0 }}
+                  >
+                    <QuestRow
+                      quest={quest}
+                      today={data.today}
+                      busy={mutation.isPending}
+                      onOpen={(item) => setDetailId(item.id)}
+                      onEdit={(item) => setEditor({ quest: item })}
+                      onArchive={archive}
+                      onComplete={setCompleting}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           ) : (
             <div className="journal-empty">

@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { ArrowUpRight, Clock3, Coins, Sparkles } from 'lucide-react'
 import { AttributeIcon, AttributeTag, Modal } from './ui.jsx'
 
 export default function QuestList({ quests }) {
   const [selected, setSelected] = useState(null)
+  const returnFocusRef = useRef(null)
   return (
     <>
       <div className="quest-list">
@@ -11,7 +12,7 @@ export default function QuestList({ quests }) {
           <button
             key={quest.id}
             className="quest-row"
-            onClick={() => setSelected(quest)}
+            onClick={(event) => { returnFocusRef.current = event.currentTarget; setSelected(quest) }}
             aria-label={`Preview quest: ${quest.title}`}
           >
             <span className={`quest-icon ${quest.attribute.toLowerCase()}`}>
@@ -40,6 +41,7 @@ export default function QuestList({ quests }) {
         onOpenChange={(value) => !value && setSelected(null)}
         title={selected?.title || 'Quest preview'}
         description={selected?.detail || ''}
+        returnFocusRef={returnFocusRef}
       >
         {selected && (
           <>

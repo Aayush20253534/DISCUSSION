@@ -1,11 +1,14 @@
 import { useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { ArrowRight, CalendarCheck, Check, Coins, Plus, Repeat2, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { QUEST_REWARDS, QUEST_DIFFICULTIES, formatQuestDate } from '@life-rpg/shared'
 import CompleteQuest from '../progression/CompleteQuest.jsx'
 import { AttributeIcon } from '../components/ui.jsx'
+import { useInteractionFeedback } from '../interactions/interaction-context.js'
 
 export default function TodayQuests({ quests, today, summary }) {
+  const { moving } = useInteractionFeedback()
   const [completion, setCompletion] = useState(null)
   const returnFocusRef = useRef(null)
   return (
@@ -27,12 +30,21 @@ export default function TodayQuests({ quests, today, summary }) {
       </div>
       {quests.length ? (
         <div className="today-quest-list">
+          <AnimatePresence initial={false} mode="popLayout">
           {quests.map((quest) => {
             const reward = QUEST_REWARDS[quest.difficulty]
             const overdue = quest.recurrence === 'ONCE' && quest.dueDate && quest.dueDate < today
             const dueToday = quest.dueDate === today
             return (
-              <article className={`today-quest ${quest.attribute.toLowerCase()}`} key={quest.id}>
+              <motion.article
+                layout={moving}
+                className={`today-quest ${quest.attribute.toLowerCase()}`}
+                key={quest.id}
+                initial={moving ? { opacity: 0, y: 7 } : false}
+                animate={{ opacity: 1, y: 0 }}
+                exit={moving ? { opacity: 0, x: 16, scale: 0.985 } : { opacity: 0 }}
+                transition={{ duration: moving ? 0.2 : 0 }}
+              >
                 <span className="today-quest-icon"><AttributeIcon attribute={quest.attribute} size={20} /></span>
                 <div className="today-quest-copy">
                   <Link to={`/quests?quest=${quest.id}`}>{quest.title}</Link>
@@ -62,9 +74,10 @@ export default function TodayQuests({ quests, today, summary }) {
                   <Check size={16} />
                   <span>Complete</span>
                 </button>
-              </article>
+              </motion.article>
             )
           })}
+          </AnimatePresence>
         </div>
       ) : (
         <div className="today-quests-empty">

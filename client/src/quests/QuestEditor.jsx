@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
+import { motion } from 'motion/react'
 import { ArrowRight, LoaderCircle, RefreshCw, X } from 'lucide-react'
 import {
   ATTRIBUTES,
@@ -10,6 +11,7 @@ import {
   questUpdateSchema,
 } from '@life-rpg/shared'
 import { AttributeIcon } from '../components/ui.jsx'
+import { useInteractionFeedback } from '../interactions/interaction-context.js'
 import { apiGet } from '../lib/api.js'
 import RewardPreview from '../progression/RewardPreview.jsx'
 import { useQuestMutation } from './hooks.js'
@@ -26,6 +28,7 @@ function valuesFrom(quest) {
   }
 }
 export default function QuestEditor({ quest, template, onClose, onSaved }) {
+  const { moving } = useInteractionFeedback()
   const [original, setOriginal] = useState(quest || null)
   const [values, setValues] = useState(() => valuesFrom(quest || template))
   const [requestId] = useState(() => crypto.randomUUID())
@@ -124,19 +127,30 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
   return (
     <Dialog.Root open onOpenChange={(open) => !open && close()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content
-          className="dialog-content quest-editor"
-          onOpenAutoFocus={(event) => {
-            event.preventDefault()
-            form.current?.elements.namedItem('title')?.focus()
-          }}
-          onCloseAutoFocus={(event) => {
-            event.preventDefault()
-            document.querySelector('[data-quest-focus]')?.focus()
-          }}
-        >
-          <button
+        <Dialog.Overlay asChild>
+          <motion.div
+            className="dialog-overlay"
+            initial={moving ? { opacity: 0 } : false}
+            animate={{ opacity: 1 }}
+            transition={{ duration: moving ? 0.16 : 0 }}
+          />
+        </Dialog.Overlay>
+        <Dialog.Content asChild>
+          <motion.div
+            className="dialog-content quest-editor"
+            initial={moving ? { opacity: 0, marginTop: 14 } : false}
+            animate={{ opacity: 1, marginTop: 0 }}
+            transition={moving ? { type: 'spring', stiffness: 330, damping: 29, mass: 0.7 } : { duration: 0 }}
+            onOpenAutoFocus={(event) => {
+              event.preventDefault()
+              form.current?.elements.namedItem('title')?.focus()
+            }}
+            onCloseAutoFocus={(event) => {
+              event.preventDefault()
+              document.querySelector('[data-quest-focus]')?.focus()
+            }}
+          >
+            <button
             className="icon-button dialog-close"
             onClick={close}
             disabled={busy}
@@ -409,6 +423,7 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
               </div>
             </form>
           )}
+        </motion.div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

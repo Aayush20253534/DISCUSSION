@@ -1,7 +1,9 @@
 import * as Dialog from '@radix-ui/react-dialog'
+import { motion } from 'motion/react'
 import { ArrowRight, BookOpen, Brain, Dumbbell, Flame, Heart, Palette, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ATTRIBUTES } from '@life-rpg/shared'
+import { useInteractionFeedback } from '../interactions/interaction-context.js'
 
 const attributeIcons = {
   INTELLECT: Brain,
@@ -25,19 +27,46 @@ export function AttributeTag({ attribute }) {
   )
 }
 
-export function Modal({ open, onOpenChange, title, description, children }) {
+export function Modal({ open, onOpenChange, title, description, children, returnFocusRef, returnFocusSelector }) {
+  const { moving } = useInteractionFeedback()
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content className="dialog-content">
-          <Dialog.Close className="icon-button dialog-close" aria-label="Close dialog">
-            <X size={20} />
-          </Dialog.Close>
-          <span className="eyebrow">THE ADVENTURE JOURNAL</span>
-          <Dialog.Title className="dialog-title">{title}</Dialog.Title>
-          <Dialog.Description className="dialog-description">{description}</Dialog.Description>
-          {children}
+        <Dialog.Overlay asChild>
+          <motion.div
+            className="dialog-overlay"
+            initial={moving ? { opacity: 0 } : false}
+            animate={{ opacity: 1 }}
+            transition={{ duration: moving ? 0.16 : 0 }}
+          />
+        </Dialog.Overlay>
+        <Dialog.Content asChild>
+          <motion.div
+            className="dialog-content"
+            initial={moving ? { opacity: 0, marginTop: 14 } : false}
+            animate={{ opacity: 1, marginTop: 0 }}
+            transition={
+              moving
+                ? { type: 'spring', stiffness: 330, damping: 29, mass: 0.7 }
+                : { duration: 0 }
+            }
+            onCloseAutoFocus={(event) => {
+              const referenced = returnFocusRef?.current
+              const fallback = returnFocusSelector ? document.querySelector(returnFocusSelector) : null
+              const target = referenced?.isConnected ? referenced : fallback
+              if (!target) return
+              event.preventDefault()
+              target.focus()
+            }}
+          >
+            <Dialog.Close className="icon-button dialog-close" aria-label="Close dialog">
+              <X size={20} />
+            </Dialog.Close>
+            <span className="eyebrow">THE ADVENTURE JOURNAL</span>
+            <Dialog.Title className="dialog-title">{title}</Dialog.Title>
+            <Dialog.Description className="dialog-description">{description}</Dialog.Description>
+            {children}
+          </motion.div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

@@ -324,7 +324,6 @@ main {
   max-width: 1450px;
   margin: auto;
   padding: 33px 35px 0;
-  animation: page-in 0.35s ease both;
 }
 .page-heading {
   display: flex;
@@ -1350,7 +1349,6 @@ h1 em {
   background: #051015bb;
   backdrop-filter: blur(5px);
   z-index: 80;
-  animation: page-in 0.18s ease;
 }
 .dialog-content {
   position: fixed;
@@ -1510,7 +1508,7 @@ h1 em {
   animation: spin 1s linear infinite;
 }
 .fireflies {
-  animation: fireflies 5s ease-in-out infinite alternate;
+  animation: fireflies 1.8s ease-out 1 both;
 }
 @keyframes page-in {
   from {

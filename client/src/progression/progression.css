@@ -795,3 +795,39 @@
   font-size: 9px;
   letter-spacing: 0.3px;
 }
+
+/* Part 10 interaction feedback */
+.completion-emblem .completion-float {
+  position: absolute;
+  z-index: 4;
+  right: -42px;
+  top: 22px;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: #1b2e2ce8;
+  color: #f0d58d;
+  box-shadow: 0 7px 24px #08110d59;
+  font: 700 10px/1 var(--font-sans);
+  letter-spacing: 0.7px;
+  white-space: nowrap;
+}
+.completion-level-up {
+  box-shadow: 0 25px 100px #0007, 0 0 0 1px #d7bd6e42, 0 0 60px #d7bd6e18;
+}
+.completion-level-up .completion-emblem::before {
+  border-color: #9d8950;
+  box-shadow: 0 0 0 9px #e0c56d0d, 0 0 36px #e0c56d22;
+}
+[data-motion='off'] .completion-level-up,
+[data-motion='off'] .completion-level-up .completion-emblem::before {
+  box-shadow: none;
+}
+@media (max-width: 560px) {
+  .completion-emblem .completion-float {
+    right: -22px;
+    top: 14px;
+  }
+}

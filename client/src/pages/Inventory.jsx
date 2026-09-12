@@ -1,11 +1,13 @@
-import { useState } from 'react'
-import { Backpack, Check, Coins, History, PackageOpen, Sparkles } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { motion } from 'motion/react'
+import { Backpack, Check, Coins, History, LoaderCircle, PackageOpen, Sparkles } from 'lucide-react'
 import { SHOP_ITEM_TYPES } from '@life-rpg/shared'
 import { Link } from 'react-router-dom'
 import { PageHeading } from '../components/ui.jsx'
 import EconomyNotice from '../economy/EconomyNotice.jsx'
 import RewardArtwork from '../economy/RewardArtwork.jsx'
 import { useEquipmentMutation, useInventory, useWallet } from '../economy/hooks.js'
+import { useInteractionFeedback } from '../interactions/interaction-context.js'
 
 const filters = [{ key: 'ALL', name: 'All rewards' }, ...SHOP_ITEM_TYPES]
 const slotLabel = (slot) => SHOP_ITEM_TYPES.find(({ slot: value }) => value === slot)?.name || slot
@@ -15,20 +17,41 @@ const formatDate = (value) => new Intl.DateTimeFormat(undefined, { dateStyle: 'm
 export default function Inventory() {
   const [type, setType] = useState('ALL')
   const [walletPage, setWalletPage] = useState(1)
+  const [pendingItemId, setPendingItemId] = useState(null)
+  const [recentItemId, setRecentItemId] = useState(null)
   const inventory = useInventory(type)
   const wallet = useWallet(walletPage, 8)
   const equipment = useEquipmentMutation()
+  const { moving, notify } = useInteractionFeedback()
+
+  useEffect(() => {
+    if (!recentItemId) return
+    const timer = window.setTimeout(() => setRecentItemId(null), 1800)
+    return () => window.clearTimeout(timer)
+  }, [recentItemId])
 
   async function toggle(item) {
     const slot = slotForType(item.item.type)
-    if (!slot) return
+    if (!slot || equipment.isPending) return
+    const equipping = !item.equippedSlot
+    setPendingItemId(item.id)
     try {
-      await equipment.mutateAsync({
+      const result = await equipment.mutateAsync({
         slot,
-        inventoryItemId: item.equippedSlot ? null : item.id,
+        inventoryItemId: equipping ? item.id : null,
+      })
+      setRecentItemId(item.id)
+      notify({
+        key: result.equipment ? `equip:${slot}:${result.equipment.equippedAt}` : undefined,
+        tone: 'equip',
+        title: equipping ? `${item.item.name} equipped` : `${item.item.name} unequipped`,
+        detail: `${slotLabel(slot)} updated`,
+        sound: 'equip',
       })
     } catch {
       // The mutation state renders the server error without creating an unhandled rejection.
+    } finally {
+      setPendingItemId(null)
     }
   }
 
@@ -54,10 +77,15 @@ export default function Inventory() {
           {SHOP_ITEM_TYPES.map(({ slot, name }) => {
             const row = inventory.data?.equipment?.find((entry) => entry.slot === slot)
             return (
-              <div className="equipment-slot" key={slot}>
+              <motion.div
+                layout={moving}
+                className={`equipment-slot ${recentItemId && row?.inventoryItemId === recentItemId ? 'equipment-slot-updated' : ''}`}
+                key={slot}
+                transition={{ duration: moving ? 0.25 : 0 }}
+              >
                 {row ? <RewardArtwork item={row.item} compact /> : <span className="empty-slot"><Backpack size={22} /></span>}
                 <div><small>{name}</small><strong>{row?.item.name || 'Nothing equipped'}</strong></div>
-              </div>
+              </motion.div>
             )
           })}
         </div>
@@ -74,25 +102,40 @@ export default function Inventory() {
         <div className="inventory-grid">{[0, 1, 2, 3].map((key) => <div className="panel inventory-skeleton skeleton" key={key} />)}</div>
       ) : inventory.data?.items?.length ? (
         <section className="inventory-grid" aria-label="Owned rewards">
-          {inventory.data.items.map((item) => (
-            <article className={`panel inventory-card ${item.equippedSlot ? 'equipped' : ''}`} key={item.id}>
-              <RewardArtwork item={item.item} compact />
-              <div className="inventory-card-copy">
-                <span className="eyebrow">{slotLabel(item.item.type)}</span>
-                <h2>{item.item.name}</h2>
-                <p>{item.item.description}</p>
-                <small>Purchased {formatDate(item.purchasedAt)} · {item.pricePaid} gold</small>
-              </div>
-              <button
-                className={item.equippedSlot ? 'button button-outline' : 'button button-gold'}
-                disabled={equipment.isPending}
-                onClick={() => toggle(item)}
+          {inventory.data.items.map((item) => {
+            const pending = pendingItemId === item.id
+            const recent = recentItemId === item.id
+            return (
+              <motion.article
+                layout={moving}
+                className={`panel inventory-card ${item.equippedSlot ? 'equipped' : ''} ${recent ? 'inventory-card-updated' : ''}`}
+                key={item.id}
+                aria-busy={pending}
+                animate={recent && moving ? { scale: [1, 1.012, 1] } : { scale: 1 }}
+                transition={{ duration: moving ? 0.4 : 0 }}
               >
-                {item.equippedSlot ? 'Unequip' : 'Equip'}
-                {item.equippedSlot && <Check size={14} />}
-              </button>
-            </article>
-          ))}
+                <RewardArtwork item={item.item} compact />
+                <div className="inventory-card-copy">
+                  <span className="eyebrow">{slotLabel(item.item.type)}</span>
+                  <h2>{item.item.name}</h2>
+                  <p>{item.item.description}</p>
+                  <small>Purchased {formatDate(item.purchasedAt)} · {item.pricePaid} gold</small>
+                </div>
+                <button
+                  className={item.equippedSlot ? 'button button-outline' : 'button button-gold'}
+                  disabled={equipment.isPending}
+                  aria-busy={pending}
+                  onClick={() => toggle(item)}
+                >
+                  {pending ? (
+                    <><LoaderCircle className="spin" size={14} /> {item.equippedSlot ? 'Removing…' : 'Equipping…'}</>
+                  ) : (
+                    <>{item.equippedSlot ? 'Unequip' : 'Equip'} {item.equippedSlot && <Check size={14} />}</>
+                  )}
+                </button>
+              </motion.article>
+            )
+          })}
         </section>
       ) : (
         <div className="panel economy-empty"><PackageOpen size={30} /><h2>Your pack is empty.</h2><p>Complete quests, earn gold, then choose something worth carrying.</p><Link className="text-link" to="/marketplace">Browse the market</Link></div>

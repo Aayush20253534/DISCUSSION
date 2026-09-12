@@ -1,10 +1,13 @@
 import { Compass, LogIn, Menu, X } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useInteractionFeedback } from '../interactions/interaction-context.js'
 import './public.css'
 
 export default function PublicShell({ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { moving } = useInteractionFeedback()
   const { pathname } = useLocation()
   const mainRef = useRef(null)
   const previousPath = useRef(pathname)
@@ -52,7 +55,18 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
         </nav>
       </header>
       <main id="public-main" tabIndex={-1} ref={mainRef}>
-        <Outlet context={{ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }} />
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            className="route-stage"
+            key={pathname}
+            initial={moving ? { opacity: 0, y: 8 } : false}
+            animate={{ opacity: 1, y: 0 }}
+            exit={moving ? { opacity: 0, y: -5 } : { opacity: 1 }}
+            transition={{ duration: moving ? 0.18 : 0 }}
+          >
+            <Outlet context={{ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }} />
+          </motion.div>
+        </AnimatePresence>
       </main>
       <footer className="public-footer">
         <div>

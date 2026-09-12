@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { motion, useReducedMotion } from 'motion/react'
-import { Link, useOutletContext } from 'react-router-dom'
+import { motion } from 'motion/react'
+import { Link } from 'react-router-dom'
 import {
   ArrowRight,
   Check,
@@ -18,6 +18,7 @@ import { apiGet } from '../lib/api.js'
 import { useQuestMutation } from '../quests/hooks.js'
 import ProgressMeter from './ProgressMeter.jsx'
 import RewardPreview from './RewardPreview.jsx'
+import { useInteractionFeedback } from '../interactions/interaction-context.js'
 import './progression.css'
 
 export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLabel = 'Back to journal' }) {
@@ -27,9 +28,7 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const mutation = useQuestMutation()
-  const reduce = useReducedMotion()
-  const { gentleMotion = true } = useOutletContext() || {}
-  const moving = gentleMotion && !reduce
+  const { moving, notify } = useInteractionFeedback()
   const busy = loading || mutation.isPending
   const conflict = ['QUEST_CHANGED', 'QUEST_ARCHIVED'].includes(mutation.error?.code)
   const missing = mutation.error?.code === 'QUEST_NOT_FOUND'
@@ -43,13 +42,25 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
     if (busy || conflict || missing || current.status === 'ARCHIVED' || !current.eligibleToday) return
     setMessage('')
     try {
-      setResult(
-        await mutation.mutateAsync({
-          action: 'complete',
-          id: current.id,
-          body: { revision: current.revision },
-        }),
-      )
+      const data = await mutation.mutateAsync({
+        action: 'complete',
+        id: current.id,
+        body: { revision: current.revision },
+      })
+      setResult(data)
+      if (data.newlyCompleted) {
+        const earned = data.completion
+        const earnedAttribute = ATTRIBUTES.find((item) => item.key === earned.attribute)
+        const gainedLevel = earned.levelAfter > earned.levelBefore
+        notify({
+          key: `completion:${earned.id}`,
+          tone: gainedLevel ? 'level' : 'quest',
+          title: gainedLevel ? `Level ${earned.levelAfter} reached` : 'Quest complete',
+          detail: `+${earned.xpAwarded} XP · +${earned.goldAwarded} gold · +${earned.attributeXpAwarded} ${earnedAttribute?.name || 'attribute'} XP`,
+          sound: gainedLevel ? 'level' : 'quest',
+          duration: gainedLevel ? 5200 : 4200,
+        })
+      }
       requestAnimationFrame(() => {
         if (contentRef.current) contentRef.current.scrollTop = 0
         contentRef.current?.querySelector('[data-completion-result]')?.focus()
@@ -83,18 +94,29 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
   return (
     <Dialog.Root open onOpenChange={(open) => !open && close()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="dialog-overlay" />
-        <Dialog.Content
-          ref={contentRef}
-          className={`dialog-content completion-dialog ${result ? 'completion-earned' : ''}`}
-          onCloseAutoFocus={(event) => {
-            const target = returnFocusRef?.current || document.querySelector('[data-quest-focus]')
-            if (!target) return
-            event.preventDefault()
-            target.focus()
-          }}
-        >
-          <button
+        <Dialog.Overlay asChild>
+          <motion.div
+            className="dialog-overlay"
+            initial={moving ? { opacity: 0 } : false}
+            animate={{ opacity: 1 }}
+            transition={{ duration: moving ? 0.16 : 0 }}
+          />
+        </Dialog.Overlay>
+        <Dialog.Content asChild>
+          <motion.div
+            ref={contentRef}
+            className={`dialog-content completion-dialog ${result ? 'completion-earned' : ''} ${levelUp ? 'completion-level-up' : ''}`}
+            initial={moving ? { opacity: 0, marginTop: 14 } : false}
+            animate={{ opacity: 1, marginTop: 0 }}
+            transition={moving ? { type: 'spring', stiffness: 330, damping: 29, mass: 0.7 } : { duration: 0 }}
+            onCloseAutoFocus={(event) => {
+              const target = returnFocusRef?.current || document.querySelector('[data-quest-focus]')
+              if (!target) return
+              event.preventDefault()
+              target.focus()
+            }}
+          >
+            <button
             className="icon-button dialog-close"
             disabled={busy}
             onClick={close}
@@ -120,6 +142,16 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
                       transition={{ duration: 1.4, delay: i * 0.04, ease: 'easeOut' }}
                     />
                   ))}
+                {moving && result.newlyCompleted && (
+                  <motion.span
+                    className="completion-float completion-float-xp"
+                    initial={{ opacity: 0, y: 18, scale: 0.88 }}
+                    animate={{ opacity: [0, 1, 1, 0], y: [18, -5, -20, -38], scale: [0.88, 1, 1, 0.96] }}
+                    transition={{ duration: 1.55, ease: 'easeOut' }}
+                  >
+                    +{receipt.xpAwarded} XP
+                  </motion.span>
+                )}
                 <motion.span
                   initial={moving ? { scale: 0.7, opacity: 0 } : false}
                   animate={{ scale: 1, opacity: 1 }}
@@ -151,21 +183,22 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
               </Dialog.Description>
               <p className="completion-quest-title">{receipt.title}</p>
               <div className="earned-rewards" aria-label="Recorded rewards">
-                <div>
-                  <Sparkles size={20} />
-                  <strong>+{receipt.xpAwarded}</strong>
-                  <span>Experience</span>
-                </div>
-                <div>
-                  <Coins size={20} />
-                  <strong>+{receipt.goldAwarded}</strong>
-                  <span>Gold earned</span>
-                </div>
-                <div>
-                  <AttributeIcon attribute={receipt.attribute} size={20} />
-                  <strong>+{receipt.attributeXpAwarded}</strong>
-                  <span>{attribute.name} XP</span>
-                </div>
+                {[
+                  { icon: <Sparkles size={20} />, value: `+${receipt.xpAwarded}`, label: 'Experience' },
+                  { icon: <Coins size={20} />, value: `+${receipt.goldAwarded}`, label: 'Gold earned' },
+                  { icon: <AttributeIcon attribute={receipt.attribute} size={20} />, value: `+${receipt.attributeXpAwarded}`, label: `${attribute.name} XP` },
+                ].map((reward, index) => (
+                  <motion.div
+                    key={reward.label}
+                    initial={moving && result.newlyCompleted ? { opacity: 0, y: 10 } : false}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: moving ? 0.28 : 0, delay: moving ? 0.18 + index * 0.07 : 0 }}
+                  >
+                    {reward.icon}
+                    <strong>{reward.value}</strong>
+                    <span>{reward.label}</span>
+                  </motion.div>
+                ))}
               </div>
               {receipt.attributeLevelAfter > receipt.attributeLevelBefore && (
                 <div className="attribute-unlocked">
@@ -263,6 +296,7 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
               </div>
             </>
           )}
+          </motion.div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

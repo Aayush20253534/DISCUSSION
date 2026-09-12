@@ -154,3 +154,63 @@
 @media (max-width: 1020px) and (min-width: 761px) {
   .item-card > .reward-art { height: 100%; min-height: 230px; }
 }
+
+/* Part 10 confirmed economy feedback */
+.market-balance strong {
+  color: var(--gold);
+  font: 600 18px/1 var(--font-sans);
+}
+.item-card.just-purchased,
+.inventory-card-updated,
+.equipment-slot-updated {
+  border-color: #8a7950;
+  box-shadow: inset 0 0 0 1px #dec47733, 0 0 30px #d5b96812;
+}
+.purchase-confirmed {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+.purchase-confirmed > div:first-child {
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid #4f5d50;
+}
+.purchase-confirmed-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #4b6355;
+  background: #20362d;
+  border-radius: 8px;
+  color: #b9c9c0;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.purchase-confirmed-copy > svg {
+  color: #d9c27e;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.purchase-confirmed-copy strong {
+  display: block;
+  color: #e7ecde;
+  font-size: 11px;
+}
+.purchase-confirmed-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.purchase-confirmed-actions .button {
+  justify-content: center;
+}
+.inventory-card[aria-busy='true'] {
+  opacity: 0.82;
+}
+@media (max-width: 560px) {
+  .purchase-confirmed-actions {
+    grid-template-columns: 1fr;
+  }
+}

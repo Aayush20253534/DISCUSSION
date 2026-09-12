@@ -54,23 +54,23 @@ export async function runLiveSmoke(value) {
   assert.equal(ready.status, 200, '/health/ready must return 200 with the live database connected.')
   assert.equal((await ready.json()).data.database, 'connected')
 
-  let homeHtml = ''
-  for (const pathname of ['/', '/how-it-works']) {
-    const response = await fetchChecked(`${origin}${pathname}`, {
-      headers: { Accept: 'text/html' },
-    })
-    assert.equal(response.status, 200, `${pathname} must be directly reachable.`)
-    assert.match(response.headers.get('content-type') || '', /text\/html/)
-    assert.equal(response.headers.get('x-robots-tag'), null, `${pathname} must remain indexable.`)
-    const html = await response.text()
-    if (pathname === '/') homeHtml = html
-    const expectedCanonical = new URL(pathname, `${origin}/`).href
-    assert.equal(canonicalHref(html), expectedCanonical, `${pathname} canonical URL must match deployment.`)
-    assert.equal(metaContent(html, 'property="og:url"'), expectedCanonical)
-    assert.doesNotMatch(html, /life-rpg\.invalid|\/src\/main\.jsx/i)
-    assert.match(html, /<main[\s>]/i)
-    assert.match(html, /<h1[\s>]/i)
-  }
+  const home = await fetchChecked(`${origin}/`, { headers: { Accept: 'text/html' } })
+  assert.equal(home.status, 200, '/ must be directly reachable.')
+  assert.match(home.headers.get('content-type') || '', /text\/html/)
+  assert.equal(home.headers.get('x-robots-tag'), null, '/ must remain indexable.')
+  const homeHtml = await home.text()
+  assert.equal(canonicalHref(homeHtml), `${origin}/`)
+  assert.equal(metaContent(homeHtml, 'property="og:url"'), `${origin}/`)
+  assert.doesNotMatch(homeHtml, /life-rpg\.invalid|\/src\/main\.jsx/i)
+  assert.match(homeHtml, /<main[\s>]/i)
+  assert.match(homeHtml, /<h1[\s>]/i)
+
+  const legacyHow = await fetchChecked(`${origin}/how-it-works`, {
+    headers: { Accept: 'text/html' },
+    redirect: 'manual',
+  })
+  assert.equal(legacyHow.status, 302, '/how-it-works must redirect into the homepage chapter.')
+  assert.equal(legacyHow.headers.get('location'), '/#how-it-works')
 
   const privateRoute = await fetchChecked(`${origin}/quests`, {
     headers: { Accept: 'text/html' },
@@ -93,7 +93,7 @@ export async function runLiveSmoke(value) {
   assert.equal(sitemap.status, 200)
   const sitemapText = await sitemap.text()
   assert.ok(sitemapText.includes(`<loc>${origin}/</loc>`))
-  assert.ok(sitemapText.includes(`<loc>${origin}/how-it-works</loc>`))
+  assert.ok(!sitemapText.includes('/how-it-works'))
 
   const asset = homeHtml.match(/(?:src|href)="(\/assets\/[^"]+)"/)?.[1]
   assert.ok(asset, 'Home page must reference a fingerprinted production asset.')
@@ -106,7 +106,7 @@ export async function runLiveSmoke(value) {
       event: 'live.smoke_passed',
       origin,
       database: 'connected',
-      publicRoutes: 2,
+      publicRoutes: 1,
       directPrivateRoute: '/quests',
     }),
   )

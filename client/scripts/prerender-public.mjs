@@ -25,13 +25,6 @@ const pages = [
       'Turn goals into quests, build your attributes, earn XP, collect rewards, and turn everyday progress into your own adventure.',
     body: `<main><p>YOUR STORY BEGINS HERE</p><h1>Your everyday life, turned into an adventure.</h1><p>Turn goals into quests. Build your attributes. Earn XP, collect rewards, and discover how far consistent effort can take you.</p><p><a href="/signup">Begin Your Journey</a> · <a href="/#journey">Explore the Atlas</a></p></main>`,
   },
-  {
-    path: '/how-it-works',
-    title: 'How Life RPG works · Quests, XP, streaks and rewards',
-    description:
-      'See how Life RPG turns real-world tasks into quests, secure XP, attributes, streaks, gold, and cosmetic rewards.',
-    body: `<main><h1>How Life RPG works</h1><ol><li>Create a real-world quest.</li><li>Choose the attribute it trains.</li><li>Complete it to earn server-calculated XP and gold.</li><li>Build streaks, progression, inventory, and a persistent history.</li></ol><p><a href="/signup">Create an account</a></p></main>`,
-  },
 ]
 
 function escapePattern(value) {

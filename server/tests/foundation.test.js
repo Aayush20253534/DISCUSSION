@@ -37,6 +37,7 @@ test('Render production defaults use the public service URL without weakening lo
     JWT_SECRET: 'render-production-secret-'.repeat(4),
   })
   assert.deepEqual(render.CLIENT_ORIGIN, ['https://life-rpg.onrender.com'])
+  assert.equal(render.API_ORIGIN, 'https://life-rpg.onrender.com')
   assert.equal(render.PUBLIC_APP_URL, 'https://life-rpg.onrender.com')
   assert.equal(render.TRUST_PROXY_HOPS, 1)
 
@@ -62,6 +63,7 @@ test('Render production defaults use the public service URL without weakening lo
     JWT_SECRET: 'render-production-secret-'.repeat(4),
   })
   assert.deepEqual(customDomain.CLIENT_ORIGIN, ['https://life.example'])
+  assert.equal(customDomain.API_ORIGIN, 'https://life-rpg.onrender.com')
   assert.equal(customDomain.PUBLIC_APP_URL, 'https://life.example')
 
   assert.throws(
@@ -158,7 +160,6 @@ test('production serves nested SPA links but does not disguise missing API route
   const dir = await mkdtemp(path.join(tmpdir(), 'life-rpg-spa-'))
   try {
     await writeFile(path.join(dir, 'index.html'), '<!doctype html><title>Life RPG</title>')
-    await writeFile(path.join(dir, 'how-it-works.html'), '<!doctype html><title>How it works</title><h1>Prerendered guide</h1>')
     const app = createApp({
       config,
       database: { ping: async () => true },
@@ -168,10 +169,8 @@ test('production serves nested SPA links but does not disguise missing API route
     const page = await request(app).get('/character').set('Accept', 'text/html').expect(200)
     assert.match(page.text, /Life RPG/)
     assert.match(page.headers['x-robots-tag'], /noindex/)
-    const publicPage = await request(app).get('/how-it-works').set('Accept', 'text/html').expect(200)
-    assert.match(publicPage.text, /Prerendered guide/)
-    assert.equal(publicPage.headers.location, undefined)
-    assert.equal(publicPage.headers['x-robots-tag'], undefined)
+    const legacyHow = await request(app).get('/how-it-works').set('Accept', 'text/html').expect(302)
+    assert.equal(legacyHow.headers.location, '/#how-it-works')
     const missing = await request(app).get('/api/v1/unknown').set('Accept', 'text/html').expect(404)
     assert.equal(missing.body.error.code, 'NOT_FOUND')
     await request(app).get('/missing.js').expect(404)
@@ -203,7 +202,7 @@ test('robots and sitemap expose only public marketing routes', async () => {
   assert.equal(robots.text.includes('Disallow: /settings'), false)
   const sitemap = await request(app).get('/sitemap.xml').expect(200)
   assert.match(sitemap.text, /https:\/\/life\.example\/<\/loc>/)
-  assert.match(sitemap.text, /https:\/\/life\.example\/how-it-works<\/loc>/)
+  assert.equal(sitemap.text.includes('/how-it-works'), false)
   assert.equal(sitemap.text.includes('/settings'), false)
   assert.equal(sitemap.text.includes('/quests'), false)
 })

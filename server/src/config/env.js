@@ -34,6 +34,21 @@ const schema = z
           )
           .min(1),
       ),
+    API_ORIGIN: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z
+        .string()
+        .url()
+        .refine((value) => {
+          try {
+            const url = new URL(value)
+            return ['http:', 'https:'].includes(url.protocol) && url.origin === value
+          } catch {
+            return false
+          }
+        }, 'Use an exact origin without a trailing slash')
+        .optional(),
+    ),
     PUBLIC_APP_URL: z.preprocess(
       (value) => (value === '' ? undefined : value),
       z
@@ -86,6 +101,17 @@ const schema = z
     }
     if (
       value.NODE_ENV === 'production' &&
+      value.API_ORIGIN &&
+      !value.API_ORIGIN.startsWith('https://')
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['API_ORIGIN'],
+        message: 'Use an HTTPS API origin in production',
+      })
+    }
+    if (
+      value.NODE_ENV === 'production' &&
       value.PUBLIC_APP_URL &&
       !value.PUBLIC_APP_URL.startsWith('https://')
     ) {
@@ -101,6 +127,7 @@ function withPlatformDefaults(source) {
   const normalized = { ...source }
   if (normalized.RENDER === 'true' && normalized.RENDER_EXTERNAL_URL) {
     normalized.CLIENT_ORIGIN ||= normalized.RENDER_EXTERNAL_URL
+    normalized.API_ORIGIN ||= normalized.RENDER_EXTERNAL_URL
     normalized.PUBLIC_APP_URL ||= normalized.RENDER_EXTERNAL_URL
 
     // Render always terminates public HTTP traffic at its proxy/load-balancer layer and forwards

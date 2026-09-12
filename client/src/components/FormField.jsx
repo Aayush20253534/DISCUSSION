@@ -1,12 +1,17 @@
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 
-export default function FormField({ name, label, error, hint, type = 'text', ...props }) {
+export default function FormField({ name, label, icon, error, hint, type = 'text', ...props }) {
   const [visible, setVisible] = useState(false)
   const password = type === 'password'
   return (
     <div className="form-field">
-      <label htmlFor={name}>{label}</label>
+      <label htmlFor={name}>
+        <span className="form-label-content">
+          {icon && <span className="form-label-icon">{icon}</span>}
+          <span>{label}</span>
+        </span>
+      </label>
       <div className="field-input-wrap">
         <input
           id={name}

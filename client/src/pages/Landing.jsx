@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  Award,
   BookOpen,
   CalendarDays,
   CheckCircle2,
@@ -17,7 +16,6 @@ import {
   ScrollText,
   Shield,
   Sparkles,
-  Star,
   Swords,
   Trophy,
 } from 'lucide-react'
@@ -100,22 +98,6 @@ const realms = [
   },
 ]
 
-const progressNotes = [
-  { icon: CheckCircle2, label: 'Complete a quest', value: 'Gain XP', meter: '84%' },
-  { icon: Flame, label: 'Maintain consistency', value: 'Build streaks', meter: '68%' },
-  { icon: Star, label: 'Train a category', value: 'Improve an attribute', meter: '73%' },
-  { icon: Crown, label: 'Keep going', value: 'Reach new milestones', meter: '56%' },
-]
-
-const relics = [
-  { icon: Compass, name: 'Golden Compass', type: 'Legendary relic', rarity: 'LEGENDARY', className: 'relic-featured' },
-  { icon: BookOpen, name: 'Traveler’s Journal', type: 'Chronicle skin', rarity: 'RARE', className: '' },
-  { icon: Diamond, name: 'Focus Ring', type: 'Discipline relic', rarity: 'EPIC', className: '' },
-  { icon: Sparkles, name: 'Moonlight Lantern', type: 'Atlas cosmetic', rarity: 'RARE', className: 'relic-tall' },
-  { icon: Award, name: 'Explorer’s Cloak', type: 'Journey cosmetic', rarity: 'EPIC', className: '' },
-  { icon: Flame, name: 'Ancient Tome', type: 'Knowledge relic', rarity: 'LEGENDARY', className: '' },
-]
-
 const marketplaceItems = [
   { icon: Gem, name: 'Moonlit Crest', category: 'CREST', price: 420, rarity: 'Rare' },
   { icon: Compass, name: 'Wayfinder Sigil', category: 'RELIC', price: 680, rarity: 'Epic' },
@@ -185,10 +167,9 @@ const questContracts = [
 
 const journeyChapters = [
   { id: 'top', label: 'The Call' },
-  { id: 'quests', label: 'Quests' },
+  { id: 'how-it-works', label: 'How It Works' },
   { id: 'atlas', label: 'Atlas' },
-  { id: 'character', label: 'Character' },
-  { id: 'relics', label: 'Relics' },
+  { id: 'quest-log', label: 'Quest Log' },
   { id: 'chronicle', label: 'Chronicle' },
   { id: 'begin', label: 'Begin' },
 ]
@@ -200,7 +181,6 @@ export default function Landing() {
   const [stormPattern, setStormPattern] = useState(1)
   const [loaderPhase, setLoaderPhase] = useState('loading')
   const [activeChapter, setActiveChapter] = useState('top')
-  const [levelMoment, setLevelMoment] = useState(false)
   const [questComplete, setQuestComplete] = useState(false)
 
   usePageMeta({
@@ -327,38 +307,36 @@ export default function Landing() {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
     if (reducedMotion.matches || loaderPhase !== 'done') return undefined
 
-    let nextFlash
     let flashEnd
     let introFlash
+    let stormInterval
     let stopped = false
 
-    const fireStorm = (duration = 1850) => {
+    const fireStorm = (duration = 2150) => {
       if (stopped) return
       setStormPattern((current) => (current % 3) + 1)
       setLightning(true)
+      window.clearTimeout(flashEnd)
       flashEnd = window.setTimeout(() => {
         if (stopped) return
         setLightning(false)
-        scheduleFlash()
       }, duration)
     }
 
-    const scheduleFlash = () => {
-      const mobile = window.matchMedia('(max-width: 720px)').matches
-      const minimum = mobile ? 9000 : 7200
-      const spread = mobile ? 5000 : 6200
-      nextFlash = window.setTimeout(() => fireStorm(2200 + Math.random() * 250), minimum + Math.random() * spread)
-    }
-
-    // The first storm arrives immediately after the loading veil clears so the
-    // static artwork reads as a living thunderstorm on refresh, not as wallpaper.
-    introFlash = window.setTimeout(() => fireStorm(2200), 180)
+    // A visible storm immediately establishes the scene after loading, then a
+    // new strike starts every five seconds. The bolt geometry still rotates
+    // through three patterns so the cadence is predictable without looking
+    // like the same canned animation looping forever.
+    introFlash = window.setTimeout(() => {
+      fireStorm(2280)
+      stormInterval = window.setInterval(() => fireStorm(2150), 5000)
+    }, 260)
 
     return () => {
       stopped = true
       window.clearTimeout(introFlash)
-      window.clearTimeout(nextFlash)
       window.clearTimeout(flashEnd)
+      window.clearInterval(stormInterval)
     }
   }, [loaderPhase])
 
@@ -411,7 +389,6 @@ export default function Landing() {
   useEffect(() => {
     if (loaderPhase !== 'done') return undefined
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const character = document.getElementById('character')
     const questLog = document.getElementById('quest-log')
     const timers = []
     const observers = []
@@ -419,19 +396,6 @@ export default function Landing() {
     if (reducedMotion) {
       setQuestComplete(true)
       return undefined
-    }
-
-    if (character && 'IntersectionObserver' in window) {
-      let played = false
-      const observer = new IntersectionObserver(([entry]) => {
-        if (!entry?.isIntersecting || played) return
-        played = true
-        timers.push(window.setTimeout(() => setLevelMoment(true), 950))
-        timers.push(window.setTimeout(() => setLevelMoment(false), 2550))
-        observer.disconnect()
-      }, { threshold: 0.52 })
-      observer.observe(character)
-      observers.push(observer)
     }
 
     if (questLog && 'IntersectionObserver' in window) {
@@ -449,34 +413,6 @@ export default function Landing() {
     return () => {
       timers.forEach((timer) => window.clearTimeout(timer))
       observers.forEach((observer) => observer.disconnect())
-    }
-  }, [loaderPhase])
-
-  useEffect(() => {
-    if (loaderPhase !== 'done') return undefined
-    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)')
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    if (!finePointer.matches || reducedMotion.matches) return undefined
-
-    const root = document.documentElement
-    let frame = 0
-    const move = (event) => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => {
-        root.style.setProperty('--atlas-cursor-x', `${event.clientX}px`)
-        root.style.setProperty('--atlas-cursor-y', `${event.clientY}px`)
-      })
-      const interactive = event.target.closest('a, button, .atlas-realm, .atlas-relic, .atlas-market-item, .atlas-quest-contract')
-      root.classList.toggle('atlas-cursor-interactive', Boolean(interactive))
-    }
-    const leave = () => root.classList.remove('atlas-cursor-interactive')
-    window.addEventListener('pointermove', move, { passive: true })
-    window.addEventListener('blur', leave)
-    return () => {
-      cancelAnimationFrame(frame)
-      window.removeEventListener('pointermove', move)
-      window.removeEventListener('blur', leave)
-      root.classList.remove('atlas-cursor-interactive')
     }
   }, [loaderPhase])
 
@@ -609,7 +545,6 @@ export default function Landing() {
     <>
       {loader}
       <div className="marketing-page landing-page">
-        <div className="atlas-cursor" aria-hidden="true"><i /><span /></div>
         <nav className="atlas-chapter-progress" aria-label="Journey chapters">
           {journeyChapters.map((chapter, index) => (
             <a
@@ -667,6 +602,7 @@ export default function Landing() {
             </svg>
           </div>
           <div className="landing-rain landing-rain-far" aria-hidden="true" />
+          <div className="landing-rain landing-rain-mid" aria-hidden="true" />
           <div className="landing-rain landing-rain-near" aria-hidden="true" />
           <div className="landing-mist landing-mist-one" aria-hidden="true" />
           <div className="landing-mist landing-mist-two" aria-hidden="true" />
@@ -747,18 +683,18 @@ export default function Landing() {
             </div>
           </section>
 
-          <section id="quests" data-chapter className="atlas-section atlas-core atlas-reveal" aria-labelledby="atlas-core-title">
+          <section id="how-it-works" data-chapter className="atlas-section atlas-core atlas-reveal" aria-labelledby="atlas-core-title">
             <div className="atlas-contours" aria-hidden="true" />
             <div className="atlas-section-inner">
               <header className="atlas-section-heading atlas-heading-wide">
-                <span className="atlas-eyebrow">THE HERO’S LOOP</span>
+                <span className="atlas-eyebrow">HOW IT WORKS · THE HERO’S LOOP</span>
                 <h2 id="atlas-core-title">Accept the quest. Earn the experience. <em>Become stronger.</em></h2>
-                <p>Productivity apps usually end at the checkbox. Here, each completed task changes your character and opens the next stretch of road.</p>
+                <p>Choose a real goal, turn it into a quest, complete it, and watch that effort become XP, attributes, streaks, and rewards. The whole loop lives here on the journey, not on another marketing page.</p>
               </header>
 
               <div className="atlas-quest-route">
                 <svg className="atlas-quest-route-line" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true">
-                  <path d="M42 173 C205 49 324 77 420 157 S668 285 790 158 S1006 35 1160 140" />
+                  <path d="M32 92 C180 22 320 78 448 194 S706 246 858 82 S1040 34 1170 92" />
                 </svg>
                 {coreLoop.map(({ icon: Icon, number, title, copy, detail }, index) => (
                   <article className={`atlas-quest-step atlas-quest-step-${index + 1}`} key={title}>
@@ -801,11 +737,24 @@ export default function Landing() {
 
                 {realms.map(({ icon: Icon, stat, realm, copy, position, glyph }) => (
                   <article className={`atlas-realm ${position}`} key={realm} tabIndex={0}>
+                    {position === 'realm-center' && (
+                      <>
+                        <span className="atlas-citadel-aura" aria-hidden="true" />
+                        <span className="atlas-citadel-fortress" aria-hidden="true">
+                          <i className="atlas-citadel-tower atlas-citadel-tower-left" />
+                          <i className="atlas-citadel-tower atlas-citadel-tower-center" />
+                          <i className="atlas-citadel-tower atlas-citadel-tower-right" />
+                          <b className="atlas-citadel-gate" />
+                          <em className="atlas-citadel-beacon" />
+                        </span>
+                      </>
+                    )}
                     <span className="atlas-realm-marker" aria-hidden="true"><span>{glyph}</span></span>
                     <div className="atlas-realm-copy">
                       <small>{stat}</small>
                       <h3>{realm}</h3>
                       <p>{copy}</p>
+                      {position === 'realm-center' && <b className="atlas-citadel-oath">STREAKS · ROUTINES · RESOLVE</b>}
                       <span className="atlas-realm-icon" aria-hidden="true"><Icon size={16} strokeWidth={1.4} /></span>
                     </div>
                   </article>
@@ -818,79 +767,7 @@ export default function Landing() {
             </div>
           </section>
 
-          <section id="character" data-chapter className={`atlas-section atlas-character atlas-reveal ${levelMoment ? 'is-leveling' : ''}`} aria-labelledby="atlas-character-title">
-            <div className="atlas-character-glow" aria-hidden="true" />
-            <div className="atlas-level-moment" aria-hidden="true">
-              <span className="atlas-level-particles"><i /><i /><i /><i /><i /><i /><i /><i /></span>
-              <div className="atlas-level-moment-crest">VIII</div>
-              <strong>LEVEL VIII</strong>
-              <small>THE ROAD CONTINUES</small>
-            </div>
-            <div className="atlas-section-inner atlas-character-layout">
-              <div className="atlas-character-card" data-atlas-tilt aria-label="Example Life RPG character progression">
-                <div className="atlas-character-card-topline">
-                  <span>ADVENTURER RECORD</span>
-                  <small>ATLAS ID · 07</small>
-                </div>
-                <div className="atlas-character-profile">
-                  <div className="atlas-character-avatar" aria-hidden="true">
-                    <span className="atlas-avatar-ring" />
-                    <Shield size={58} strokeWidth={.8} />
-                    <i />
-                  </div>
-                  <div>
-                    <small>WAYFARER</small>
-                    <h3>Arin Vale</h3>
-                    <span>LEVEL 07</span>
-                  </div>
-                  <div className="atlas-level-crest" aria-hidden="true">VII</div>
-                </div>
-                <div className="atlas-xp-block">
-                  <div><span>EXPERIENCE</span><strong>2,840 / 3,200 XP</strong></div>
-                  <div className="atlas-xp-track"><i /></div>
-                </div>
-                <div className="atlas-character-stats">
-                  {[['INT', 76], ['STR', 58], ['DIS', 84], ['CRE', 69], ['VIT', 63]].map(([name, value]) => (
-                    <div key={name}>
-                      <span>{name}</span>
-                      <i><b style={{ '--stat-value': `${value}%` }} /></i>
-                      <strong>{value}</strong>
-                    </div>
-                  ))}
-                </div>
-                <div className="atlas-equipped">
-                  <span>EQUIPPED RELICS</span>
-                  <div>
-                    <i><Compass size={16} /></i>
-                    <i><Diamond size={16} /></i>
-                    <i><Sparkles size={16} /></i>
-                    <i className="is-empty" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="atlas-character-copy">
-                <span className="atlas-eyebrow">BECOME THE HERO</span>
-                <h2 id="atlas-character-title">Every quest <em>changes your character.</em></h2>
-                <p>Your habits stop being invisible. Experience, streaks, attributes, and milestones become a character record you can watch evolve.</p>
-                <div className="atlas-progress-notes">
-                  {progressNotes.map(({ icon: Icon, label, value, meter }) => (
-                    <article key={label}>
-                      <span className="atlas-progress-icon"><Icon size={18} strokeWidth={1.5} /></span>
-                      <div>
-                        <small>{label}</small>
-                        <strong>{value}</strong>
-                        <i className="atlas-progress-meter"><b style={{ '--meter-value': meter }} /></i>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-                <Link className="atlas-text-link" to="/how-it-works">Study the progression system <ArrowRight size={15} /></Link>
-              </div>
-            </div>
-          </section>
-
-          <section id="quest-log" className={`atlas-section atlas-contracts atlas-reveal ${questComplete ? 'is-quest-complete' : ''}`} aria-labelledby="atlas-contracts-title">
+          <section id="quest-log" data-chapter className={`atlas-section atlas-contracts atlas-reveal ${questComplete ? 'is-quest-complete' : ''}`} aria-labelledby="atlas-contracts-title">
             <div className="atlas-contracts-ink" aria-hidden="true" />
             <div className="atlas-section-inner">
               <header className="atlas-section-heading">
@@ -919,34 +796,6 @@ export default function Landing() {
                         <i>+24</i>
                       </div>
                     )}
-                  </article>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section id="relics" data-chapter className="atlas-section atlas-relics atlas-reveal" aria-labelledby="atlas-relics-title">
-            <div className="atlas-embers" aria-hidden="true">
-              {Array.from({ length: 12 }, (_, index) => <i key={index} />)}
-            </div>
-            <div className="atlas-section-inner">
-              <header className="atlas-section-heading atlas-heading-centered">
-                <span className="atlas-eyebrow">RELICS OF THE JOURNEY</span>
-                <h2 id="atlas-relics-title">Progress deserves <em>rewards.</em></h2>
-                <p>Build streaks, collect gold, and unlock artifacts that make effort feel tangible instead of disappearing into a checkbox.</p>
-              </header>
-
-              <div className="atlas-relic-vault">
-                {relics.map(({ icon: Icon, name, type, rarity, className }) => (
-                  <article className={`atlas-relic ${className}`} data-atlas-tilt key={name}>
-                    <span className="atlas-relic-rarity">{rarity}</span>
-                    <div className="atlas-relic-art" aria-hidden="true">
-                      <span /><Icon size={className === 'relic-featured' ? 54 : 38} strokeWidth={1.05} />
-                    </div>
-                    <div>
-                      <h3>{name}</h3>
-                      <p>{type}</p>
-                    </div>
                   </article>
                 ))}
               </div>

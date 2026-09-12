@@ -49,24 +49,26 @@ try {
   assert.equal(ready.status, 200)
   assert.equal((await ready.json()).data.database, 'connected')
 
-  for (const pathname of ['/', '/how-it-works']) {
-    const response = await get(pathname, { headers: { Accept: 'text/html' } })
-    assert.equal(response.status, 200, `${pathname} must render in production`)
-    assert.match(response.headers.get('content-type') || '', /text\/html/)
-    assert.match(response.headers.get('cache-control') || '', /no-cache/)
-    assert.equal(response.headers.get('x-robots-tag'), null)
-    const html = await response.text()
-    assert.match(html, /<html lang="en">/i)
-    assert.match(html, /<meta\b[^>]*\bname="viewport"[^>]*>/i)
-    assert.match(html, /<meta\b[^>]*\bname="description"[^>]*>/i)
-    assert.match(html, /<main[\s>]/i)
-    assert.match(html, /<h1[\s>]/i)
-    assert.match(html, /<link\b[^>]*\brel="canonical"[^>]*\bhref="https?:\/\/[^"]+"[^>]*>/i)
-    assert.match(html, /<meta[^>]+property="og:url"[^>]+content="https?:\/\/[^"]+"/i)
-    assert.match(html, /<meta[^>]+property="og:image"[^>]+content="https?:\/\/[^"]+"/i)
-    assert.doesNotMatch(html, /life-rpg\.invalid/i)
-    assert.doesNotMatch(html, /\/src\/main\.jsx/i)
-  }
+  const home = await get('/', { headers: { Accept: 'text/html' } })
+  assert.equal(home.status, 200, '/ must render in production')
+  assert.match(home.headers.get('content-type') || '', /text\/html/)
+  assert.match(home.headers.get('cache-control') || '', /no-cache/)
+  assert.equal(home.headers.get('x-robots-tag'), null)
+  const homeHtml = await home.text()
+  assert.match(homeHtml, /<html lang="en">/i)
+  assert.match(homeHtml, /<meta\b[^>]*\bname="viewport"[^>]*>/i)
+  assert.match(homeHtml, /<meta\b[^>]*\bname="description"[^>]*>/i)
+  assert.match(homeHtml, /<main[\s>]/i)
+  assert.match(homeHtml, /<h1[\s>]/i)
+  assert.match(homeHtml, /<link\b[^>]*\brel="canonical"[^>]*\bhref="https?:\/\/[^"]+"[^>]*>/i)
+  assert.match(homeHtml, /<meta[^>]+property="og:url"[^>]+content="https?:\/\/[^"]+"/i)
+  assert.match(homeHtml, /<meta[^>]+property="og:image"[^>]+content="https?:\/\/[^"]+"/i)
+  assert.doesNotMatch(homeHtml, /life-rpg\.invalid/i)
+  assert.doesNotMatch(homeHtml, /\/src\/main\.jsx/i)
+
+  const legacyHow = await get('/how-it-works', { headers: { Accept: 'text/html' } })
+  assert.equal(legacyHow.status, 302)
+  assert.equal(legacyHow.headers.get('location'), '/#how-it-works')
 
   const privateRoute = await get('/quests', { headers: { Accept: 'text/html' } })
   assert.equal(privateRoute.status, 200)
@@ -119,7 +121,7 @@ try {
   console.log(
     JSON.stringify({
       event: 'production.smoke_passed',
-      publicRoutes: 2,
+      publicRoutes: 1,
       javascriptChunks: javascript.length,
       totalJavascriptBytes,
     }),

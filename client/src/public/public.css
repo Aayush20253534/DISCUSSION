@@ -5981,3 +5981,621 @@ html {
     display: none !important;
   }
 }
+
+/* ==========================================================================
+   HOME JOURNEY REFINEMENT
+   Fixes the compressed quest-route composition, moves the hero artwork down,
+   removes the decorative cursor, and gives the Atlas centerpiece and storm a
+   stronger sense of depth without adding another image or canvas dependency.
+   ========================================================================== */
+
+/* The native cursor is clearer here. The old compass ring looked like a focus
+   target following the mouse and competed with the actual map markers. */
+.atlas-cursor {
+  display: none !important;
+}
+
+/* Keep more of the cliff/adventurer in frame. The overscan is deliberately
+   larger than the translation so no exposed edge appears on short laptops. */
+@media (min-width: 721px) {
+  .landing-world img {
+    transform: translate3d(0, clamp(32px, 4.7vh, 48px), 0) scale(var(--world-scale)) scale(1.075);
+    transform-origin: 52% 42%;
+  }
+}
+
+@media (min-width: 721px) and (max-height: 820px) {
+  .landing-world img {
+    object-position: center top;
+    transform: translate3d(0, 43px, 0) scale(var(--world-scale)) scale(1.088);
+    transform-origin: 52% 39%;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Rain: three depths, irregular spacing and periodic wind-density shifts.
+   Each texture moves at a different rate so the storm reads as volume rather
+   than one diagonal repeating wallpaper.
+   -------------------------------------------------------------------------- */
+.landing-rain {
+  top: -24%;
+  bottom: -30%;
+  right: -8%;
+  height: auto;
+  transform: skewX(-2deg) rotate(.7deg);
+  transform-origin: 50% 0;
+  mask-image: linear-gradient(90deg, transparent 0, rgba(0, 0, 0, .08) 10%, rgba(0, 0, 0, .72) 28%, #000 46%, #000 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, rgba(0, 0, 0, .08) 10%, rgba(0, 0, 0, .72) 28%, #000 46%, #000 100%);
+  mix-blend-mode: screen;
+}
+
+.landing-rain::before {
+  content: '';
+  position: absolute;
+  inset: -10% -6%;
+  opacity: .56;
+  background-image:
+    repeating-linear-gradient(102deg, transparent 0 73px, rgba(224, 241, 249, .26) 73px 74px, transparent 74px 157px),
+    repeating-linear-gradient(103deg, transparent 0 109px, rgba(192, 223, 238, .15) 109px 110px, transparent 110px 223px);
+  background-size: 181px 430px, 247px 540px;
+  animation: landing-rain-secondary-fall .82s linear infinite;
+}
+
+.landing-rain-far {
+  left: 24%;
+  opacity: .15;
+  filter: blur(.35px);
+  background-image:
+    repeating-linear-gradient(102deg, transparent 0 30px, rgba(195, 222, 235, .2) 30px 31px, transparent 31px 79px),
+    repeating-linear-gradient(103deg, transparent 0 52px, rgba(164, 205, 224, .1) 52px 53px, transparent 53px 122px);
+  background-size: 91px 245px, 131px 324px;
+  animation: landing-rain-far-fall .83s linear infinite, landing-rain-gust 6.8s ease-in-out infinite;
+}
+
+.landing-rain-mid {
+  left: 37%;
+  opacity: .22;
+  filter: blur(.16px);
+  background-image:
+    repeating-linear-gradient(102.5deg, transparent 0 41px, rgba(219, 239, 247, .3) 41px 42.2px, transparent 42.2px 96px),
+    repeating-linear-gradient(103deg, transparent 0 78px, rgba(184, 219, 235, .18) 78px 79.2px, transparent 79.2px 161px);
+  background-size: 121px 318px, 178px 414px;
+  animation: landing-rain-mid-fall .61s linear infinite, landing-rain-gust 5.7s -1.7s ease-in-out infinite;
+}
+
+.landing-rain-near {
+  left: 51%;
+  opacity: .3;
+  filter: blur(.05px);
+  background-image:
+    repeating-linear-gradient(102deg, transparent 0 57px, rgba(241, 250, 253, .42) 57px 59px, transparent 59px 137px),
+    repeating-linear-gradient(103deg, transparent 0 93px, rgba(205, 233, 243, .25) 93px 95px, transparent 95px 198px);
+  background-size: 158px 430px, 224px 540px;
+  animation: landing-rain-near-fall .46s linear infinite, landing-rain-gust 4.9s -2.4s ease-in-out infinite;
+}
+
+/* Lightning should illuminate the clouds, not just draw a white line over the
+   artwork. The source image still remains untouched. */
+.landing-lightning-flash {
+  background:
+    radial-gradient(ellipse 35% 45% at 72% 4%, rgba(244, 252, 255, .68), rgba(137, 205, 248, .23) 31%, transparent 71%),
+    radial-gradient(ellipse 25% 38% at 91% 17%, rgba(221, 245, 255, .45), rgba(102, 178, 229, .15) 36%, transparent 74%),
+    radial-gradient(ellipse 26% 29% at 52% 8%, rgba(220, 243, 255, .35), transparent 70%);
+  mix-blend-mode: screen;
+}
+
+.landing-sky-bolt {
+  filter:
+    drop-shadow(0 0 2px rgba(255, 255, 255, 1))
+    drop-shadow(0 0 8px rgba(194, 231, 255, .94))
+    drop-shadow(0 0 22px rgba(104, 187, 244, .7))
+    drop-shadow(0 0 50px rgba(65, 143, 205, .38));
+}
+
+.landing-sky-bolt-glow {
+  stroke: rgba(124, 206, 255, .9);
+  stroke-width: 10;
+}
+
+.landing-sky-bolt-core {
+  stroke: rgba(252, 255, 255, 1);
+  stroke-width: 2;
+}
+
+@keyframes landing-hero-storm-flash {
+  0%, 2.5% { opacity: 0; }
+  4.5% { opacity: 1; }
+  7% { opacity: .08; }
+  9.5% { opacity: .82; }
+  12.5% { opacity: .03; }
+  18% { opacity: .24; }
+  23%, 31% { opacity: 0; }
+  33.5% { opacity: .8; }
+  36% { opacity: .04; }
+  39% { opacity: .52; }
+  44%, 59% { opacity: 0; }
+  62% { opacity: .9; }
+  65% { opacity: .04; }
+  68% { opacity: .48; }
+  73%, 100% { opacity: 0; }
+}
+
+@keyframes landing-rain-mid-fall {
+  from { background-position: 0 -390px, 80px -520px; }
+  to { background-position: -121px 318px, -98px 414px; }
+}
+
+@keyframes landing-rain-secondary-fall {
+  from { background-position: 20px -470px, 90px -620px; }
+  to { background-position: -161px 430px, -157px 540px; }
+}
+
+@keyframes landing-rain-gust {
+  0%, 100% { opacity: .72; }
+  28% { opacity: 1; }
+  49% { opacity: .78; }
+  70% { opacity: .94; }
+}
+
+/* --------------------------------------------------------------------------
+   HOW IT WORKS / HERO'S LOOP
+   The previous route sat too high, crossed body copy and left a large dead
+   field beneath it. This keeps the atlas-route idea while tightening the
+   composition and masking the path behind readable copy.
+   -------------------------------------------------------------------------- */
+#how-it-works {
+  scroll-margin-top: 74px;
+}
+
+.atlas-core {
+  min-height: 720px;
+  padding-top: clamp(92px, 7.5vw, 122px);
+  padding-bottom: clamp(96px, 8vw, 132px);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 16% 70%, rgba(87, 118, 97, .075), transparent 27rem),
+    radial-gradient(circle at 86% 18%, rgba(194, 108, 72, .085), transparent 29rem),
+    linear-gradient(180deg, #07131b 0%, #081720 48%, #061219 100%);
+}
+
+.atlas-core::after {
+  content: '';
+  position: absolute;
+  left: -8%;
+  right: -8%;
+  bottom: -2px;
+  height: 155px;
+  z-index: -2;
+  opacity: .62;
+  background:
+    linear-gradient(161deg, transparent 0 22%, #0a1b20 22.2% 34%, transparent 34.2%),
+    linear-gradient(22deg, transparent 0 52%, #0a191e 52.2% 64%, transparent 64.2%),
+    linear-gradient(168deg, transparent 0 72%, #0b1d21 72.2% 81%, transparent 81.2%);
+  filter: drop-shadow(0 -18px 35px rgba(0, 0, 0, .22));
+}
+
+.atlas-core .atlas-heading-wide {
+  max-width: 780px;
+}
+
+.atlas-quest-route {
+  min-height: 335px;
+  margin-top: 46px;
+}
+
+.atlas-quest-route-line {
+  inset: 0 0 auto;
+  height: 300px;
+  z-index: 0;
+  opacity: .88;
+  filter: drop-shadow(0 0 7px rgba(213, 175, 104, .08));
+}
+
+.atlas-quest-route-line path {
+  stroke: rgba(213, 175, 104, .46);
+  stroke-width: 1.15;
+  stroke-dasharray: 8 9;
+}
+
+.atlas-quest-step {
+  z-index: 2;
+  width: 30.5%;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.atlas-quest-step-1 { left: 0; top: 58px; }
+.atlas-quest-step-2 { left: 35%; top: 166px; }
+.atlas-quest-step-3 { right: 0; top: 42px; }
+
+.atlas-quest-step > div {
+  position: relative;
+  padding: 10px 10px 14px 0;
+  background: linear-gradient(90deg, rgba(7, 19, 27, .96) 0%, rgba(7, 19, 27, .9) 68%, rgba(7, 19, 27, .15) 94%, transparent 100%);
+  border-radius: 2px;
+}
+
+.atlas-quest-step h3 {
+  font-size: clamp(25px, 2vw, 31px);
+}
+
+.atlas-quest-step p {
+  max-width: 320px;
+  color: rgba(181, 194, 194, .8);
+  font-size: 11px;
+}
+
+.atlas-quest-step small {
+  color: rgba(224, 184, 108, .72);
+  letter-spacing: 1.35px;
+}
+
+/* --------------------------------------------------------------------------
+   CITADEL OF RESOLVE
+   Discipline is the center of the atlas now, not a label awkwardly colliding
+   with the YOU ARE HERE compass. The fortress is pure CSS so there is no new
+   artwork to maintain or load.
+   -------------------------------------------------------------------------- */
+.atlas-world-map {
+  min-height: 720px;
+}
+
+.atlas-map-center {
+  left: 50%;
+  top: 77%;
+  width: 58px;
+  height: 58px;
+  z-index: 7;
+  background: radial-gradient(circle, rgba(213, 175, 104, .09), rgba(7, 19, 27, .96) 70%);
+  box-shadow: 0 0 0 8px rgba(213, 175, 104, .014), 0 0 34px rgba(213, 175, 104, .1);
+}
+
+.atlas-map-center svg {
+  width: 25px;
+  height: 25px;
+}
+
+.atlas-map-center span {
+  bottom: -22px;
+  letter-spacing: 1.8px;
+  color: rgba(240, 205, 131, .66);
+}
+
+.realm-center {
+  left: 50%;
+  top: 29%;
+  width: 390px;
+  min-height: 260px;
+  margin-left: -195px;
+  display: block;
+  text-align: center;
+  z-index: 8;
+}
+
+.realm-center::before {
+  width: 430px;
+  height: 310px;
+  opacity: .22;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(240, 205, 131, .19), transparent 28%),
+    radial-gradient(ellipse at 50% 60%, rgba(97, 126, 106, .2), transparent 56%);
+  filter: blur(9px);
+}
+
+.realm-center:hover::before,
+.realm-center:focus-visible::before {
+  opacity: .36;
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.realm-center .atlas-realm-marker {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  z-index: 5;
+  width: 48px;
+  height: 48px;
+  margin-left: -24px;
+  background: radial-gradient(circle, rgba(213, 175, 104, .16), rgba(7, 18, 24, .96) 70%);
+  box-shadow: 0 0 0 8px rgba(213, 175, 104, .025), 0 0 28px rgba(213, 175, 104, .12);
+}
+
+.realm-center .atlas-realm-copy {
+  min-height: 235px;
+  padding: 142px 34px 25px;
+  border: 1px solid rgba(213, 175, 104, .18);
+  clip-path: polygon(22px 0, calc(100% - 22px) 0, 100% 22px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 22px 100%, 0 calc(100% - 22px), 0 22px);
+  background:
+    radial-gradient(ellipse at 50% 34%, rgba(213, 175, 104, .085), transparent 42%),
+    linear-gradient(180deg, rgba(7, 18, 24, .36), rgba(6, 17, 22, .88) 66%, rgba(6, 17, 22, .96));
+  box-shadow: 0 26px 50px rgba(0, 0, 0, .24), inset 0 0 42px rgba(213, 175, 104, .025);
+  backdrop-filter: blur(7px);
+}
+
+.realm-center .atlas-realm-copy::before,
+.realm-center .atlas-realm-copy::after {
+  content: '';
+  position: absolute;
+  top: 118px;
+  width: 62px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(213, 175, 104, .5));
+}
+
+.realm-center .atlas-realm-copy::before { left: 42px; }
+.realm-center .atlas-realm-copy::after { right: 42px; transform: scaleX(-1); }
+
+.realm-center .atlas-realm-copy small {
+  color: rgba(240, 205, 131, .78);
+  font-size: 7px;
+  letter-spacing: 2.5px;
+}
+
+.realm-center .atlas-realm-copy h3 {
+  margin-top: 5px;
+  color: #f0e7d5;
+  font-size: 34px;
+  letter-spacing: -.5px;
+  text-shadow: 0 8px 28px rgba(0, 0, 0, .42);
+}
+
+.realm-center .atlas-realm-copy p {
+  max-height: none;
+  max-width: 285px;
+  margin: 9px auto 0;
+  opacity: .78;
+  color: rgba(187, 199, 198, .82);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.realm-center .atlas-realm-icon {
+  right: 24px;
+  top: 20px;
+  color: rgba(240, 205, 131, .52);
+}
+
+.atlas-citadel-oath {
+  display: block;
+  margin-top: 13px;
+  color: rgba(213, 175, 104, .52);
+  font: 700 6.5px/1.2 var(--font-sans);
+  letter-spacing: 1.9px;
+}
+
+.atlas-citadel-aura {
+  position: absolute;
+  left: 50%;
+  top: 60px;
+  width: 215px;
+  height: 150px;
+  z-index: 1;
+  border: 1px solid rgba(213, 175, 104, .11);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 0 24px rgba(213, 175, 104, .018), 0 0 70px rgba(213, 175, 104, .08);
+  animation: atlas-citadel-aura 5.8s ease-in-out infinite;
+}
+
+.atlas-citadel-aura::before,
+.atlas-citadel-aura::after {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border: 1px dashed rgba(213, 175, 104, .1);
+  border-radius: 50%;
+}
+
+.atlas-citadel-aura::after {
+  inset: 34px;
+  border-style: dotted;
+}
+
+.atlas-citadel-fortress {
+  position: absolute;
+  left: 50%;
+  top: 49px;
+  width: 190px;
+  height: 104px;
+  z-index: 3;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 16px 20px rgba(0, 0, 0, .4));
+}
+
+.atlas-citadel-fortress::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 9px;
+  width: 126px;
+  height: 48px;
+  transform: translateX(-50%);
+  clip-path: polygon(0 27%, 10% 27%, 10% 12%, 20% 12%, 20% 25%, 34% 25%, 34% 7%, 44% 7%, 50% 0, 56% 7%, 66% 7%, 66% 25%, 80% 25%, 80% 12%, 90% 12%, 90% 27%, 100% 27%, 100% 100%, 0 100%);
+  border-bottom: 1px solid rgba(213, 175, 104, .42);
+  background: linear-gradient(180deg, rgba(48, 61, 57, .95), rgba(11, 23, 27, .98));
+  box-shadow: inset 0 -12px 22px rgba(0, 0, 0, .38), 0 0 30px rgba(213, 175, 104, .05);
+}
+
+.atlas-citadel-tower {
+  position: absolute;
+  bottom: 12px;
+  width: 28px;
+  border: 1px solid rgba(213, 175, 104, .3);
+  border-bottom: 0;
+  background: linear-gradient(180deg, rgba(61, 72, 66, .98), rgba(9, 20, 24, .98));
+  clip-path: polygon(0 12%, 16% 12%, 16% 0, 35% 0, 35% 12%, 65% 12%, 65% 0, 84% 0, 84% 12%, 100% 12%, 100% 100%, 0 100%);
+}
+
+.atlas-citadel-tower-left { left: 26px; height: 63px; }
+.atlas-citadel-tower-center { left: 50%; width: 38px; height: 88px; transform: translateX(-50%); }
+.atlas-citadel-tower-right { right: 26px; height: 63px; }
+
+.atlas-citadel-gate {
+  position: absolute;
+  left: 50%;
+  bottom: 9px;
+  z-index: 4;
+  width: 24px;
+  height: 30px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(240, 205, 131, .42);
+  border-bottom: 0;
+  border-radius: 13px 13px 0 0;
+  background: radial-gradient(ellipse at 50% 82%, rgba(240, 205, 131, .18), rgba(4, 12, 15, .96) 66%);
+  box-shadow: inset 0 0 13px rgba(240, 205, 131, .08);
+}
+
+.atlas-citadel-beacon {
+  position: absolute;
+  left: 50%;
+  top: -24px;
+  width: 2px;
+  height: 66px;
+  transform: translateX(-50%);
+  background: linear-gradient(transparent, rgba(240, 205, 131, .24), rgba(240, 205, 131, .88), transparent);
+  box-shadow: 0 0 11px rgba(240, 205, 131, .52), 0 0 34px rgba(240, 205, 131, .16);
+  animation: atlas-citadel-beacon 3.7s ease-in-out infinite;
+}
+
+@keyframes atlas-citadel-aura {
+  0%, 100% { opacity: .38; transform: translateX(-50%) scale(.96); }
+  50% { opacity: .78; transform: translateX(-50%) scale(1.035); }
+}
+
+@keyframes atlas-citadel-beacon {
+  0%, 100% { opacity: .28; filter: brightness(.8); }
+  48% { opacity: .92; filter: brightness(1.25); }
+  54% { opacity: .56; }
+}
+
+/* Removed homepage chapters leave the journey spine shorter and cleaner. */
+.atlas-journey-spine > i:nth-of-type(n + 7) {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .landing-rain-far { left: 18%; opacity: .11; }
+  .landing-rain-mid { left: 38%; opacity: .15; }
+  .landing-rain-near { left: 56%; opacity: .18; }
+}
+
+@media (max-width: 760px) {
+  .landing-world img {
+    object-position: 48% 57%;
+  }
+
+  .landing-rain-mid {
+    display: none;
+  }
+
+  .atlas-core {
+    min-height: auto;
+    padding-top: 92px;
+    padding-bottom: 94px;
+  }
+
+  .atlas-quest-route {
+    min-height: auto;
+    margin-top: 48px;
+  }
+
+  .atlas-quest-step > div {
+    background: linear-gradient(90deg, rgba(7, 19, 27, .94), rgba(7, 19, 27, .35) 86%, transparent);
+  }
+
+  .atlas-world-map {
+    min-height: 0;
+  }
+
+  .atlas-map-center {
+    left: 50%;
+    top: 0;
+    width: 68px;
+    height: 68px;
+  }
+
+  .realm-center {
+    left: auto;
+    top: auto;
+    width: 100%;
+    min-height: 0;
+    margin-left: 0;
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    gap: 15px;
+    text-align: left;
+    z-index: 4;
+  }
+
+  .realm-center::before,
+  .atlas-citadel-aura,
+  .atlas-citadel-fortress {
+    display: none;
+  }
+
+  .realm-center .atlas-realm-marker {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 42px;
+    height: 42px;
+    margin-left: 0;
+  }
+
+  .realm-center .atlas-realm-copy {
+    min-height: 0;
+    padding: 2px 38px 0 0;
+    border: 0;
+    clip-path: none;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .realm-center .atlas-realm-copy::before,
+  .realm-center .atlas-realm-copy::after {
+    display: none;
+  }
+
+  .realm-center .atlas-realm-copy h3 {
+    margin-top: 3px;
+    font-size: 23px;
+  }
+
+  .realm-center .atlas-realm-copy p {
+    max-width: none;
+    margin: 7px 0 0;
+    font-size: 9.5px;
+  }
+
+  .realm-center .atlas-realm-icon {
+    right: 8px;
+    top: 18px;
+  }
+
+  .atlas-citadel-oath {
+    margin-top: 9px;
+    font-size: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-rain,
+  .landing-rain::before,
+  .atlas-citadel-aura,
+  .atlas-citadel-beacon {
+    animation: none !important;
+  }
+
+  .landing-rain { opacity: .05 !important; }
+}
+
+@keyframes landing-rain-far-fall {
+  from { background-position: 18px -310px, 64px -430px; }
+  to { background-position: -73px 245px, -67px 324px; }
+}
+
+@keyframes landing-rain-near-fall {
+  from { background-position: 36px -520px, 104px -690px; }
+  to { background-position: -122px 430px, -120px 540px; }
+}

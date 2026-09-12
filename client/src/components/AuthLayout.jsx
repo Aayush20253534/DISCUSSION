@@ -1,19 +1,77 @@
 import { useContext } from 'react'
 import { Link } from 'react-router-dom'
-import { Compass, ArrowLeft, Sparkles } from 'lucide-react'
+import { ArrowLeft, Compass, Sparkles } from 'lucide-react'
 import { motion, MotionConfigContext, useReducedMotion } from 'motion/react'
 import Landscape from './Landscape.jsx'
 import { usePageMeta } from '../lib/meta.js'
 
-export default function AuthLayout({ title, eyebrow, description, children }) {
+export default function AuthLayout({
+  title,
+  titleAccent,
+  eyebrow,
+  description,
+  children,
+  variant = 'default',
+}) {
   const reducedMotion = useReducedMotion()
   const motionConfig = useContext(MotionConfigContext)
   const animate = !reducedMotion && motionConfig.reducedMotion !== 'always'
+  const metaTitle = [title, titleAccent].filter(Boolean).join(' ')
+
   usePageMeta({
-    title: `${title} · Life RPG`,
+    title: `${metaTitle} · Life RPG`,
     description: 'Secure Life RPG account access.',
     noindex: true,
   })
+
+  if (variant === 'login') {
+    return (
+      <main className="auth-page login-auth-page">
+        <div className="login-page-vignette" aria-hidden="true" />
+
+        <Link className="login-brand" to="/" aria-label="Life RPG home">
+          <span className="login-brand-mark" aria-hidden="true">
+            <Compass size={35} strokeWidth={1.35} />
+          </span>
+          <span className="login-brand-copy">
+            <strong>LIFE RPG</strong>
+            <small>THE ADVENTURER&apos;S ATLAS</small>
+          </span>
+        </Link>
+
+        <Link className="login-back" to="/">
+          <ArrowLeft size={18} />
+          <span>Back to the world</span>
+        </Link>
+
+        <p className="login-world-quote" aria-hidden="true">
+          “The same you,
+          <br />
+          with a greater story ahead.”
+        </p>
+
+        <motion.section
+          className="auth-card login-portal-card"
+          initial={animate ? { opacity: 0 } : false}
+          animate={{ opacity: 1 }}
+          transition={{ duration: animate ? 0.32 : 0, ease: 'easeOut' }}
+          aria-label="Sign in to Life RPG"
+        >
+          <div className="login-card-medallion" aria-hidden="true">
+            <Compass size={42} strokeWidth={1.1} />
+          </div>
+          <p className="eyebrow login-eyebrow">{eyebrow}</p>
+          <h1 className="login-title">
+            <span>{title}</span>
+            {titleAccent && <em>{titleAccent}</em>}
+          </h1>
+          <p className="auth-description login-description">{description}</p>
+          {children}
+        </motion.section>
+      </main>
+    )
+  }
+
   return (
     <main className="auth-page">
       <section className="auth-story" aria-label="Your everyday adventure">

@@ -82,7 +82,7 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
       )
   })
   app.get('/sitemap.xml', (_req, res) => {
-    const pages = ['/', '/how-it-works']
+    const pages = ['/']
     const urls = pages
       .map((route) => `  <url><loc>${publicOrigin}${route}</loc></url>`)
       .join('\n')
@@ -169,9 +169,11 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
         redirect: false,
       }),
     )
-    app.get(['/', '/how-it-works'], (req, res) => {
-      const file = req.path === '/' ? 'index.html' : 'how-it-works.html'
-      res.set('Cache-Control', 'no-cache').sendFile(path.join(staticDirectory, file))
+    app.get('/', (_req, res) => {
+      res.set('Cache-Control', 'no-cache').sendFile(path.join(staticDirectory, 'index.html'))
+    })
+    app.get('/how-it-works', (_req, res) => {
+      res.set('Cache-Control', 'no-cache').redirect(302, '/#how-it-works')
     })
     app.use(
       express.static(staticDirectory, {
@@ -183,7 +185,7 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
     app.get('/{*path}', (req, res, next) => {
       if (!req.accepts('html') || path.extname(req.path) || req.path.startsWith('/health/'))
         return next()
-      if (req.path !== '/' && req.path !== '/how-it-works') {
+      if (req.path !== '/') {
         res.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
       }
       res.set('Cache-Control', 'no-cache').sendFile(path.join(staticDirectory, 'index.html'))

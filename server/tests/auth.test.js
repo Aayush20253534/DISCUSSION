@@ -325,6 +325,58 @@ test('production uses Secure __Host cookies and no-store responses', async () =>
   }
 })
 
+test('cross-origin production auth uses SameSite=None while preserving signed CSRF and strict Origin', async () => {
+  const browserOrigin = 'https://life-web.example'
+  const prod = parseEnv({
+    NODE_ENV: 'production',
+    JWT_SECRET: secret,
+    DATABASE_URL: 'postgresql://test:test@localhost/test',
+    CLIENT_ORIGIN: browserOrigin,
+    API_ORIGIN: 'https://life-api.example',
+    PUBLIC_APP_URL: browserOrigin,
+  })
+  const production = createApp({ config: prod, database, logger: () => {} })
+  const csrf = await request(production).get(`${prefix}/auth/csrf`).expect(200)
+  const csrfCookie = cookie(csrf, '__Host-life_csrf')
+  const csrfHeader = csrf.headers['set-cookie'].find((value) =>
+    value.startsWith('__Host-life_csrf='),
+  )
+  assert.match(csrfHeader, /; Secure/)
+  assert.match(csrfHeader, /SameSite=None/)
+  assert.ok(!csrfHeader.includes('Domain='))
+
+  const registered = await request(production)
+    .post(`${prefix}/auth/signup`)
+    .set('Origin', browserOrigin)
+    .set('Cookie', csrfCookie)
+    .set('X-CSRF-Token', csrf.body.data.csrfToken)
+    .send({ ...input, email: 'cross-origin@example.test' })
+    .expect(201)
+
+  for (const header of registered.headers['set-cookie']) {
+    assert.match(header, /; Secure/)
+    assert.match(header, /SameSite=None/)
+    assert.ok(!header.includes('Domain='))
+  }
+
+  const login = await request(production)
+    .post(`${prefix}/auth/login`)
+    .set('Origin', browserOrigin)
+    .set('Cookie', csrfCookie)
+    .set('X-CSRF-Token', csrf.body.data.csrfToken)
+    .send({ email: 'cross-origin@example.test', password: input.password })
+    .expect(200)
+  assert.equal(login.body.data.user.email, 'cross-origin@example.test')
+
+  await request(production)
+    .post(`${prefix}/auth/login`)
+    .set('Origin', 'https://attacker.example')
+    .set('Cookie', csrfCookie)
+    .set('X-CSRF-Token', csrf.body.data.csrfToken)
+    .send({ email: 'cross-origin@example.test', password: input.password })
+    .expect(403)
+})
+
 test('failed login rate limit applies before more password work', async () => {
   const client = await browser()
   for (let i = 0; i < 10; i++)

@@ -64,7 +64,21 @@ export function createSecurity(config) {
   const secure = config.NODE_ENV === 'production'
   const prefix = secure ? '__Host-life_' : 'life_'
   const names = { access: `${prefix}access`, refresh: `${prefix}refresh`, csrf: `${prefix}csrf` }
-  const cookie = { httpOnly: true, secure, sameSite: 'lax', path: '/' }
+  // SameSite=Lax is preferable when the browser and API share one origin. When the API is
+  // intentionally hosted on a different HTTPS origin (for example Vercel -> Render), Lax cookies
+  // are withheld from fetch/XHR requests and the double-submit CSRF cookie can never match the
+  // header token. Keep the strict Origin + signed double-submit checks, but opt into SameSite=None
+  // only for that explicitly configured cross-origin topology.
+  const crossOriginBrowser =
+    secure &&
+    config.API_ORIGIN &&
+    config.CLIENT_ORIGIN.some((origin) => origin !== config.API_ORIGIN)
+  const cookie = {
+    httpOnly: true,
+    secure,
+    sameSite: crossOriginBrowser ? 'none' : 'lax',
+    path: '/',
+  }
   const csrfSignature = (nonce) =>
     createHmac('sha256', config.JWT_SECRET).update(`csrf.${nonce}`).digest('base64url')
   function validCsrf(token) {

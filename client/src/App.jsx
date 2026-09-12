@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react'
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MotionConfig } from 'motion/react'
 import InteractionProvider from './interactions/InteractionProvider.jsx'
@@ -27,7 +27,6 @@ const Character = lazy(() => import('./pages/Character.jsx'))
 const Marketplace = lazy(() => import('./pages/Marketplace.jsx'))
 const Inventory = lazy(() => import('./pages/Inventory.jsx'))
 const Settings = lazy(() => import('./pages/Settings.jsx'))
-const HowItWorks = lazy(() => import('./pages/HowItWorks.jsx'))
 const NotFound = lazy(() => import('./pages/NotFound.jsx'))
 
 function retryQuery(failureCount, error) {
@@ -74,7 +73,7 @@ function RoutedApplication({ gentleMotion, setGentleMotion, soundEnabled, setSou
               }
             >
               <Route index element={<Dashboard />} />
-              <Route path="how-it-works" element={<HowItWorks />} />
+              <Route path="how-it-works" element={<Navigate to="/#how-it-works" replace />} />
               <Route element={<AccountGate />}>
                 <Route path="quests" element={<Quests />} />
                 <Route path="activity" element={<Activity />} />

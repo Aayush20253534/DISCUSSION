@@ -9,7 +9,7 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
   const [menuOpen, setMenuOpen] = useState(false)
   const [headerScrolled, setHeaderScrolled] = useState(false)
   const { moving } = useInteractionFeedback()
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
   const mainRef = useRef(null)
   const previousPath = useRef(pathname)
   const isLanding = pathname === '/'
@@ -22,6 +22,15 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
       previousPath.current = pathname
     }
   }, [pathname])
+
+  useEffect(() => {
+    if (!hash || pathname !== '/') return undefined
+    const targetId = decodeURIComponent(hash.slice(1))
+    const timer = window.setTimeout(() => {
+      document.getElementById(targetId)?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [hash, pathname])
 
   useEffect(() => {
     if (!isLanding) {
@@ -89,7 +98,7 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
               <span className="landing-nav-center">
                 <a className="landing-nav-link" href="#top" onClick={closeMenu}>Home</a>
                 <a className="landing-nav-link" href="#journey" onClick={closeMenu}>The Journey</a>
-                <NavLink className="landing-nav-link" to="/how-it-works" onClick={closeMenu}>How It Works</NavLink>
+                <a className="landing-nav-link" href="#how-it-works" onClick={closeMenu}>How It Works</a>
                 <a className="landing-nav-link" href="#atlas" onClick={closeMenu}>The Atlas</a>
               </span>
               <span className="landing-nav-actions">
@@ -100,7 +109,7 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
           ) : (
             <>
               <NavLink to="/" end onClick={closeMenu}>Home</NavLink>
-              <NavLink to="/how-it-works" onClick={closeMenu}>How it works</NavLink>
+              <NavLink to="/#how-it-works" onClick={closeMenu}>How it works</NavLink>
               <NavLink className="public-login" to="/login" onClick={closeMenu}>
                 <LogIn size={15} /> Sign in
               </NavLink>
@@ -135,7 +144,7 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
             </div>
             <nav aria-label="Footer navigation">
               <a href="#journey">The Journey</a>
-              <NavLink to="/how-it-works">How It Works</NavLink>
+              <a href="#how-it-works">How It Works</a>
               <a href="#atlas">The Atlas</a>
               <NavLink to="/login">Login</NavLink>
             </nav>
@@ -152,7 +161,7 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
               <p>Turn ordinary effort into visible progress.</p>
             </div>
             <nav aria-label="Footer navigation">
-              <NavLink to="/how-it-works">How it works</NavLink>
+              <NavLink to="/#how-it-works">How it works</NavLink>
               <NavLink to="/login">Sign in</NavLink>
               <NavLink to="/signup">Create account</NavLink>
             </nav>

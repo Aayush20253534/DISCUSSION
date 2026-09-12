@@ -21,6 +21,7 @@ async function request(path, { method = 'GET', body, signal, csrfToken } = {}) {
     response = await fetch(`${baseUrl}${path}`, {
       method,
       credentials: 'include',
+      cache: 'no-store',
       headers: {
         Accept: 'application/json',
         ...(method !== 'GET' && { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken }),

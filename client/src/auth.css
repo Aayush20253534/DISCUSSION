@@ -559,7 +559,7 @@
 .login-back {
   position: absolute;
   z-index: 4;
-  top: clamp(31px, 5vh, 53px);
+  top: clamp(18px, 3.5vh, 34px);
   right: clamp(28px, 5vw, 82px);
   display: inline-flex;
   align-items: center;

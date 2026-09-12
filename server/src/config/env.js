@@ -97,8 +97,18 @@ const schema = z
     }
   })
 
+function withPlatformDefaults(source) {
+  const normalized = { ...source }
+  if (normalized.RENDER === 'true' && normalized.RENDER_EXTERNAL_URL) {
+    normalized.CLIENT_ORIGIN ||= normalized.RENDER_EXTERNAL_URL
+    normalized.PUBLIC_APP_URL ||= normalized.RENDER_EXTERNAL_URL
+    normalized.TRUST_PROXY_HOPS ||= '1'
+  }
+  return normalized
+}
+
 export function parseEnv(source) {
-  const parsed = schema.safeParse(source)
+  const parsed = schema.safeParse(withPlatformDefaults(source))
   if (!parsed.success) {
     // Do not include the original input: it can contain database credentials.
     const fields = [...new Set(parsed.error.issues.map((issue) => issue.path.join('.')))]

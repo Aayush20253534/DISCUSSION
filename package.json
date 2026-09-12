@@ -19,14 +19,18 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "npm run db:generate && node --test --test-concurrency=1 server/tests/*.test.js shared/tests/*.test.js",
-    "verify": "npm run lint && npm test && npm run db:validate && npm run build",
+    "verify": "npm run lint && npm run quality:audit && npm test && npm run db:validate && npm run build && npm run test:production",
+    "verify:live": "node scripts/live-smoke.mjs",
+    "submission:check": "node scripts/submission-check.mjs",
     "db:generate": "npm run db:generate -w server",
     "db:validate": "npm run db:validate -w server",
     "db:migrate": "npm run db:migrate -w server",
     "db:deploy": "npm run db:deploy -w server",
     "db:studio": "npm run db:studio -w server",
     "setup": "node scripts/setup.js && npm run db:generate",
-    "auth:configure": "node scripts/configure-auth.js"
+    "auth:configure": "node scripts/configure-auth.js",
+    "test:production": "npm run test:production -w server",
+    "quality:audit": "node scripts/quality-audit.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

@@ -23,14 +23,19 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
     req.requestId = randomUUID()
     res.set('X-Request-Id', req.requestId)
     const start = Date.now()
-    res.on('finish', () =>
-      logger('info', 'http.request', {
+    res.on('finish', () => {
+      const durationMs = Date.now() - start
+      const details = {
         requestId: req.requestId,
         method: req.method,
+        path: req.path,
         status: res.statusCode,
-        durationMs: Date.now() - start,
-      }),
-    )
+        durationMs,
+        responseBytes: Number(res.getHeader('Content-Length')) || undefined,
+      }
+      if (durationMs >= 1500) logger('warn', 'http.slow_request', details)
+      else logger('info', 'http.request', details)
+    })
     next()
   })
   app.use(
@@ -54,6 +59,12 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
   )
   app.use(express.json({ limit: '32kb' }))
   app.use(cookieParser())
+  // API responses can contain account state. Keep browser/proxy caches out of the equation even
+  // for error responses and routes that are added later.
+  app.use('/api', (_req, res, next) => {
+    res.set('Cache-Control', 'no-store')
+    next()
+  })
   const publicOrigin = config.PUBLIC_APP_URL || config.CLIENT_ORIGIN[0]
   app.get('/robots.txt', (_req, res) => {
     res
@@ -147,7 +158,28 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
     }),
   )
   if (staticDirectory) {
-    app.use(express.static(staticDirectory, { index: false, maxAge: 0, extensions: ['html'], redirect: false }))
+    // Vite fingerprints files under /assets, so they are safe to cache for a year. HTML stays
+    // revalidated so a deployment never strands clients on stale chunk references.
+    app.use(
+      '/assets',
+      express.static(path.join(staticDirectory, 'assets'), {
+        index: false,
+        maxAge: '1y',
+        immutable: true,
+        redirect: false,
+      }),
+    )
+    app.get(['/', '/how-it-works'], (req, res) => {
+      const file = req.path === '/' ? 'index.html' : 'how-it-works.html'
+      res.set('Cache-Control', 'no-cache').sendFile(path.join(staticDirectory, file))
+    })
+    app.use(
+      express.static(staticDirectory, {
+        index: false,
+        maxAge: '1h',
+        redirect: false,
+      }),
+    )
     app.get('/{*path}', (req, res, next) => {
       if (!req.accepts('html') || path.extname(req.path) || req.path.startsWith('/health/'))
         return next()
@@ -182,6 +214,8 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
     if (error instanceof AppError) {
       logger('error', 'http.error', {
         requestId: req.requestId,
+        method: req.method,
+        path: req.path,
         status: error.status,
         code: error.code,
       })
@@ -213,7 +247,13 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
             : code === 'ORIGIN_NOT_ALLOWED'
               ? 'Origin not allowed.'
               : 'Request could not be processed.'
-    logger('error', 'http.error', { requestId: req.requestId, status, code })
+    logger('error', 'http.error', {
+      requestId: req.requestId,
+      method: req.method,
+      path: req.path,
+      status,
+      code,
+    })
     res.status(status).json({ error: { code, message, requestId: req.requestId } })
   })
   return app

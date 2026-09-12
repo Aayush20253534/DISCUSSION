@@ -10,7 +10,8 @@
     "db:validate": "prisma validate",
     "db:migrate": "node scripts/migrate.js dev",
     "db:deploy": "node scripts/migrate.js deploy",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test:production": "node scripts/production-smoke.js"
   },
   "dependencies": {
     "@life-rpg/shared": "*",

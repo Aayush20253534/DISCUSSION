@@ -28,6 +28,43 @@ test('development starts without credentials, production rejects incomplete conf
   assert.throws(() => parseEnv({ TRUST_PROXY_HOPS: '-1' }), /TRUST_PROXY_HOPS/)
 })
 
+test('Render production defaults use the public service URL without weakening local validation', () => {
+  const render = parseEnv({
+    NODE_ENV: 'production',
+    RENDER: 'true',
+    RENDER_EXTERNAL_URL: 'https://life-rpg.onrender.com',
+    DATABASE_URL: 'postgresql://user:secret@localhost/db',
+    JWT_SECRET: 'render-production-secret-'.repeat(4),
+  })
+  assert.deepEqual(render.CLIENT_ORIGIN, ['https://life-rpg.onrender.com'])
+  assert.equal(render.PUBLIC_APP_URL, 'https://life-rpg.onrender.com')
+  assert.equal(render.TRUST_PROXY_HOPS, 1)
+
+  const customDomain = parseEnv({
+    NODE_ENV: 'production',
+    RENDER: 'true',
+    RENDER_EXTERNAL_URL: 'https://life-rpg.onrender.com',
+    CLIENT_ORIGIN: 'https://life.example',
+    PUBLIC_APP_URL: 'https://life.example',
+    DATABASE_URL: 'postgresql://user:secret@localhost/db',
+    JWT_SECRET: 'render-production-secret-'.repeat(4),
+  })
+  assert.deepEqual(customDomain.CLIENT_ORIGIN, ['https://life.example'])
+  assert.equal(customDomain.PUBLIC_APP_URL, 'https://life.example')
+
+  assert.throws(
+    () =>
+      parseEnv({
+        NODE_ENV: 'production',
+        RENDER: 'true',
+        RENDER_EXTERNAL_URL: 'http://life-rpg.onrender.com',
+        DATABASE_URL: 'postgresql://user:secret@localhost/db',
+        JWT_SECRET: 'render-production-secret-'.repeat(4),
+      }),
+    /CLIENT_ORIGIN|PUBLIC_APP_URL/,
+  )
+})
+
 test('environment errors never repeat database credentials', () => {
   assert.throws(
     () => parseEnv({ DATABASE_URL: 'https://user:super-secret@example.test/db' }),

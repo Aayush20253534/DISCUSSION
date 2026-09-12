@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: life-rpg
+    runtime: node
+    plan: free
+    region: ohio
+    branch: main
+    buildCommand: npm ci --workspaces --include-workspace-root --include=dev && npm run build && npm run db:deploy
+    startCommand: npm start
+    healthCheckPath: /health/ready
+    maxShutdownDelaySeconds: 15
+    envVars:
+      - key: NODE_VERSION
+        value: 24.14.1
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY_HOPS
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false

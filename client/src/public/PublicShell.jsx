@@ -18,6 +18,14 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
       previousPath.current = pathname
     }
   }, [pathname])
+  useEffect(() => {
+    if (!menuOpen) return
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [menuOpen])
   return (
     <div className="public-site">
       <a className="skip-link" href="#public-main">
@@ -35,11 +43,16 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
           className="public-menu-button"
           aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
           aria-expanded={menuOpen}
+          aria-controls="public-navigation"
           onClick={() => setMenuOpen((value) => !value)}
         >
           {menuOpen ? <X size={21} /> : <Menu size={21} />}
         </button>
-        <nav className={`public-nav ${menuOpen ? 'open' : ''}`} aria-label="Public navigation">
+        <nav
+          id="public-navigation"
+          className={`public-nav ${menuOpen ? 'open' : ''}`}
+          aria-label="Public navigation"
+        >
           <NavLink to="/" end onClick={() => setMenuOpen(false)}>
             Home
           </NavLink>

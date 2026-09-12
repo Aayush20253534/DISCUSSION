@@ -4,12 +4,14 @@ let refreshInFlight
 let localLock = Promise.resolve()
 
 export class ApiError extends Error {
-  constructor(message, status, code, fields) {
+  constructor(message, status, code, fields, requestId, retryAfter) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.code = code
     this.fields = fields || {}
+    this.requestId = requestId
+    this.retryAfter = retryAfter
   }
 }
 
@@ -30,6 +32,8 @@ async function request(path, { method = 'GET', body, signal, csrfToken } = {}) {
     })
   } catch (error) {
     if (signal?.aborted) throw error
+    if (error?.name === 'TimeoutError')
+      throw new ApiError('The server took too long to respond. Please try again.', 408, 'REQUEST_TIMEOUT')
     throw new ApiError('We could not reach the server. Please try again.', 0, 'NETWORK_ERROR')
   }
   let data
@@ -40,6 +44,8 @@ async function request(path, { method = 'GET', body, signal, csrfToken } = {}) {
       'The server returned an unexpected response.',
       response.status,
       'INVALID_RESPONSE',
+      undefined,
+      response.headers.get('X-Request-Id') || undefined,
     )
   }
   if (!response.ok)
@@ -48,6 +54,8 @@ async function request(path, { method = 'GET', body, signal, csrfToken } = {}) {
       response.status,
       data.error?.code,
       data.error?.fields,
+      data.error?.requestId || response.headers.get('X-Request-Id') || undefined,
+      response.headers.get('Retry-After') || undefined,
     )
   return data.data
 }

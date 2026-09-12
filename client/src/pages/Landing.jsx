@@ -23,6 +23,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { usePageMeta } from '../lib/meta.js'
+import '../public/landing.css'
 
 const progression = [
   { icon: Swords, title: 'Quests', copy: 'Turn goals into adventures' },

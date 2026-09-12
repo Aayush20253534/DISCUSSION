@@ -156,6 +156,7 @@ const differences = [
 export default function Landing() {
   const heroRef = useRef(null)
   const [lightning, setLightning] = useState(false)
+  const [stormPattern, setStormPattern] = useState(1)
   const [loaderPhase, setLoaderPhase] = useState('loading')
 
   usePageMeta({
@@ -280,33 +281,42 @@ export default function Landing() {
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    if (reducedMotion.matches) return undefined
+    if (reducedMotion.matches || loaderPhase !== 'done') return undefined
 
     let nextFlash
     let flashEnd
+    let introFlash
     let stopped = false
+
+    const fireStorm = (duration = 1850) => {
+      if (stopped) return
+      setStormPattern((current) => (current % 3) + 1)
+      setLightning(true)
+      flashEnd = window.setTimeout(() => {
+        if (stopped) return
+        setLightning(false)
+        scheduleFlash()
+      }, duration)
+    }
 
     const scheduleFlash = () => {
       const mobile = window.matchMedia('(max-width: 720px)').matches
-      const minimum = mobile ? 9000 : 8000
-      const delay = minimum + Math.random() * 7000
-      nextFlash = window.setTimeout(() => {
-        if (stopped) return
-        setLightning(true)
-        flashEnd = window.setTimeout(() => {
-          setLightning(false)
-          if (!stopped) scheduleFlash()
-        }, 430)
-      }, delay)
+      const minimum = mobile ? 6200 : 4300
+      const spread = mobile ? 5200 : 4600
+      nextFlash = window.setTimeout(() => fireStorm(2200 + Math.random() * 250), minimum + Math.random() * spread)
     }
 
-    scheduleFlash()
+    // The first storm arrives immediately after the loading veil clears so the
+    // static artwork reads as a living thunderstorm on refresh, not as wallpaper.
+    introFlash = window.setTimeout(() => fireStorm(2200), 180)
+
     return () => {
       stopped = true
+      window.clearTimeout(introFlash)
       window.clearTimeout(nextFlash)
       window.clearTimeout(flashEnd)
     }
-  }, [])
+  }, [loaderPhase])
 
   useEffect(() => {
     if (loaderPhase !== 'done') return undefined
@@ -398,7 +408,7 @@ export default function Landing() {
         <section
           ref={heroRef}
           id="top"
-          className={`landing-cinematic-hero ${lightning ? 'is-lightning' : ''} ${loaderPhase !== 'loading' ? 'is-revealed' : ''}`}
+          className={`landing-cinematic-hero storm-pattern-${stormPattern} ${lightning ? 'is-lightning' : ''} ${loaderPhase !== 'loading' ? 'is-revealed' : ''}`}
           aria-labelledby="landing-title"
         >
           <div className="landing-world" aria-hidden="true">
@@ -411,7 +421,35 @@ export default function Landing() {
           <div className="landing-scene-shade" aria-hidden="true" />
           <div className="landing-light-field" aria-hidden="true" />
           <div className="landing-lightning-flash" aria-hidden="true" />
-          <div className="landing-rain" aria-hidden="true" />
+          <div className="landing-storm-strikes" aria-hidden="true">
+            <span className="landing-cloud-flare flare-one" />
+            <span className="landing-cloud-flare flare-two" />
+            <span className="landing-cloud-flare flare-three" />
+
+            <svg className="landing-sky-bolt bolt-one" viewBox="0 0 260 520" preserveAspectRatio="none">
+              <path className="landing-sky-bolt-glow" d="M172 -8 L151 72 L174 96 L142 154 L159 182 L116 252 L133 277 L91 342 L105 367 L67 448 L77 524" />
+              <path className="landing-sky-bolt-core" d="M172 -8 L151 72 L174 96 L142 154 L159 182 L116 252 L133 277 L91 342 L105 367 L67 448 L77 524" />
+              <path className="landing-sky-bolt-branch" d="M142 154 L99 183 L72 231" />
+              <path className="landing-sky-bolt-branch" d="M116 252 L166 293 L194 340" />
+              <path className="landing-sky-bolt-branch" d="M91 342 L50 371 L28 414" />
+            </svg>
+
+            <svg className="landing-sky-bolt bolt-two" viewBox="0 0 220 430" preserveAspectRatio="none">
+              <path className="landing-sky-bolt-glow" d="M130 -8 L117 53 L137 75 L109 124 L124 145 L92 198 L106 219 L79 272 L88 295 L63 347 L69 432" />
+              <path className="landing-sky-bolt-core" d="M130 -8 L117 53 L137 75 L109 124 L124 145 L92 198 L106 219 L79 272 L88 295 L63 347 L69 432" />
+              <path className="landing-sky-bolt-branch" d="M109 124 L72 148 L51 184" />
+              <path className="landing-sky-bolt-branch" d="M92 198 L137 228 L159 264" />
+            </svg>
+
+            <svg className="landing-sky-bolt bolt-three" viewBox="0 0 190 360" preserveAspectRatio="none">
+              <path className="landing-sky-bolt-glow" d="M106 -6 L95 43 L111 61 L89 98 L103 118 L76 160 L88 179 L64 224 L73 242 L50 291 L56 362" />
+              <path className="landing-sky-bolt-core" d="M106 -6 L95 43 L111 61 L89 98 L103 118 L76 160 L88 179 L64 224 L73 242 L50 291 L56 362" />
+              <path className="landing-sky-bolt-branch" d="M89 98 L57 119 L38 151" />
+              <path className="landing-sky-bolt-branch" d="M76 160 L112 184 L132 213" />
+            </svg>
+          </div>
+          <div className="landing-rain landing-rain-far" aria-hidden="true" />
+          <div className="landing-rain landing-rain-near" aria-hidden="true" />
           <div className="landing-mist landing-mist-one" aria-hidden="true" />
           <div className="landing-mist landing-mist-two" aria-hidden="true" />
           <div className="landing-embers" aria-hidden="true">
@@ -472,6 +510,11 @@ export default function Landing() {
         </section>
 
         <div className="atlas-home">
+          <div className="atlas-global-atmosphere" aria-hidden="true">
+            <span className="atlas-world-dust" />
+            <span className="atlas-world-stars" />
+            <span className="atlas-journey-spine"><i /><i /><i /><i /><i /><i /></span>
+          </div>
           <section id="journey" className="atlas-section atlas-descent atlas-reveal" aria-labelledby="atlas-descent-title">
             <div className="atlas-atmosphere atlas-atmosphere-mist" aria-hidden="true" />
             <div className="atlas-stars" aria-hidden="true" />

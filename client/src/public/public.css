@@ -3301,3 +3301,778 @@
   .atlas-progress-meter b { width: var(--meter-value) !important; animation: none !important; }
   .atlas-final-road i { transform: translateX(-50%) scaleY(1) !important; animation: none !important; }
 }
+
+/* --------------------------------------------------------------------------
+   Storm + atlas depth polish
+   -------------------------------------------------------------------------- */
+
+/* The source artwork is intentionally preserved. A tiny translated overscan
+   lets the adventurer/world sit lower in the viewport without exposing an edge. */
+@media (min-width: 721px) {
+  .landing-world img {
+    transform: translate3d(0, 18px, 0) scale(var(--world-scale)) scale(1.035);
+    transform-origin: 52% 43%;
+  }
+}
+
+@media (min-width: 721px) and (max-height: 820px) {
+  .landing-world img {
+    object-position: center top;
+    transform: translate3d(0, 23px, 0) scale(var(--world-scale)) scale(1.045);
+    transform-origin: 52% 40%;
+  }
+}
+
+/* Real storm layer --------------------------------------------------------- */
+.landing-storm-strikes {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.landing-sky-bolt {
+  position: absolute;
+  overflow: visible;
+  opacity: 0;
+  will-change: opacity, filter, transform;
+  filter:
+    drop-shadow(0 0 3px rgba(240, 251, 255, .96))
+    drop-shadow(0 0 11px rgba(133, 205, 255, .72))
+    drop-shadow(0 0 28px rgba(74, 160, 222, .38));
+}
+
+.landing-sky-bolt path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.landing-sky-bolt-glow,
+.landing-sky-bolt-core {
+  stroke-dasharray: 760;
+  stroke-dashoffset: 760;
+}
+
+.landing-sky-bolt-glow {
+  stroke: rgba(118, 202, 255, .72);
+  stroke-width: 8.5;
+}
+
+.landing-sky-bolt-core {
+  stroke: rgba(247, 253, 255, .98);
+  stroke-width: 1.75;
+}
+
+.landing-sky-bolt-branch {
+  stroke: rgba(217, 241, 255, .86);
+  stroke-width: 1.1;
+  stroke-dasharray: 210;
+  stroke-dashoffset: 210;
+}
+
+.landing-sky-bolt.bolt-one {
+  top: -5%;
+  right: 19%;
+  width: min(18vw, 300px);
+  height: 66%;
+  transform: rotate(3deg);
+}
+
+.landing-sky-bolt.bolt-two {
+  top: -4%;
+  right: 2%;
+  width: min(14vw, 230px);
+  height: 52%;
+  transform: rotate(-5deg) scale(.92);
+}
+
+.landing-sky-bolt.bolt-three {
+  top: -2%;
+  right: 43%;
+  width: min(11vw, 185px);
+  height: 42%;
+  transform: rotate(8deg) scale(.82);
+}
+
+.landing-cloud-flare {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0;
+  filter: blur(18px);
+  will-change: opacity, transform;
+}
+
+.landing-cloud-flare.flare-one {
+  right: 11%;
+  top: -11%;
+  width: 43vw;
+  height: 42vh;
+  background: radial-gradient(ellipse, rgba(229, 247, 255, .7), rgba(127, 195, 239, .18) 31%, transparent 70%);
+}
+
+.landing-cloud-flare.flare-two {
+  right: -4%;
+  top: 4%;
+  width: 30vw;
+  height: 34vh;
+  background: radial-gradient(ellipse, rgba(218, 242, 255, .55), rgba(104, 177, 226, .13) 34%, transparent 72%);
+}
+
+.landing-cloud-flare.flare-three {
+  right: 36%;
+  top: -7%;
+  width: 27vw;
+  height: 28vh;
+  background: radial-gradient(ellipse, rgba(225, 246, 255, .45), rgba(108, 181, 229, .1) 33%, transparent 72%);
+}
+
+.landing-cinematic-hero.is-lightning .landing-lightning-flash {
+  animation: landing-hero-storm-flash 2.08s linear both;
+}
+
+.landing-cinematic-hero.is-lightning .bolt-one {
+  animation: landing-hero-strike-one 2.08s linear both;
+}
+
+.landing-cinematic-hero.is-lightning .bolt-two {
+  animation: landing-hero-strike-two 2.08s linear both;
+}
+
+.landing-cinematic-hero.is-lightning .bolt-three {
+  animation: landing-hero-strike-three 2.08s linear both;
+}
+
+.landing-cinematic-hero.is-lightning .bolt-one .landing-sky-bolt-glow,
+.landing-cinematic-hero.is-lightning .bolt-one .landing-sky-bolt-core {
+  animation: landing-hero-bolt-draw-one 2.08s linear both;
+}
+
+.landing-cinematic-hero.is-lightning .bolt-two .landing-sky-bolt-glow,
+.landing-cinematic-hero.is-lightning .bolt-two .landing-sky-bolt-core {
+  animation: landing-hero-bolt-draw-two 2.08s linear both;
+}
+
+.landing-cinematic-hero.is-lightning .bolt-three .landing-sky-bolt-glow,
+.landing-cinematic-hero.is-lightning .bolt-three .landing-sky-bolt-core {
+  animation: landing-hero-bolt-draw-three 2.08s linear both;
+}
+
+.landing-cinematic-hero.is-lightning .bolt-one .landing-sky-bolt-branch {
+  animation: landing-hero-branch-one 2.08s linear both;
+}
+
+.landing-cinematic-hero.is-lightning .bolt-two .landing-sky-bolt-branch {
+  animation: landing-hero-branch-two 2.08s linear both;
+}
+
+.landing-cinematic-hero.is-lightning .bolt-three .landing-sky-bolt-branch {
+  animation: landing-hero-branch-three 2.08s linear both;
+}
+
+.landing-cinematic-hero.is-lightning .flare-one { animation: landing-cloud-flare-one 2.08s linear both; }
+.landing-cinematic-hero.is-lightning .flare-two { animation: landing-cloud-flare-two 2.08s linear both; }
+.landing-cinematic-hero.is-lightning .flare-three { animation: landing-cloud-flare-three 2.08s linear both; }
+
+/* Alternate the physical strike locations a little so consecutive storms do
+   not look like the exact same GIF looping forever. */
+.storm-pattern-2 .bolt-one { right: 13%; transform: rotate(-1deg) scale(.96); }
+.storm-pattern-2 .bolt-two { right: 31%; transform: rotate(7deg) scale(.85); }
+.storm-pattern-2 .bolt-three { right: 1%; transform: rotate(-7deg) scale(.78); }
+.storm-pattern-2 .flare-one { right: 3%; }
+.storm-pattern-2 .flare-two { right: 25%; }
+
+.storm-pattern-3 .bolt-one { right: 27%; transform: rotate(6deg) scale(.94); }
+.storm-pattern-3 .bolt-two { right: -1%; transform: rotate(-2deg) scale(.9); }
+.storm-pattern-3 .bolt-three { right: 49%; transform: rotate(10deg) scale(.76); }
+.storm-pattern-3 .flare-one { right: 17%; }
+.storm-pattern-3 .flare-three { right: 42%; }
+
+/* Two rain depths create a more photographic sense of distance than one
+   repeated diagonal texture. The sunset side stays calmer by design. */
+.landing-rain {
+  top: -18%;
+  bottom: -22%;
+  right: -4%;
+  height: auto;
+  transform: rotate(1.5deg);
+  mask-image: linear-gradient(90deg, transparent 0, rgba(0,0,0,.22) 13%, #000 34%, #000 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, rgba(0,0,0,.22) 13%, #000 34%, #000 100%);
+  will-change: background-position, opacity;
+}
+
+.landing-rain-far {
+  left: 30%;
+  opacity: .17;
+  background-image:
+    repeating-linear-gradient(104deg, transparent 0 24px, rgba(210, 233, 244, .25) 24px 25px, transparent 25px 61px),
+    repeating-linear-gradient(105deg, transparent 0 38px, rgba(184, 216, 231, .13) 38px 39px, transparent 39px 86px);
+  background-size: 72px 205px, 101px 262px;
+  animation: landing-rain-far-fall .72s linear infinite;
+}
+
+.landing-rain-near {
+  left: 43%;
+  opacity: .23;
+  filter: blur(.12px);
+  background-image:
+    repeating-linear-gradient(103deg, transparent 0 43px, rgba(232, 245, 250, .34) 43px 44.5px, transparent 45px 104px),
+    repeating-linear-gradient(104deg, transparent 0 66px, rgba(200, 229, 240, .2) 66px 67.5px, transparent 68px 138px);
+  background-size: 118px 310px, 166px 390px;
+  animation: landing-rain-near-fall .49s linear infinite;
+}
+
+.landing-cinematic-hero.is-lightning .landing-world img {
+  animation: landing-storm-image-react 2.08s linear both;
+}
+
+.landing-cinematic-hero.is-lightning .landing-scene-shade {
+  animation: landing-storm-shade-react 2.08s linear both;
+}
+
+/* Atlas ambient world ------------------------------------------------------ */
+.atlas-global-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.atlas-world-dust,
+.atlas-world-stars {
+  position: absolute;
+  inset: 0;
+}
+
+.atlas-world-dust {
+  opacity: .16;
+  background-image:
+    radial-gradient(circle at 18% 12%, rgba(240, 206, 135, .72) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 72% 28%, rgba(174, 207, 221, .58) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 41% 66%, rgba(213, 175, 104, .48) 0 1px, transparent 1.3px),
+    radial-gradient(circle at 88% 82%, rgba(176, 204, 214, .46) 0 1px, transparent 1.4px);
+  background-size: 280px 310px, 360px 390px, 310px 350px, 430px 460px;
+  animation: atlas-world-dust-drift 34s linear infinite;
+  mask-image: linear-gradient(180deg, transparent 0 3%, #000 11%, #000 91%, transparent 99%);
+}
+
+.atlas-world-stars {
+  opacity: .1;
+  background:
+    radial-gradient(circle at 75% 17%, rgba(132, 177, 220, .48), transparent 1px),
+    radial-gradient(circle at 22% 41%, rgba(240, 206, 135, .4), transparent 1px),
+    radial-gradient(circle at 82% 62%, rgba(205, 231, 240, .38), transparent 1px),
+    radial-gradient(circle at 33% 79%, rgba(213, 175, 104, .38), transparent 1px);
+  background-size: 160px 170px, 230px 260px, 280px 300px, 340px 370px;
+  animation: atlas-world-stars-breathe 8s ease-in-out infinite alternate;
+}
+
+.atlas-journey-spine {
+  position: absolute;
+  top: 4.5%;
+  bottom: 8%;
+  left: clamp(18px, 3vw, 52px);
+  width: 1px;
+  opacity: .32;
+  background: linear-gradient(transparent, rgba(213, 175, 104, .14) 4%, rgba(213, 175, 104, .38) 45%, rgba(131, 167, 216, .2) 76%, transparent);
+  box-shadow: 0 0 18px rgba(213, 175, 104, .08);
+}
+
+.atlas-journey-spine::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: -8px;
+  width: 15px;
+  height: 15px;
+  border: 1px solid rgba(213, 175, 104, .4);
+  transform: rotate(45deg);
+  box-shadow: 0 0 16px rgba(213, 175, 104, .15);
+}
+
+.atlas-journey-spine i {
+  position: absolute;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba(213, 175, 104, .5);
+  background: #07131b;
+  transform: translate(-50%, -50%) rotate(45deg);
+  box-shadow: 0 0 0 4px rgba(213, 175, 104, .025), 0 0 15px rgba(213, 175, 104, .12);
+  animation: atlas-spine-waypoint 4.8s ease-in-out infinite;
+}
+
+.atlas-journey-spine i:nth-child(1) { top: 10%; animation-delay: 0s; }
+.atlas-journey-spine i:nth-child(2) { top: 27%; animation-delay: -.8s; }
+.atlas-journey-spine i:nth-child(3) { top: 44%; animation-delay: -1.6s; }
+.atlas-journey-spine i:nth-child(4) { top: 61%; animation-delay: -2.4s; }
+.atlas-journey-spine i:nth-child(5) { top: 78%; animation-delay: -3.2s; }
+.atlas-journey-spine i:nth-child(6) { top: 94%; animation-delay: -4s; }
+
+.atlas-section-inner::after {
+  content: 'ATLAS // WAYPOINT';
+  position: absolute;
+  top: -40px;
+  right: 0;
+  color: rgba(170, 183, 183, .19);
+  font-size: 5.5px;
+  font-weight: 700;
+  letter-spacing: 2.2px;
+  pointer-events: none;
+}
+
+.atlas-core .atlas-section-inner::after { content: 'ROUTE // CORE LOOP'; }
+.atlas-realms .atlas-section-inner::after { content: 'REGION MAP // FIVE REALMS'; }
+.atlas-character .atlas-section-inner::after { content: 'ADVENTURER RECORD // LIVE'; }
+.atlas-relics .atlas-section-inner::after { content: 'VAULT // RELICS & REWARDS'; }
+.atlas-market .atlas-section-inner::after { content: 'EMPORIUM // TRADING POST'; }
+.atlas-chronicle .atlas-section-inner::after { content: 'CHRONICLE // JOURNEY TRACE'; }
+.atlas-difference .atlas-section-inner::after { content: 'FIELD NOTES // WHY IT WORKS'; }
+
+.atlas-core::after,
+.atlas-character::after,
+.atlas-market::after,
+.atlas-chronicle::after,
+.atlas-difference::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.atlas-core::after {
+  right: -12vw;
+  top: 9%;
+  width: 42vw;
+  aspect-ratio: 1;
+  border: 1px solid rgba(213, 175, 104, .045);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 56px rgba(213, 175, 104, .018),
+    0 0 0 118px rgba(213, 175, 104, .012);
+  animation: atlas-cartography-turn 48s linear infinite;
+}
+
+.atlas-character::after {
+  left: 4%;
+  top: 15%;
+  width: 18vw;
+  height: 62%;
+  opacity: .18;
+  background: linear-gradient(100deg, transparent, rgba(131, 167, 216, .2), transparent 72%);
+  filter: blur(28px);
+  transform: skewX(-13deg);
+  animation: atlas-moonbeam 10s ease-in-out infinite alternate;
+}
+
+.atlas-market::after {
+  left: 50%;
+  bottom: 6%;
+  width: min(880px, 80vw);
+  height: 130px;
+  transform: translateX(-50%);
+  opacity: .2;
+  background: radial-gradient(ellipse, rgba(196, 110, 77, .24), rgba(213, 175, 104, .07) 34%, transparent 70%);
+  filter: blur(24px);
+  animation: atlas-market-firelight 5.5s ease-in-out infinite alternate;
+}
+
+.atlas-chronicle::after {
+  inset: 12% 5% auto auto;
+  width: 250px;
+  height: 250px;
+  border: 1px solid rgba(131, 167, 216, .07);
+  border-radius: 50%;
+  box-shadow: inset 0 0 70px rgba(131, 167, 216, .025), 0 0 0 34px rgba(131, 167, 216, .018);
+  animation: atlas-chronicle-orbit 26s linear infinite;
+}
+
+.atlas-difference::after {
+  left: 7%;
+  right: 7%;
+  top: 55%;
+  height: 1px;
+  opacity: .2;
+  background: linear-gradient(90deg, transparent, #d5af68 24%, transparent 35%, transparent 64%, #83a7d8 78%, transparent);
+  box-shadow: 0 0 14px rgba(213, 175, 104, .08);
+}
+
+/* More depth on the interactive artifacts without turning everything into a
+   glowing dashboard. */
+.atlas-quest-crest,
+.atlas-realm-marker,
+.atlas-level-crest,
+.atlas-chronicle-feed article > span {
+  position: relative;
+}
+
+.atlas-realm-marker::after,
+.atlas-level-crest::after,
+.atlas-chronicle-feed article > span::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border: 1px solid rgba(213, 175, 104, .08);
+  border-radius: inherit;
+  opacity: 0;
+  transform: scale(.78);
+  transition: opacity .28s ease, transform .35s ease;
+}
+
+.atlas-realm:hover .atlas-realm-marker::after,
+.atlas-realm:focus .atlas-realm-marker::after,
+.atlas-character-card:hover .atlas-level-crest::after,
+.atlas-chronicle-feed article:hover > span::after {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.atlas-world-map {
+  box-shadow: inset 0 0 90px rgba(6, 16, 22, .35), 0 36px 100px rgba(0, 0, 0, .12);
+}
+
+.atlas-realms.is-visible .atlas-map-routes path {
+  filter: drop-shadow(0 0 4px rgba(213, 175, 104, .12));
+}
+
+.atlas-realm-marker::before {
+  animation: atlas-region-pulse 4.4s ease-in-out infinite;
+}
+
+.atlas-character-card {
+  box-shadow: 0 34px 90px rgba(0, 0, 0, .22), inset 0 0 60px rgba(131, 167, 216, .018);
+}
+
+.atlas-character-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(213, 175, 104, .28);
+  box-shadow: 0 40px 110px rgba(0, 0, 0, .28), 0 0 60px rgba(131, 167, 216, .035), inset 0 0 70px rgba(213, 175, 104, .022);
+}
+
+.atlas-character-card::selection { background: rgba(213, 175, 104, .25); }
+
+.atlas-relic-art svg,
+.atlas-market-item-art svg {
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .28));
+  transition: transform .35s ease, filter .35s ease;
+}
+
+.atlas-relic:hover .atlas-relic-art svg,
+.atlas-market-item:hover .atlas-market-item-art svg {
+  transform: translateY(-4px) scale(1.06);
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .32)) drop-shadow(0 0 12px rgba(213, 175, 104, .18));
+}
+
+.atlas-relic::before,
+.atlas-market-item::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+
+.atlas-relic::before {
+  inset: 0;
+  background: linear-gradient(112deg, transparent 28%, rgba(240, 206, 135, .08) 47%, transparent 64%);
+  transform: translateX(-70%);
+}
+
+.atlas-relic:hover::before {
+  opacity: 1;
+  animation: atlas-artifact-sheen .85s ease both;
+}
+
+.atlas-market-item::after {
+  inset: 1px;
+  background: radial-gradient(circle at 50% 38%, rgba(213, 175, 104, .09), transparent 43%);
+}
+
+.atlas-market-item:hover::after { opacity: 1; }
+
+.atlas-streak-grid i.is-active {
+  box-shadow: 0 0 0 1px rgba(213, 175, 104, .06), 0 0 10px rgba(213, 175, 104, .05);
+}
+
+.atlas-chronicle.is-visible .atlas-streak-grid i.is-strong {
+  animation: atlas-strong-day 3.8s ease-in-out infinite;
+}
+
+.atlas-difference-panel {
+  overflow: hidden;
+  transition: transform .3s ease, border-color .3s ease, background .3s ease;
+}
+
+.atlas-difference-panel::after {
+  content: '';
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  right: -55px;
+  bottom: -55px;
+  border: 1px solid rgba(213, 175, 104, .07);
+  border-radius: 50%;
+  box-shadow: 0 0 0 25px rgba(213, 175, 104, .018);
+  transition: transform .4s ease, border-color .3s ease;
+}
+
+.atlas-difference-panel:hover {
+  transform: translateY(-4px);
+  border-top-color: rgba(240, 206, 135, .55);
+  background: linear-gradient(180deg, rgba(213, 175, 104, .055), rgba(7, 17, 23, .08));
+}
+
+.atlas-difference-panel:hover::after {
+  transform: scale(1.14);
+  border-color: rgba(213, 175, 104, .13);
+}
+
+.atlas-final-castle {
+  filter: drop-shadow(0 -10px 20px rgba(131, 167, 216, .1));
+  animation: atlas-castle-breathe 6.5s ease-in-out infinite alternate;
+}
+
+.atlas-final-castle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -74px;
+  width: 1px;
+  height: 88px;
+  transform: translateX(-50%);
+  background: linear-gradient(transparent, rgba(131, 167, 216, .22), rgba(205, 232, 255, .5));
+  box-shadow: 0 0 18px rgba(131, 167, 216, .16);
+  opacity: .45;
+  animation: atlas-beacon 4s ease-in-out infinite;
+}
+
+/* Animations --------------------------------------------------------------- */
+@keyframes landing-hero-storm-flash {
+  0%, 3% { opacity: 0; }
+  5.5% { opacity: .92; }
+  8% { opacity: .08; }
+  11.5% { opacity: .64; }
+  15% { opacity: .04; }
+  31% { opacity: 0; }
+  34.5% { opacity: .56; }
+  37% { opacity: .05; }
+  40.5% { opacity: .34; }
+  48% { opacity: 0; }
+  61% { opacity: 0; }
+  64% { opacity: .66; }
+  67% { opacity: .04; }
+  70% { opacity: .31; }
+  78%, 100% { opacity: 0; }
+}
+
+@keyframes landing-hero-strike-one {
+  0%, 4% { opacity: 0; }
+  5.5% { opacity: 1; }
+  8% { opacity: .1; }
+  11.5% { opacity: .95; }
+  15% { opacity: .06; }
+  18% { opacity: .55; }
+  23%, 100% { opacity: 0; }
+}
+
+@keyframes landing-hero-strike-two {
+  0%, 32% { opacity: 0; }
+  34.5% { opacity: .95; }
+  37% { opacity: .08; }
+  40.5% { opacity: .78; }
+  45%, 100% { opacity: 0; }
+}
+
+@keyframes landing-hero-strike-three {
+  0%, 61% { opacity: 0; }
+  64% { opacity: .94; }
+  67% { opacity: .06; }
+  70% { opacity: .68; }
+  75%, 100% { opacity: 0; }
+}
+
+@keyframes landing-hero-bolt-draw-one {
+  0%, 4% { stroke-dashoffset: 760; }
+  7%, 18% { stroke-dashoffset: 0; }
+  23%, 100% { stroke-dashoffset: -24; }
+}
+
+@keyframes landing-hero-bolt-draw-two {
+  0%, 32% { stroke-dashoffset: 760; }
+  36%, 42% { stroke-dashoffset: 0; }
+  47%, 100% { stroke-dashoffset: -24; }
+}
+
+@keyframes landing-hero-bolt-draw-three {
+  0%, 61% { stroke-dashoffset: 760; }
+  65%, 72% { stroke-dashoffset: 0; }
+  77%, 100% { stroke-dashoffset: -24; }
+}
+
+@keyframes landing-hero-branch-one {
+  0%, 6% { stroke-dashoffset: 210; }
+  10%, 19% { stroke-dashoffset: 0; }
+  24%, 100% { stroke-dashoffset: -18; }
+}
+
+@keyframes landing-hero-branch-two {
+  0%, 34% { stroke-dashoffset: 210; }
+  38%, 43% { stroke-dashoffset: 0; }
+  48%, 100% { stroke-dashoffset: -18; }
+}
+
+@keyframes landing-hero-branch-three {
+  0%, 63% { stroke-dashoffset: 210; }
+  67%, 73% { stroke-dashoffset: 0; }
+  78%, 100% { stroke-dashoffset: -18; }
+}
+
+@keyframes landing-cloud-flare-one {
+  0%, 3% { opacity: 0; transform: scale(.8); }
+  6% { opacity: .88; transform: scale(1.05); }
+  9% { opacity: .08; }
+  12% { opacity: .58; transform: scale(1.1); }
+  23%, 100% { opacity: 0; transform: scale(1.18); }
+}
+
+@keyframes landing-cloud-flare-two {
+  0%, 32% { opacity: 0; transform: scale(.84); }
+  35% { opacity: .68; transform: scale(1.04); }
+  38% { opacity: .06; }
+  41% { opacity: .4; }
+  49%, 100% { opacity: 0; transform: scale(1.14); }
+}
+
+@keyframes landing-cloud-flare-three {
+  0%, 61% { opacity: 0; transform: scale(.84); }
+  64% { opacity: .72; transform: scale(1.05); }
+  67% { opacity: .05; }
+  70% { opacity: .34; }
+  79%, 100% { opacity: 0; transform: scale(1.15); }
+}
+
+@keyframes landing-rain-far-fall {
+  from { background-position: 0 -230px, 30px -340px; }
+  to { background-position: -72px 205px, -71px 262px; }
+}
+
+@keyframes landing-rain-near-fall {
+  from { background-position: 0 -340px, 50px -470px; }
+  to { background-position: -118px 310px, -116px 390px; }
+}
+
+@keyframes landing-storm-image-react {
+  0%, 4%, 16%, 32%, 46%, 61%, 75%, 100% { filter: brightness(1) saturate(1); }
+  6% { filter: brightness(1.14) saturate(.96) contrast(1.03); }
+  12% { filter: brightness(1.07) saturate(.98); }
+  35% { filter: brightness(1.08) saturate(.97); }
+  64% { filter: brightness(1.09) saturate(.97); }
+}
+
+@keyframes landing-storm-shade-react {
+  0%, 4%, 16%, 32%, 46%, 61%, 75%, 100% { opacity: 1; }
+  6%, 35%, 64% { opacity: .72; }
+}
+
+@keyframes atlas-world-dust-drift {
+  from { background-position: 0 0, 0 0, 0 0, 0 0; }
+  to { background-position: 80px -130px, -60px -105px, 45px -145px, -90px -120px; }
+}
+
+@keyframes atlas-world-stars-breathe {
+  from { opacity: .055; filter: brightness(.9); }
+  to { opacity: .145; filter: brightness(1.25); }
+}
+
+@keyframes atlas-spine-waypoint {
+  0%, 100% { opacity: .35; box-shadow: 0 0 0 3px rgba(213, 175, 104, .02), 0 0 8px rgba(213, 175, 104, .06); }
+  50% { opacity: .88; box-shadow: 0 0 0 6px rgba(213, 175, 104, .03), 0 0 18px rgba(213, 175, 104, .18); }
+}
+
+@keyframes atlas-cartography-turn { to { transform: rotate(360deg); } }
+
+@keyframes atlas-moonbeam {
+  from { opacity: .08; transform: translateX(-16%) skewX(-13deg); }
+  to { opacity: .23; transform: translateX(24%) skewX(-13deg); }
+}
+
+@keyframes atlas-market-firelight {
+  from { opacity: .11; transform: translateX(-50%) scale(.94); }
+  to { opacity: .28; transform: translateX(-50%) scale(1.08); }
+}
+
+@keyframes atlas-chronicle-orbit { to { transform: rotate(360deg); } }
+
+@keyframes atlas-region-pulse {
+  0%, 100% { opacity: .34; transform: scale(.82); }
+  50% { opacity: .72; transform: scale(1.18); }
+}
+
+@keyframes atlas-artifact-sheen {
+  from { transform: translateX(-72%); }
+  to { transform: translateX(72%); }
+}
+
+@keyframes atlas-strong-day {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(240, 206, 135, .12), 0 0 7px rgba(240, 206, 135, .08); }
+  50% { box-shadow: 0 0 0 1px rgba(240, 206, 135, .24), 0 0 14px rgba(240, 206, 135, .18); }
+}
+
+@keyframes atlas-castle-breathe {
+  from { opacity: .33; filter: drop-shadow(0 -10px 16px rgba(131, 167, 216, .06)); }
+  to { opacity: .46; filter: drop-shadow(0 -14px 28px rgba(131, 167, 216, .16)); }
+}
+
+@keyframes atlas-beacon {
+  0%, 100% { opacity: .22; transform: translateX(-50%) scaleY(.82); }
+  50% { opacity: .62; transform: translateX(-50%) scaleY(1.08); }
+}
+
+@media (max-width: 980px) {
+  .atlas-journey-spine { display: none; }
+  .atlas-section-inner::after { right: 4px; top: -29px; }
+}
+
+@media (max-width: 720px) {
+  .landing-storm-strikes { opacity: .72; }
+  .landing-sky-bolt.bolt-one { right: -4%; width: 47vw; height: 49%; }
+  .landing-sky-bolt.bolt-two { right: 43%; width: 34vw; height: 37%; }
+  .landing-sky-bolt.bolt-three { display: none; }
+  .landing-rain-far { left: 40%; opacity: .1; }
+  .landing-rain-near { left: 58%; opacity: .12; }
+  .atlas-global-atmosphere { opacity: .7; }
+  .atlas-section-inner::after { display: none; }
+  .atlas-core::after,
+  .atlas-character::after,
+  .atlas-market::after,
+  .atlas-chronicle::after,
+  .atlas-difference::after { opacity: .55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-storm-strikes,
+  .landing-cloud-flare,
+  .landing-rain,
+  .atlas-world-dust,
+  .atlas-world-stars,
+  .atlas-journey-spine i,
+  .atlas-core::after,
+  .atlas-character::after,
+  .atlas-market::after,
+  .atlas-chronicle::after,
+  .atlas-realm-marker::before,
+  .atlas-chronicle.is-visible .atlas-streak-grid i.is-strong,
+  .atlas-final-castle,
+  .atlas-final-castle::after {
+    animation: none !important;
+  }
+
+  .landing-storm-strikes { display: none; }
+  .landing-rain { opacity: .04; }
+  .atlas-world-dust,
+  .atlas-world-stars { opacity: .05; }
+}

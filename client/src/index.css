@@ -205,6 +205,28 @@ svg {
   border-color: #4b4635;
   box-shadow: inset 2px 0 #ddbd7d;
 }
+.sidebar-signout {
+  margin-top: 4px;
+  color: #c9b0a6;
+}
+.sidebar-signout svg {
+  color: #d09a7f;
+}
+.sidebar-signout:hover:not(:disabled) {
+  color: #f0d4c6;
+  background: #2a201f;
+  border-color: #4a3730;
+}
+.sidebar-signout:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+.sidebar-signout-error {
+  margin: 6px 12px 0;
+  color: #e6a69a;
+  font-size: 9px;
+  line-height: 1.45;
+}
 .sidebar-bottom {
   margin-top: auto;
 }
@@ -904,7 +926,8 @@ h1 em {
 .sidebar-collapsed .nav-link > span,
 .sidebar-collapsed .journey-note,
 .sidebar-collapsed .sidebar-profile > span,
-.sidebar-collapsed .sidebar-profile > svg:last-child {
+.sidebar-collapsed .sidebar-profile > svg:last-child,
+.sidebar-collapsed .sidebar-signout-error {
   display: none;
 }
 .sidebar-collapsed .nav-link {

@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Compass,
   HelpCircle,
+  LogOut,
   Map,
   PanelLeftClose,
   PanelLeftOpen,
@@ -34,7 +35,8 @@ const navigation = [
 ]
 
 export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }) {
-  const { user } = useAuth()
+  const auth = useAuth()
+  const { user } = auth
   const { moving } = useInteractionFeedback()
   useQuestSync()
   useEconomySync()
@@ -44,6 +46,8 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const equippedThemeKey = equippedTheme?.assetKey
   const [collapsed, setCollapsed] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
+  const [signOutError, setSignOutError] = useState('')
   const { pathname } = useLocation()
   const mainRef = useRef(null)
   const guideReturnFocusRef = useRef(null)
@@ -77,6 +81,18 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
       previousPath.current = pathname
     }
   }, [pathname, user])
+
+  async function signOut() {
+    if (signingOut) return
+    setSigningOut(true)
+    setSignOutError('')
+    try {
+      await auth.logout()
+    } catch (error) {
+      setSignOutError(error?.message || 'Could not sign out. Please try again.')
+      setSigningOut(false)
+    }
+  }
 
   const privatePath = ['/quests', '/activity', '/character', '/marketplace', '/inventory', '/settings'].some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
@@ -151,6 +167,24 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
               <HelpCircle size={19} />
               <span>Field guide</span>
             </button>
+            {user && (
+              <button
+                type="button"
+                className="nav-link sidebar-signout"
+                onClick={signOut}
+                disabled={signingOut}
+                aria-label={signingOut ? 'Signing out' : 'Sign out'}
+                title={collapsed ? (signingOut ? 'Signing out…' : 'Sign out') : undefined}
+              >
+                <LogOut size={19} />
+                <span>{signingOut ? 'Signing out…' : 'Sign out'}</span>
+              </button>
+            )}
+            {signOutError && user && (
+              <p className="sidebar-signout-error" role="alert">
+                {signOutError}
+              </p>
+            )}
           </nav>
           <NavLink
             to="/character"

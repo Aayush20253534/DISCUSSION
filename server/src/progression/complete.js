@@ -182,6 +182,16 @@ export async function completeQuest(
         },
         select: completionSelect,
       })
+      await tx.currencyTransaction.create({
+        data: {
+          userId,
+          type: 'QUEST_REWARD',
+          amount: reward.gold,
+          balanceAfter: updated.gold,
+          questCompletionId: receipt.id,
+          createdAt: completedAt,
+        },
+      })
       const latestQuest = await tx.quest.findFirst({ where: owned, select: questSelect })
       return {
         newlyCompleted: true,

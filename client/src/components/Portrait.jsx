@@ -3,14 +3,20 @@ const palettes = {
   scholar: ['#2d304b', '#58638a', '#7c86aa', '#adb5d0'],
   guardian: ['#44322d', '#8a6250', '#b48261', '#c8ac83'],
 }
-export default function Portrait({ className = '', avatarKey = 'wanderer' }) {
+const frameColors = {
+  moonlit: ['#c9c6f3', '#8793c9'],
+  evergreen: ['#a9c894', '#597c66'],
+  ember: ['#e6b071', '#985d45'],
+}
+export default function Portrait({ className = '', avatarKey = 'wanderer', frameKey }) {
   const palette = palettes[avatarKey] || palettes.wanderer
+  const frame = frameColors[frameKey]
   return (
     <svg
-      className={`portrait ${className}`}
+      className={`portrait ${frameKey ? `portrait-frame portrait-frame-${frameKey}` : ''} ${className}`}
       viewBox="0 0 160 160"
       role="img"
-      aria-label={`${avatarKey}, a cloaked adventurer`}
+      aria-label={`${avatarKey}, a cloaked adventurer${frameKey ? ` with ${frameKey} frame` : ''}`}
     >
       <circle cx="80" cy="80" r="77" fill={palette[0]} />
       <circle cx="80" cy="80" r="67" fill="none" stroke="#668071" strokeOpacity=".4" />
@@ -24,6 +30,16 @@ export default function Portrait({ className = '', avatarKey = 'wanderer' }) {
       <circle cx="80" cy="111" r="5" fill="#d3b471" />
       <path d="m115 108 7 27" stroke="#baa178" strokeWidth="7" />
       <path d="m114 103 4-16 8-2 2 9-7 10" stroke="#baa178" strokeWidth="4" fill="none" />
+      {frame && (
+        <>
+          <circle cx="80" cy="80" r="75" fill="none" stroke={frame[0]} strokeWidth="3" />
+          <circle cx="80" cy="80" r="71" fill="none" stroke={frame[1]} strokeOpacity=".72" strokeWidth="1.5" strokeDasharray={frameKey === 'ember' ? '4 6' : '2 8'} />
+          <circle cx="80" cy="5" r="3" fill={frame[0]} />
+          <circle cx="155" cy="80" r="3" fill={frame[0]} />
+          <circle cx="80" cy="155" r="3" fill={frame[0]} />
+          <circle cx="5" cy="80" r="3" fill={frame[0]} />
+        </>
+      )}
     </svg>
   )
 }

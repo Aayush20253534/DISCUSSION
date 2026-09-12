@@ -12,6 +12,7 @@ import { createActivityRouter } from './activity/router.js'
 import { createProgressionRouter } from './progression/router.js'
 import { createQuestRouter } from './quests/router.js'
 import { createAccountRouter } from './auth/router.js'
+import { createEconomyRouter } from './economy/router.js'
 
 export function createApp({ config, database, staticDirectory, logger = log, clock }) {
   const app = express()
@@ -109,6 +110,7 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
   app.use(`${API_PREFIX}/quests`, createQuestRouter({ config, database, clock }))
   app.use(`${API_PREFIX}/activity`, createActivityRouter({ config, database, clock }))
   app.use(`${API_PREFIX}/progress`, createProgressionRouter({ config, database }))
+  app.use(API_PREFIX, createEconomyRouter({ config, database }))
   // Unknown API routes must never return the SPA's HTML.
   app.use('/api', (req, res) =>
     res.status(404).json({

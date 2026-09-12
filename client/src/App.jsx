@@ -6,6 +6,7 @@ import AppShell from './components/AppShell.jsx'
 import AuthProvider from './auth/AuthProvider.jsx'
 import AccountGate from './auth/AccountGate.jsx'
 import './auth.css'
+import './economy/economy.css'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { PageSkeleton } from './components/ui.jsx'
 import { readMotionPreference, saveMotionPreference } from './lib/preferences.js'
@@ -17,6 +18,7 @@ const Quests = lazy(() => import('./pages/Quests.jsx'))
 const Activity = lazy(() => import('./pages/Activity.jsx'))
 const Character = lazy(() => import('./pages/Character.jsx'))
 const Marketplace = lazy(() => import('./pages/Marketplace.jsx'))
+const Inventory = lazy(() => import('./pages/Inventory.jsx'))
 const Settings = lazy(() => import('./pages/Settings.jsx'))
 const NotFound = lazy(() => import('./pages/NotFound.jsx'))
 const queryClient = new QueryClient({
@@ -57,6 +59,7 @@ export default function App() {
                           <Route path="activity" element={<Activity />} />
                           <Route path="character" element={<Character />} />
                           <Route path="marketplace" element={<Marketplace />} />
+                          <Route path="inventory" element={<Inventory />} />
                           <Route path="settings" element={<Settings />} />
                         </Route>
                         <Route path="*" element={<NotFound />} />

@@ -29,6 +29,20 @@ const publicSelect = {
       attributes: { select: { key: true, xp: true }, orderBy: { key: 'asc' } },
     },
   },
+  equipment: {
+    select: {
+      slot: true,
+      inventoryItem: {
+        select: {
+          id: true,
+          shopItem: {
+            select: { id: true, name: true, type: true, rarity: true, assetKey: true },
+          },
+        },
+      },
+    },
+    orderBy: { slot: 'asc' },
+  },
 }
 const unauthorized = () => new AppError(401, 'AUTH_REQUIRED', 'Please sign in to continue.')
 

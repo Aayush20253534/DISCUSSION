@@ -3,6 +3,7 @@ import { ATTRIBUTES, characterProgress } from '@life-rpg/shared'
 import Portrait from '../components/Portrait.jsx'
 import { AttributeIcon, PageHeading } from '../components/ui.jsx'
 import { useAuth } from '../auth/useAuth.js'
+import { equippedItem } from '../economy/equipment.js'
 import { useProgress } from '../progression/hooks.js'
 import ProgressMeter from '../progression/ProgressMeter.jsx'
 import ProgressNotice from '../progression/ProgressNotice.jsx'
@@ -15,6 +16,9 @@ export default function Character() {
   const { user } = useAuth()
   const progress = useProgress()
   const character = progress.data?.character || characterProgress(user.character)
+  const equippedFrame = equippedItem(user, 'AVATAR_FRAME')
+  const equippedTitle = equippedItem(user, 'CHARACTER_TITLE')
+  const equippedBadge = equippedItem(user, 'PROFILE_BADGE')
   return (
     <div className="page growth-character-page" key={user.id}>
       <PageHeading
@@ -30,12 +34,13 @@ export default function Character() {
       <div className="character-layout">
         <section className="panel character-feature">
           <div className="eyebrow">YOUR CHARACTER</div>
-          <Portrait avatarKey={character.avatarKey} />
+          <Portrait avatarKey={character.avatarKey} frameKey={equippedFrame?.assetKey} />
           <h2>{user.displayName}</h2>
           <span className="character-title">
             <Compass size={15} />
-            Seeker of small wonders
+            {equippedTitle?.name || 'Seeker of small wonders'}
           </span>
+          {equippedBadge && <span className="equipped-badge">✦ {equippedBadge.name}</span>}
           <p>A curious soul, a well-worn notebook, and a whole world of possibilities.</p>
           <div className="character-feature-stats" aria-label="Saved character totals">
             <div>

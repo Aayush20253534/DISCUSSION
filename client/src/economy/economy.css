@@ -1,0 +1,156 @@
+:root[data-reward-theme='moonlit'] {
+  --gold: #c9c6f3;
+  --green: #9eb3d8;
+  --line: #333a56;
+}
+:root[data-reward-theme='moonlit'] body { background: #111522; }
+:root[data-reward-theme='moonlit'] .sidebar { background: #111521; }
+:root[data-reward-theme='moonlit'] .workspace { background: radial-gradient(ellipse at 84% 10%, #282e555c, transparent 55%), #151827; }
+:root[data-reward-theme='verdant'] {
+  --gold: #d3c88d;
+  --green: #9bc790;
+  --line: #304638;
+}
+:root[data-reward-theme='verdant'] body { background: #0f1d19; }
+:root[data-reward-theme='verdant'] .sidebar { background: #0d1916; }
+:root[data-reward-theme='verdant'] .workspace { background: radial-gradient(ellipse at 84% 10%, #264b3659, transparent 55%), #10201a; }
+:root[data-reward-theme='ember'] {
+  --gold: #e6b071;
+  --green: #bd9b74;
+  --line: #4d3932;
+}
+:root[data-reward-theme='ember'] body { background: #1b1515; }
+:root[data-reward-theme='ember'] .sidebar { background: #1a1314; }
+:root[data-reward-theme='ember'] .workspace { background: radial-gradient(ellipse at 84% 10%, #5a30295c, transparent 55%), #211818; }
+:root[data-reward-theme] .nav-link.active { color: var(--gold); box-shadow: inset 2px 0 var(--gold); }
+
+.reward-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 210px;
+  overflow: hidden;
+  color: #d1c28f;
+  background: radial-gradient(circle at 50% 54%, #695d3f58, transparent 45%), #202b35;
+}
+.reward-art > svg { position: relative; z-index: 2; }
+.reward-art-moonlit,
+.reward-art-starlit-focus { color: #c9c6f3; background: radial-gradient(circle at 50% 54%, #756aa966, transparent 45%), #202536; }
+.reward-art-evergreen,
+.reward-art-forest-keeper,
+.reward-art-verdant { color: #afd2a4; background: radial-gradient(circle at 50% 54%, #49704f66, transparent 46%), #20342d; }
+.reward-art-ember { color: #e6b071; background: radial-gradient(circle at 50% 54%, #9b624f66, transparent 46%), #362825; }
+.reward-art-unbroken-thread { color: #b5cbd0; background: radial-gradient(circle at 50% 54%, #57717c66, transparent 46%), #213039; }
+.reward-art-keeper-momentum,
+.reward-art-golden-beginning { color: #e6c67e; background: radial-gradient(circle at 50% 54%, #8a744c66, transparent 46%), #333126; }
+.reward-art-quietly-unstoppable { color: #d8b5dc; background: radial-gradient(circle at 50% 54%, #80588766, transparent 46%), #33243a; }
+.reward-art.compact { width: 62px; height: 62px; min-width: 62px; border-radius: 10px; }
+.reward-art.compact .item-orbit { width: 42px; height: 42px; }
+.reward-art.compact .orbit-two { width: 54px; height: 54px; }
+.market-actions,
+.inventory-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.reward-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.reward-filters button {
+  border: 1px solid #3d4e48;
+  background: #17262a;
+  color: #aebdb6;
+  border-radius: 999px;
+  padding: 9px 13px;
+  font-size: 10px;
+}
+.reward-filters button.active { color: #171f20; background: var(--gold); border-color: var(--gold); }
+.item-label-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.rarity { font-size: 7px; letter-spacing: 1.4px; border: 1px solid #4c5a54; border-radius: 999px; padding: 4px 7px; color: #a8b5ae; }
+.rarity-rare { color: #c9c6f3; border-color: #65618a; }
+.rarity-epic { color: #e5b184; border-color: #7a5a46; }
+.item-state { min-height: 24px; margin-top: 14px; font-size: 10px; color: #91a79d; }
+.item-state span { display: inline-flex; align-items: center; gap: 6px; }
+.item-card.owned { border-color: #5f6650; box-shadow: inset 0 0 0 1px #d4bd7733; }
+.market-success,
+.economy-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 12px 15px;
+  border: 1px solid #476456;
+  background: #20362d;
+  color: #cbdccc;
+  border-radius: 7px;
+  font-size: 11px;
+}
+.economy-notice { border-color: #725148; background: #3a2524; flex-wrap: wrap; }
+.economy-notice strong { width: 100%; }
+.economy-notice span { color: #c9b6b1; }
+.market-skeleton { height: 430px; }
+.purchase-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #3b4944; margin: 18px 0; border: 1px solid #3b4944; }
+.purchase-summary span { background: #18272b; padding: 15px; color: #99aca4; font-size: 10px; }
+.purchase-summary strong { display: block; margin-top: 5px; color: var(--gold); font: 22px var(--font-display); }
+.economy-empty { min-height: 240px; display: grid; place-items: center; align-content: center; gap: 10px; text-align: center; padding: 30px; color: #9db0a7; }
+.economy-empty h2 { font: 27px var(--font-display); color: #e0e3d8; }
+.economy-empty p { font-size: 11px; }
+
+.inventory-topline { border-top: 1px solid #33433f; border-bottom: 1px solid #33433f; padding: 15px 0; }
+.inventory-topline > span { display: flex; gap: 8px; align-items: center; color: #a9b9b1; font-size: 11px; }
+.inventory-topline strong { color: var(--gold); font-size: 18px; }
+.equipment-strip { margin: 20px 0; overflow: hidden; }
+.compact-heading { padding-top: 18px; padding-bottom: 14px; }
+.equipment-slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: #33433f; border-top: 1px solid #33433f; }
+.equipment-slot { display: flex; align-items: center; gap: 12px; padding: 16px; background: #17262a; min-width: 0; }
+.equipment-slot small { display: block; font-size: 7px; letter-spacing: 1.2px; color: #82958d; text-transform: uppercase; }
+.equipment-slot strong { display: block; margin-top: 5px; font-size: 11px; color: #d5ddd4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.empty-slot { width: 62px; height: 62px; min-width: 62px; display: grid; place-items: center; border: 1px dashed #465852; border-radius: 10px; color: #667a72; }
+.inventory-filters { margin: 24px 0 18px; }
+.inventory-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.inventory-card { display: grid; grid-template-columns: 62px minmax(0, 1fr) auto; align-items: center; gap: 15px; padding: 16px; }
+.inventory-card.equipped { border-color: #6b6b4b; box-shadow: inset 3px 0 var(--gold); }
+.inventory-card-copy { min-width: 0; }
+.inventory-card-copy h2 { font: 23px var(--font-display); margin: 4px 0 5px; }
+.inventory-card-copy p { color: #97aaa2; font-size: 10px; line-height: 1.6; }
+.inventory-card-copy > small { display: block; color: #72867e; margin-top: 8px; font-size: 8px; }
+.inventory-skeleton { height: 112px; }
+.economy-action-error { margin: 15px 0; }
+.wallet-panel { margin-top: 24px; overflow: hidden; }
+.wallet-list { padding: 0 20px 10px; }
+.wallet-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; border-top: 1px solid #33433f; padding: 14px 0; }
+.wallet-row > div strong { display: block; font-size: 11px; }
+.wallet-row > div small,
+.wallet-row > small { color: #7d9188; font-size: 8px; margin-top: 3px; }
+.wallet-row > span:nth-last-child(2) { font-size: 11px; font-weight: 600; }
+.wallet-sign { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: #263833; }
+.wallet-row .earned { color: #9dcc9d; }
+.wallet-row .spent { color: #d3ad85; }
+.wallet-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 0 20px 20px; color: #869991; font-size: 9px; }
+.equipped-badge,
+.dashboard-badge { display: inline-flex; align-items: center; gap: 5px; color: var(--gold); border: 1px solid #5d5a43; background: #2b2a224f; border-radius: 999px; padding: 5px 9px; font-size: 8px; letter-spacing: .5px; }
+.dashboard-badge { margin: 0 auto 8px; }
+.portrait-frame { filter: drop-shadow(0 0 8px #d9c58c2b); }
+
+@media (max-width: 1100px) {
+  .equipment-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .inventory-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .market-actions,
+  .inventory-topline { align-items: stretch; flex-direction: column; }
+  .market-actions .button,
+  .inventory-topline .button { justify-content: center; }
+  .reward-filters { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+  .reward-filters button { white-space: nowrap; }
+  .equipment-slots { grid-template-columns: 1fr; }
+  .inventory-card { grid-template-columns: 54px minmax(0, 1fr); }
+  .inventory-card .reward-art.compact { width: 54px; height: 54px; min-width: 54px; }
+  .inventory-card > .button { grid-column: 1 / -1; justify-content: center; }
+  .wallet-row { grid-template-columns: 28px minmax(0, 1fr) auto; gap: 9px; }
+  .wallet-row > small { display: none; }
+  .purchase-summary { grid-template-columns: 1fr; }
+}
+@media (max-width: 1020px) and (min-width: 761px) {
+  .item-card > .reward-art { height: 100%; min-height: 230px; }
+}

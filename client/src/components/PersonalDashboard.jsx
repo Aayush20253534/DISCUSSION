@@ -7,6 +7,7 @@ import ProgressNotice from '../progression/ProgressNotice.jsx'
 import StreakCard from '../activity/StreakCard.jsx'
 import DashboardQuests from '../quests/DashboardQuests.jsx'
 import { useAuth } from '../auth/useAuth.js'
+import { equippedItem } from '../economy/equipment.js'
 import Landscape from './Landscape.jsx'
 import Portrait from './Portrait.jsx'
 import { AttributeIcon, PageHeading, SectionLink } from './ui.jsx'
@@ -15,6 +16,9 @@ export default function PersonalDashboard() {
   const { user } = useAuth()
   const progress = useProgress()
   const character = progress.data?.character || characterProgress(user.character)
+  const equippedFrame = equippedItem(user, 'AVATAR_FRAME')
+  const equippedTitle = equippedItem(user, 'CHARACTER_TITLE')
+  const equippedBadge = equippedItem(user, 'PROFILE_BADGE')
   const level = character.progression.level
   return (
     <div className="page dashboard-page">
@@ -73,11 +77,12 @@ export default function PersonalDashboard() {
             YOUR ADVENTURER <span>READY</span>
           </div>
           <div className="portrait-ring">
-            <Portrait avatarKey={character.avatarKey} />
+            <Portrait avatarKey={character.avatarKey} frameKey={equippedFrame?.assetKey} />
             <span className="level-medallion">{String(level).padStart(2, '0')}</span>
           </div>
           <h2>{user.displayName}</h2>
-          <p className="character-subtitle">Curious soul. Endless possibilities.</p>
+          <p className="character-subtitle">{equippedTitle?.name || 'Curious soul. Endless possibilities.'}</p>
+          {equippedBadge && <span className="dashboard-badge">✦ {equippedBadge.name}</span>}
           <ProgressMeter progress={character.progression} />
           <Link className="character-link" to="/settings">
             Your account & preferences <ArrowRight size={16} />

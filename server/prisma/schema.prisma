@@ -26,6 +26,9 @@ model User {
   character    Character?
   quests       Quest[]
   completions  QuestCompletion[]
+  inventoryItems InventoryItem[]
+  equipment      CharacterEquipment[]
+  currencyTransactions CurrencyTransaction[]
 
   @@map("users")
 }
@@ -148,11 +151,107 @@ model QuestCompletion {
   attributeXpAfter     Int             @map("attribute_xp_after")
   user                 User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   quest                Quest?          @relation(fields: [questId], references: [id], onDelete: SetNull)
+  currencyTransaction  CurrencyTransaction?
 
+  @@unique([id, userId])
   @@index([userId, completedAt, id])
   @@index([questId])
   @@index([originalQuestId, scheduledDate])
   @@index([userId, attribute, completedAt, id])
   @@index([userId, completedDate, completedAt, id], map: "quest_completions_user_activity_idx")
   @@map("quest_completions")
+}
+
+
+enum ShopItemType {
+  AVATAR_FRAME
+  PROFILE_BADGE
+  CHARACTER_TITLE
+  THEME
+}
+
+enum ItemRarity {
+  COMMON
+  RARE
+  EPIC
+}
+
+enum EquipmentSlot {
+  AVATAR_FRAME
+  PROFILE_BADGE
+  CHARACTER_TITLE
+  THEME
+}
+
+enum CurrencyTransactionType {
+  QUEST_REWARD
+  SHOP_PURCHASE
+}
+
+model ShopItem {
+  id             String          @id @default(uuid()) @db.Uuid
+  sku            String          @unique @db.VarChar(64)
+  name           String          @db.VarChar(80)
+  description    String          @db.VarChar(400)
+  type           ShopItemType
+  rarity         ItemRarity      @default(COMMON)
+  price          Int
+  assetKey       String          @map("asset_key") @db.VarChar(64)
+  sortOrder      Int             @default(0) @map("sort_order")
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  inventoryItems InventoryItem[]
+
+  @@index([active, type, sortOrder, id])
+  @@map("shop_items")
+}
+
+model InventoryItem {
+  id                  String               @id @default(uuid()) @db.Uuid
+  userId              String               @map("user_id") @db.Uuid
+  shopItemId          String               @map("shop_item_id") @db.Uuid
+  pricePaid           Int                  @map("price_paid")
+  purchasedAt         DateTime             @default(now()) @map("purchased_at") @db.Timestamptz(3)
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopItem            ShopItem             @relation(fields: [shopItemId], references: [id], onDelete: Restrict)
+  equipment           CharacterEquipment?
+  currencyTransaction CurrencyTransaction?
+
+  @@unique([userId, shopItemId])
+  @@unique([id, userId])
+  @@index([userId, purchasedAt, id])
+  @@index([shopItemId])
+  @@map("inventory_items")
+}
+
+model CharacterEquipment {
+  id              String        @id @default(uuid()) @db.Uuid
+  userId          String        @map("user_id") @db.Uuid
+  slot            EquipmentSlot
+  inventoryItemId String        @unique @map("inventory_item_id") @db.Uuid
+  equippedAt      DateTime      @default(now()) @map("equipped_at") @db.Timestamptz(3)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, slot])
+  @@index([userId, equippedAt])
+  @@map("character_equipment")
+}
+
+model CurrencyTransaction {
+  id                String                  @id @default(uuid()) @db.Uuid
+  userId            String                  @map("user_id") @db.Uuid
+  type              CurrencyTransactionType
+  amount            Int
+  balanceAfter      Int                     @map("balance_after")
+  questCompletionId String?                 @unique @map("quest_completion_id") @db.Uuid
+  inventoryItemId   String?                 @unique @map("inventory_item_id") @db.Uuid
+  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questCompletion   QuestCompletion?        @relation(fields: [questCompletionId], references: [id], onDelete: Cascade)
+  inventoryItem     InventoryItem?          @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt, id])
+  @@map("currency_transactions")
 }

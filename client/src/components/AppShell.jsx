@@ -15,6 +15,8 @@ import {
   UserRound,
 } from 'lucide-react'
 import { useQuestSync } from '../quests/hooks.js'
+import { useEconomySync } from '../economy/hooks.js'
+import { equippedItem } from '../economy/equipment.js'
 import Portrait from './Portrait.jsx'
 import { useAuth } from '../auth/useAuth.js'
 import { Modal, PageSkeleton } from './ui.jsx'
@@ -30,15 +32,30 @@ const navigation = [
 export default function AppShell({ gentleMotion, setGentleMotion }) {
   const { user } = useAuth()
   useQuestSync()
+  useEconomySync()
+  const equippedFrame = equippedItem(user, 'AVATAR_FRAME')
+  const equippedTitle = equippedItem(user, 'CHARACTER_TITLE')
+  const equippedTheme = equippedItem(user, 'THEME')
+  const equippedThemeKey = equippedTheme?.assetKey
   const [collapsed, setCollapsed] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
   const { pathname } = useLocation()
   const mainRef = useRef(null)
   const previousPath = useRef(pathname)
   useEffect(() => {
+    const key = equippedThemeKey
+    if (key) document.documentElement.dataset.rewardTheme = key
+    else delete document.documentElement.dataset.rewardTheme
+    return () => delete document.documentElement.dataset.rewardTheme
+  }, [equippedThemeKey])
+  useEffect(() => {
     const title =
       navigation.find(({ to }) => to === pathname)?.label ||
-      (pathname === '/settings' ? 'Preferences' : 'Lost in the woods')
+      (pathname === '/inventory'
+        ? 'Inventory'
+        : pathname === '/settings'
+          ? 'Preferences'
+          : 'Lost in the woods')
     document.title = `${title} · Life RPG`
     if (previousPath.current !== pathname) {
       mainRef.current?.focus({ preventScroll: true })
@@ -112,10 +129,10 @@ export default function AppShell({ gentleMotion, setGentleMotion }) {
             className="sidebar-profile"
             aria-label={user ? 'View your character' : 'Sign in to create a character'}
           >
-            <Portrait avatarKey={user?.character?.avatarKey} />
+            <Portrait avatarKey={user?.character?.avatarKey} frameKey={equippedFrame?.assetKey} />
             <span>
               <strong>{user?.displayName || 'Your story starts here'}</strong>
-              <small>{user ? 'Your adventurer' : 'Create your character'}</small>
+              <small>{user ? equippedTitle?.name || 'Your adventurer' : 'Create your character'}</small>
             </span>
             <ChevronRight size={15} />
           </NavLink>
@@ -214,9 +231,9 @@ export default function AppShell({ gentleMotion, setGentleMotion }) {
           </li>
         </ol>
         <div className="modal-note">
-          Complete a saved quest to earn XP and gold, then watch your character and chosen attribute
-          grow. Track your daily streak in Activity. Marketplace purchases arrive in a later
-          chapter. Preview examples do not change your progress.
+          Complete saved quests to earn XP and gold, keep your streak alive in Activity, then spend
+          gold on cosmetic rewards in the Marketplace. Owned rewards can be equipped from Inventory
+          without changing your XP or gameplay power.
         </div>
         <button className="button button-gold full-width" onClick={() => setGuideOpen(false)}>
           Let’s explore <Compass size={16} />

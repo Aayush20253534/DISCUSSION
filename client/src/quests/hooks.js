@@ -50,6 +50,8 @@ export function useQuestSync() {
         void client.invalidateQueries({ queryKey: ['progress', user.id] })
         void client.invalidateQueries({ queryKey: ['auth', 'me'] })
       }
+      if (data.economyChanged)
+        void client.invalidateQueries({ queryKey: ['economy', user.id] })
     }
     return () => channel.close()
   }, [user, client])
@@ -74,13 +76,16 @@ export function useQuestMutation() {
       if (accountId && accountId === client.getQueryData(['auth', 'me'])?.user?.id) {
         void client.invalidateQueries({ queryKey: ['quests', accountId] })
         const progressChanged = ['complete', 'delete'].includes(variables.action)
+        const economyChanged = variables.action === 'complete'
         if (progressChanged) {
           void client.invalidateQueries({ queryKey: ['progress', accountId] })
           void client.invalidateQueries({ queryKey: ['auth', 'me'] })
         }
+        if (economyChanged)
+          void client.invalidateQueries({ queryKey: ['economy', accountId] })
         if ('BroadcastChannel' in window) {
           const channel = new BroadcastChannel('life-rpg-quests')
-          channel.postMessage({ userId: accountId, progressChanged })
+          channel.postMessage({ userId: accountId, progressChanged, economyChanged })
           channel.close()
         }
       }

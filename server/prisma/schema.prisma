@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AttributeKey {
+  INTELLECT
+  STRENGTH
+  DISCIPLINE
+  CREATIVITY
+  VITALITY
+}
+
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique @db.VarChar(254)
+  passwordHash String    @map("password_hash")
+  displayName  String    @map("display_name") @db.VarChar(40)
+  timezone     String    @default("UTC") @db.VarChar(80)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  sessions     Session[]
+  character    Character?
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid
+  tokenHash String   @unique @map("token_hash") @db.VarChar(64)
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Character {
+  id         String               @id @default(uuid()) @db.Uuid
+  userId     String               @unique @map("user_id") @db.Uuid
+  avatarKey  String               @default("wanderer") @map("avatar_key") @db.VarChar(40)
+  totalXp    Int                  @default(0) @map("total_xp")
+  gold       Int                  @default(0)
+  createdAt  DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attributes CharacterAttribute[]
+
+  @@map("characters")
+}
+
+model CharacterAttribute {
+  id          String       @id @default(uuid()) @db.Uuid
+  characterId String       @map("character_id") @db.Uuid
+  key         AttributeKey
+  xp          Int          @default(0)
+  character   Character    @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@unique([characterId, key])
+  @@map("character_attributes")
+}

@@ -1,0 +1,17 @@
+notes.txt
+*.zip
+*.patch
+node_modules
+
+# Life RPG foundation
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+server/generated/

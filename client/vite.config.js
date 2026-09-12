@@ -11,6 +11,8 @@ export default defineConfig({
     proxy: {
       '/api': 'http://127.0.0.1:4000',
       '/health': 'http://127.0.0.1:4000',
+      '/robots.txt': 'http://127.0.0.1:4000',
+      '/sitemap.xml': 'http://127.0.0.1:4000',
     },
   },
 })

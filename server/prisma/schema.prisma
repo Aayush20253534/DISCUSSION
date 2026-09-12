@@ -39,9 +39,11 @@ model Session {
   userId    String   @map("user_id") @db.Uuid
   expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  userAgent String?  @map("user_agent") @db.VarChar(300)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, createdAt, id], map: "sessions_user_created_id_idx")
   @@index([expiresAt])
   @@map("sessions")
 }

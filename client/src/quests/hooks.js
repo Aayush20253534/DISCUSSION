@@ -46,6 +46,7 @@ export function useQuestSync() {
     channel.onmessage = ({ data }) => {
       if (data?.userId !== user.id) return
       void client.invalidateQueries({ queryKey: ['quests', user.id] })
+      void client.invalidateQueries({ queryKey: ['dashboard', user.id] })
       if (data.progressChanged) {
         void client.invalidateQueries({ queryKey: ['progress', user.id] })
         void client.invalidateQueries({ queryKey: ['auth', 'me'] })
@@ -75,6 +76,7 @@ export function useQuestMutation() {
       const accountId = context?.accountId
       if (accountId && accountId === client.getQueryData(['auth', 'me'])?.user?.id) {
         void client.invalidateQueries({ queryKey: ['quests', accountId] })
+        void client.invalidateQueries({ queryKey: ['dashboard', accountId] })
         const progressChanged = ['complete', 'delete'].includes(variables.action)
         const economyChanged = variables.action === 'complete'
         if (progressChanged) {

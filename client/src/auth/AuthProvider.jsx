@@ -63,6 +63,20 @@ export default function AuthProvider({ children }) {
     async onboard(body) {
       return accept(await apiSend('/api/v1/me/onboarding', body, 'PUT'))
     },
+    async updateProfile(body) {
+      return accept(await apiSend('/api/v1/me/profile', body, 'PUT'))
+    },
+    async changePassword(body) {
+      return apiSend('/api/v1/me/password', body, 'PUT')
+    },
+    async revokeSession(sessionId) {
+      const result = await apiSend(`/api/v1/me/sessions/${sessionId}`, {}, 'DELETE')
+      if (result.currentRevoked) await accept({ user: null })
+      return result
+    },
+    async revokeOtherSessions() {
+      return apiSend('/api/v1/me/sessions/revoke-others', {}, 'POST')
+    },
     async logout(all = false) {
       if (all) await apiGet('/api/v1/auth/me')
       await authAction(all ? 'logout-all' : 'logout')

@@ -28,6 +28,7 @@ export const useWallet = (page = 1, limit = 8) =>
 function refreshEconomy(client, userId) {
   void client.invalidateQueries({ queryKey: ['economy', userId] })
   void client.invalidateQueries({ queryKey: ['progress', userId] })
+  void client.invalidateQueries({ queryKey: ['dashboard', userId] })
   void client.invalidateQueries({ queryKey: ['auth', 'me'] })
   if ('BroadcastChannel' in window) {
     const channel = new BroadcastChannel('life-rpg-economy')
@@ -73,6 +74,7 @@ export function useEconomySync() {
       if (data?.userId !== user.id) return
       void client.invalidateQueries({ queryKey: ['economy', user.id] })
       void client.invalidateQueries({ queryKey: ['progress', user.id] })
+      void client.invalidateQueries({ queryKey: ['dashboard', user.id] })
       void client.invalidateQueries({ queryKey: ['auth', 'me'] })
     }
     return () => channel.close()

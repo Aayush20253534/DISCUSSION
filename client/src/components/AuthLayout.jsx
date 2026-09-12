@@ -1,17 +1,19 @@
-import { useContext, useEffect } from 'react'
+import { useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { Compass, ArrowLeft, Sparkles } from 'lucide-react'
 import { motion, MotionConfigContext, useReducedMotion } from 'motion/react'
 import Landscape from './Landscape.jsx'
+import { usePageMeta } from '../lib/meta.js'
 
 export default function AuthLayout({ title, eyebrow, description, children }) {
   const reducedMotion = useReducedMotion()
   const motionConfig = useContext(MotionConfigContext)
   const animate = !reducedMotion && motionConfig.reducedMotion !== 'always'
-  useEffect(() => {
-    document.title = `${title} · Life RPG`
-    window.scrollTo({ top: 0, behavior: 'instant' })
-  }, [title])
+  usePageMeta({
+    title: `${title} · Life RPG`,
+    description: 'Secure Life RPG account access.',
+    noindex: true,
+  })
   return (
     <main className="auth-page">
       <section className="auth-story" aria-label="Your everyday adventure">

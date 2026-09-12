@@ -24,6 +24,7 @@ test('development starts without credentials, production rejects incomplete conf
   assert.throws(() => parseEnv({ PORT: 'abc' }), /PORT/)
   assert.throws(() => parseEnv({ CLIENT_ORIGIN: 'https://example.com/' }), /CLIENT_ORIGIN/)
   assert.throws(() => parseEnv({ CLIENT_ORIGIN: '*' }), /CLIENT_ORIGIN/)
+  assert.throws(() => parseEnv({ PUBLIC_APP_URL: 'https://example.com/path' }), /PUBLIC_APP_URL/)
   assert.throws(() => parseEnv({ TRUST_PROXY_HOPS: '-1' }), /TRUST_PROXY_HOPS/)
 })
 
@@ -108,6 +109,7 @@ test('production serves nested SPA links but does not disguise missing API route
   const dir = await mkdtemp(path.join(tmpdir(), 'life-rpg-spa-'))
   try {
     await writeFile(path.join(dir, 'index.html'), '<!doctype html><title>Life RPG</title>')
+    await writeFile(path.join(dir, 'how-it-works.html'), '<!doctype html><title>How it works</title><h1>Prerendered guide</h1>')
     const app = createApp({
       config,
       database: { ping: async () => true },
@@ -116,6 +118,11 @@ test('production serves nested SPA links but does not disguise missing API route
     })
     const page = await request(app).get('/character').set('Accept', 'text/html').expect(200)
     assert.match(page.text, /Life RPG/)
+    assert.match(page.headers['x-robots-tag'], /noindex/)
+    const publicPage = await request(app).get('/how-it-works').set('Accept', 'text/html').expect(200)
+    assert.match(publicPage.text, /Prerendered guide/)
+    assert.equal(publicPage.headers.location, undefined)
+    assert.equal(publicPage.headers['x-robots-tag'], undefined)
     const missing = await request(app).get('/api/v1/unknown').set('Accept', 'text/html').expect(404)
     assert.equal(missing.body.error.code, 'NOT_FOUND')
     await request(app).get('/missing.js').expect(404)
@@ -136,4 +143,18 @@ test('production sets a restrictive content security policy', async () => {
   const response = await request(app).get('/health').expect(200)
   assert.match(response.headers['content-security-policy'], /script-src 'self'/)
   assert.ok(response.headers['strict-transport-security'])
+})
+
+test('robots and sitemap expose only public marketing routes', async () => {
+  const seoConfig = parseEnv({ NODE_ENV: 'test', PUBLIC_APP_URL: 'https://life.example' })
+  const app = createApp({ config: seoConfig, database: { ping: async () => true }, logger })
+  const robots = await request(app).get('/robots.txt').expect(200)
+  assert.match(robots.text, /Sitemap: https:\/\/life\.example\/sitemap\.xml/)
+  assert.match(robots.text, /Disallow: \/api\//)
+  assert.equal(robots.text.includes('Disallow: /settings'), false)
+  const sitemap = await request(app).get('/sitemap.xml').expect(200)
+  assert.match(sitemap.text, /https:\/\/life\.example\/<\/loc>/)
+  assert.match(sitemap.text, /https:\/\/life\.example\/how-it-works<\/loc>/)
+  assert.equal(sitemap.text.includes('/settings'), false)
+  assert.equal(sitemap.text.includes('/quests'), false)
 })

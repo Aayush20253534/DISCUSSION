@@ -20,6 +20,8 @@ import { equippedItem } from '../economy/equipment.js'
 import Portrait from './Portrait.jsx'
 import { useAuth } from '../auth/useAuth.js'
 import { Modal, PageSkeleton } from './ui.jsx'
+import PublicShell from '../public/PublicShell.jsx'
+import { applyPageMeta } from '../lib/meta.js'
 
 const navigation = [
   { to: '/', label: 'Overview', icon: Map },
@@ -29,7 +31,7 @@ const navigation = [
   { to: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
 ]
 
-export default function AppShell({ gentleMotion, setGentleMotion }) {
+export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }) {
   const { user } = useAuth()
   useQuestSync()
   useEconomySync()
@@ -49,20 +51,42 @@ export default function AppShell({ gentleMotion, setGentleMotion }) {
     return () => delete document.documentElement.dataset.rewardTheme
   }, [equippedThemeKey])
   useEffect(() => {
-    const title =
-      navigation.find(({ to }) => to === pathname)?.label ||
-      (pathname === '/inventory'
-        ? 'Inventory'
-        : pathname === '/settings'
-          ? 'Preferences'
-          : 'Lost in the woods')
-    document.title = `${title} · Life RPG`
+    const publicMarketing = !user && (pathname === '/' || pathname === '/how-it-works')
+    if (!publicMarketing) {
+      const title =
+        navigation.find(({ to }) => to === pathname)?.label ||
+        (pathname === '/inventory'
+          ? 'Inventory'
+          : pathname === '/settings'
+            ? 'Preferences'
+            : 'Lost in the woods')
+      applyPageMeta({
+        title: `${title} · Life RPG`,
+        description: 'Private Life RPG account area.',
+        path: pathname,
+        noindex: true,
+      })
+    }
     if (previousPath.current !== pathname) {
       mainRef.current?.focus({ preventScroll: true })
       window.scrollTo({ top: 0, behavior: 'instant' })
       previousPath.current = pathname
     }
-  }, [pathname])
+  }, [pathname, user])
+
+  const privatePath = ['/quests', '/activity', '/character', '/marketplace', '/inventory', '/settings'].some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  )
+  if (!user && !privatePath) {
+    return (
+      <PublicShell
+        gentleMotion={gentleMotion}
+        setGentleMotion={setGentleMotion}
+        soundEnabled={soundEnabled}
+        setSoundEnabled={setSoundEnabled}
+      />
+    )
+  }
 
   return (
     <div className={`app-shell ${collapsed ? 'sidebar-collapsed' : ''}`}>
@@ -173,7 +197,7 @@ export default function AppShell({ gentleMotion, setGentleMotion }) {
         </header>
         <main id="main-content" tabIndex={-1} ref={mainRef}>
           <Suspense fallback={<PageSkeleton />}>
-            <Outlet context={{ gentleMotion, setGentleMotion }} />
+            <Outlet context={{ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }} />
           </Suspense>
         </main>
         <footer className="app-footer">

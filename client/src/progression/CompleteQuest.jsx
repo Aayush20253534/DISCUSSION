@@ -20,7 +20,7 @@ import ProgressMeter from './ProgressMeter.jsx'
 import RewardPreview from './RewardPreview.jsx'
 import './progression.css'
 
-export default function CompleteQuest({ quest, onClose }) {
+export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLabel = 'Back to journal' }) {
   const contentRef = useRef(null)
   const [current, setCurrent] = useState(quest)
   const [result, setResult] = useState(null)
@@ -88,8 +88,10 @@ export default function CompleteQuest({ quest, onClose }) {
           ref={contentRef}
           className={`dialog-content completion-dialog ${result ? 'completion-earned' : ''}`}
           onCloseAutoFocus={(event) => {
+            const target = returnFocusRef?.current || document.querySelector('[data-quest-focus]')
+            if (!target) return
             event.preventDefault()
-            document.querySelector('[data-quest-focus]')?.focus()
+            target.focus()
           }}
         >
           <button
@@ -176,7 +178,7 @@ export default function CompleteQuest({ quest, onClose }) {
               <ProgressMeter progress={result.character.progression} />
               <div className="completion-actions">
                 <button className="button button-gold" onClick={close}>
-                  Back to journal
+                  {closeLabel}
                   <ArrowRight size={16} />
                 </button>
                 <Link className="text-link" to="/character">

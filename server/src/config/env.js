@@ -34,6 +34,21 @@ const schema = z
           )
           .min(1),
       ),
+    PUBLIC_APP_URL: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z
+        .string()
+        .url()
+        .refine((value) => {
+          try {
+            const url = new URL(value)
+            return ['http:', 'https:'].includes(url.protocol) && url.origin === value
+          } catch {
+            return false
+          }
+        }, 'Use an exact origin without a trailing slash')
+        .optional(),
+    ),
     DATABASE_URL: optionalDatabaseUrl,
     DIRECT_URL: optionalDatabaseUrl,
     JWT_SECRET: z.preprocess(
@@ -67,6 +82,17 @@ const schema = z
         code: 'custom',
         path: ['CLIENT_ORIGIN'],
         message: 'Use HTTPS origins in production',
+      })
+    }
+    if (
+      value.NODE_ENV === 'production' &&
+      value.PUBLIC_APP_URL &&
+      !value.PUBLIC_APP_URL.startsWith('https://')
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['PUBLIC_APP_URL'],
+        message: 'Use an HTTPS public origin in production',
       })
     }
   })

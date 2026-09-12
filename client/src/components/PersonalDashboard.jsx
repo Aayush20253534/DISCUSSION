@@ -1,166 +1,209 @@
-import { ArrowRight, Coins, Compass, Sparkles } from 'lucide-react'
+import {
+  ArrowRight,
+  CheckCheck,
+  Coins,
+  Compass,
+  Flame,
+  RefreshCw,
+  Sparkles,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { ATTRIBUTES, characterProgress } from '@life-rpg/shared'
-import { useProgress } from '../progression/hooks.js'
-import ProgressMeter from '../progression/ProgressMeter.jsx'
-import ProgressNotice from '../progression/ProgressNotice.jsx'
-import StreakCard from '../activity/StreakCard.jsx'
-import DashboardQuests from '../quests/DashboardQuests.jsx'
+import { ATTRIBUTES, formatActivityDate } from '@life-rpg/shared'
 import { useAuth } from '../auth/useAuth.js'
 import { equippedItem } from '../economy/equipment.js'
-import Landscape from './Landscape.jsx'
+import { useDashboard } from '../dashboard/hooks.js'
+import DashboardSkeleton from '../dashboard/DashboardSkeleton.jsx'
+import FirstJourney from '../dashboard/FirstJourney.jsx'
+import RecentJourney from '../dashboard/RecentJourney.jsx'
+import TodayQuests from '../dashboard/TodayQuests.jsx'
+import WeeklyActivity from '../dashboard/WeeklyActivity.jsx'
+import ProgressMeter from '../progression/ProgressMeter.jsx'
 import Portrait from './Portrait.jsx'
 import { AttributeIcon, PageHeading, SectionLink } from './ui.jsx'
+import '../dashboard/dashboard.css'
 
 export default function PersonalDashboard() {
   const { user } = useAuth()
-  const progress = useProgress()
-  const character = progress.data?.character || characterProgress(user.character)
+  const dashboard = useDashboard()
+  const data = dashboard.data
   const equippedFrame = equippedItem(user, 'AVATAR_FRAME')
   const equippedTitle = equippedItem(user, 'CHARACTER_TITLE')
   const equippedBadge = equippedItem(user, 'PROFILE_BADGE')
-  const level = character.progression.level
+
   return (
-    <div className="page dashboard-page">
+    <div className="page dashboard-page dashboard-page-authenticated" key={user.id}>
       <PageHeading
-        eyebrow="WELCOME TO YOUR NEXT CHAPTER"
+        eyebrow="YOUR ADVENTURE, TODAY"
         title={
           <>
-            Your story, <em>still unfolding.</em>
+            Welcome back, <em>{user.displayName}.</em>
           </>
         }
-        description={`Welcome, ${user.displayName}. Make a little room for the person you want to become.`}
+        description={
+          data
+            ? `${formatActivityDate(data.today)} · ${data.timezone.replaceAll('_', ' ')}. Your saved progress is gathered here in one place.`
+            : 'Your quests, growth, streaks, rewards, and recent progress are gathered here in one place.'
+        }
       >
-        <span className="chapter-badge">
-          <Compass size={16} /> CHAPTER 05 <span>·</span> YOUR ADVENTURE
-        </span>
+        {dashboard.isFetching && data ? (
+          <span className="dashboard-updating" role="status">
+            <RefreshCw className="spin" size={13} /> Refreshing
+          </span>
+        ) : (
+          <span className="chapter-badge">
+            <Compass size={16} /> CHAPTER 08 <span>·</span> ADVENTURE DASHBOARD
+          </span>
+        )}
       </PageHeading>
-      <div className="account-welcome">
-        <Sparkles size={17} /> Every small effort adds to your story.
-        <Link to="/character">
-          {progress.isError
-            ? 'View your growth'
-            : progress.isPending
-              ? 'Your progress'
-              : `${progress.data.completedCount} ${progress.data.completedCount === 1 ? 'quest' : 'quests'} completed`}
-        </Link>
-      </div>
-      <ProgressNotice query={progress} />
-      <div className="hero-grid">
-        <section className="adventure-hero">
-          <Landscape />
-          <div className="hero-content">
-            <span className="hero-kicker">
-              <span /> THE PATH IS YOURS
-            </span>
-            <h2>
-              A new chapter.
-              <br />
-              An everyday hero.
-            </h2>
+
+      {dashboard.isPending ? (
+        <DashboardSkeleton />
+      ) : dashboard.isError && !data ? (
+        <section className="panel dashboard-error" role="alert">
+          <div>
+            <Compass size={34} />
+            <h2>Your adventure is still here.</h2>
             <p>
-              There is no rush to become.
-              <br />
-              Start with a little curiosity, and keep going.
+              The dashboard could not gather your saved progress right now. Nothing has been reset or
+              recalculated. Retry the same server-backed summary.
             </p>
-            <Link className="button button-gold" to="/quests?new=1">
-              Create a quest <ArrowRight size={17} />
-            </Link>
-          </div>
-          <div className="hero-coordinate">
-            <span>THE EVERGREEN TRAIL</span>
-            <span>05 / ∞</span>
+            <button className="button button-gold" onClick={() => dashboard.refetch()}>
+              <RefreshCw size={15} /> Retry dashboard
+            </button>
           </div>
         </section>
-        <section className="character-card panel">
-          <div className="card-kicker">
-            YOUR ADVENTURER <span>READY</span>
-          </div>
-          <div className="portrait-ring">
-            <Portrait avatarKey={character.avatarKey} frameKey={equippedFrame?.assetKey} />
-            <span className="level-medallion">{String(level).padStart(2, '0')}</span>
-          </div>
-          <h2>{user.displayName}</h2>
-          <p className="character-subtitle">{equippedTitle?.name || 'Curious soul. Endless possibilities.'}</p>
-          {equippedBadge && <span className="dashboard-badge">✦ {equippedBadge.name}</span>}
-          <ProgressMeter progress={character.progression} />
-          <Link className="character-link" to="/settings">
-            Your account & preferences <ArrowRight size={16} />
-          </Link>
-        </section>
-      </div>
-      <div className="stats-strip" aria-label="Your saved progress">
-        <div>
-          <span className="stat-icon green">
-            <Compass size={22} />
-          </span>
-          <span>
-            <strong>{level}</strong>
-            <span>Character level</span>
-          </span>
-          <span className="stat-detail">KEEP BECOMING</span>
-        </div>
-        <div>
-          <span className="stat-icon green">
-            <Sparkles size={22} />
-          </span>
-          <span>
-            <strong>{character.totalXp}</strong>
-            <span>Total experience</span>
-          </span>
-          <span className="stat-detail">EFFORT, REMEMBERED</span>
-        </div>
-        <div>
-          <span className="stat-icon gold">
-            <Coins size={22} />
-          </span>
-          <span>
-            <strong>
-              {character.gold} <small>gold</small>
-            </strong>
-            <span>Your little treasure</span>
-          </span>
-        </div>
-      </div>
-      <StreakCard />
-      <div className="lower-grid">
-        <DashboardQuests />
-        <section className="panel attributes-panel">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">FIVE WAYS TO GROW</span>
-              <h2>Your everyday strengths</h2>
+      ) : (
+        <>
+          {dashboard.isError && data && (
+            <div className="dashboard-stale-warning" role="status">
+              <span>Showing your last loaded dashboard. The refresh did not complete.</span>
+              <button className="text-link" onClick={() => dashboard.refetch()}>
+                Retry refresh <RefreshCw size={13} />
+              </button>
             </div>
-            <Sparkles size={18} className="gold" />
-          </div>
-          <div className="attribute-list">
-            {ATTRIBUTES.map(({ key, name }) => (
-              <div className={`attribute-row ${key.toLowerCase()}`} key={key}>
-                <AttributeIcon attribute={key} size={17} />
-                <span>{name}</span>
-                <div className="attribute-track" aria-hidden="true">
-                  <span
-                    style={{
-                      width: `${character.attributes.find((attribute) => attribute.key === key)?.progression.percent || 0}%`,
-                    }}
-                  />
+          )}
+          {data.firstUse.active && <FirstJourney step={data.firstUse.step} />}
+
+          <div className="dashboard-primary-grid">
+            <section className="panel dashboard-character-summary" aria-labelledby="dashboard-character-title">
+              <div className="dashboard-character-top">
+                <div className="dashboard-character-portrait">
+                  <Portrait avatarKey={data.character.avatarKey} frameKey={equippedFrame?.assetKey} />
+                  <span className="dashboard-character-level">
+                    Lv {data.character.progression.level}
+                  </span>
                 </div>
-                <span className="attribute-level">
-                  Lv.{' '}
-                  {character.attributes.find((attribute) => attribute.key === key)?.progression
-                    .level || 1}
-                </span>
+                <div className="dashboard-character-copy">
+                  <span className="eyebrow">YOUR ADVENTURER</span>
+                  <h2 id="dashboard-character-title">{user.displayName}</h2>
+                  <span className="dashboard-character-title">
+                    <Compass size={13} />
+                    {equippedTitle?.name || 'Seeker of small wonders'}
+                  </span>
+                  {equippedBadge && (
+                    <span className="dashboard-character-badge">✦ {equippedBadge.name}</span>
+                  )}
+                </div>
               </div>
-            ))}
+
+              <ProgressMeter progress={data.character.progression} />
+
+              <div className="dashboard-mini-stats" aria-label="Your current progress">
+                <div className="dashboard-mini-stat">
+                  <Flame size={18} />
+                  <div>
+                    <strong>{data.streaks.currentStreak}</strong>
+                    <span>day streak</span>
+                  </div>
+                </div>
+                <div className="dashboard-mini-stat gold">
+                  <Coins size={18} />
+                  <div>
+                    <strong>{data.character.gold.toLocaleString()}</strong>
+                    <span>gold available</span>
+                  </div>
+                </div>
+                <div className="dashboard-mini-stat">
+                  <CheckCheck size={18} />
+                  <div>
+                    <strong>{data.completedCount.toLocaleString()}</strong>
+                    <span>completions</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="dashboard-character-links">
+                <Link className="text-link" to="/character">
+                  Open character <ArrowRight size={14} />
+                </Link>
+                <Link className="text-link" to="/marketplace">
+                  Spend earned gold <ArrowRight size={14} />
+                </Link>
+              </div>
+            </section>
+
+            <TodayQuests quests={data.todayQuests} today={data.today} summary={data.quests} />
           </div>
-          <SectionLink to="/character">Discover your strengths</SectionLink>
-        </section>
-      </div>
-      <div className="daily-thought">
-        <span>✦</span>
-        <p>A remarkable journey is made of ordinary days you chose to show up for.</p>
-        <span>YOUR REMINDER FOR TODAY</span>
-      </div>
+
+          <div className="dashboard-secondary-grid">
+            <WeeklyActivity week={data.week} totals={data.weeklyTotals} today={data.today} />
+
+            <section className="panel attributes-panel dashboard-attributes" aria-labelledby="dashboard-attributes-title">
+              <div className="section-heading dashboard-section-heading">
+                <div>
+                  <span className="eyebrow">FIVE WAYS TO GROW</span>
+                  <h2 id="dashboard-attributes-title">Attribute progress</h2>
+                </div>
+                <Sparkles size={19} className="gold" />
+              </div>
+              <div className="attribute-list">
+                {ATTRIBUTES.map(({ key, name }) => {
+                  const attribute = data.character.attributes.find((item) => item.key === key)
+                  return (
+                    <div className={`attribute-row ${key.toLowerCase()}`} key={key}>
+                      <AttributeIcon attribute={key} size={17} />
+                      <span className="dashboard-attribute-copy">
+                        <strong>{name}</strong>
+                        <small>{attribute.xp.toLocaleString()} total XP</small>
+                      </span>
+                      <div
+                        className="attribute-track"
+                        role="progressbar"
+                        aria-label={`${name} level ${attribute.progression.level} progress`}
+                        aria-valuemin={0}
+                        aria-valuemax={attribute.progression.xpForNextLevel}
+                        aria-valuenow={attribute.progression.xpIntoLevel}
+                      >
+                        <span style={{ width: `${attribute.progression.percent}%` }} />
+                      </div>
+                      <span className="attribute-level">Lv. {attribute.progression.level}</span>
+                    </div>
+                  )
+                })}
+              </div>
+              <SectionLink to="/character">See every strength in detail</SectionLink>
+            </section>
+          </div>
+
+          <div className="dashboard-tertiary-grid">
+            <RecentJourney completions={data.recentCompletions} />
+          </div>
+
+          <div className="daily-thought">
+            <span>✦</span>
+            <p>
+              {data.streaks.todayCompletedCount
+                ? `${data.streaks.todayCompletedCount} ${data.streaks.todayCompletedCount === 1 ? 'quest has' : 'quests have'} already become part of today’s story.`
+                : 'A remarkable journey can begin with one ordinary thing you choose to finish.'}
+            </p>
+            <span>
+              {data.streaks.longestStreak
+                ? `BEST STREAK · ${data.streaks.longestStreak} DAYS`
+                : 'YOUR REMINDER FOR TODAY'}
+            </span>
+          </div>
+        </>
+      )}
     </div>
   )
 }

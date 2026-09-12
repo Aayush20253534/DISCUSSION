@@ -1,7 +1,13 @@
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Compass } from 'lucide-react'
+import { usePageMeta } from '../lib/meta.js'
 
 export default function NotFound() {
+  usePageMeta({
+    title: 'Page not found · Life RPG',
+    description: 'This part of the Life RPG map could not be found.',
+    noindex: true,
+  })
   return (
     <div className="page lost-page">
       <span className="lost-compass">

@@ -13,6 +13,7 @@ import { createProgressionRouter } from './progression/router.js'
 import { createQuestRouter } from './quests/router.js'
 import { createAccountRouter } from './auth/router.js'
 import { createEconomyRouter } from './economy/router.js'
+import { createDashboardRouter } from './dashboard/router.js'
 
 export function createApp({ config, database, staticDirectory, logger = log, clock }) {
   const app = express()
@@ -53,6 +54,33 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
   )
   app.use(express.json({ limit: '32kb' }))
   app.use(cookieParser())
+  const publicOrigin = config.PUBLIC_APP_URL || config.CLIENT_ORIGIN[0]
+  app.get('/robots.txt', (_req, res) => {
+    res
+      .type('text/plain')
+      .set('Cache-Control', 'public, max-age=3600')
+      .send(
+        [
+          'User-agent: *',
+          'Allow: /',
+          'Disallow: /api/',
+          'Disallow: /health',
+          `Sitemap: ${publicOrigin}/sitemap.xml`,
+          '',
+        ].join('\n'),
+      )
+  })
+  app.get('/sitemap.xml', (_req, res) => {
+    const pages = ['/', '/how-it-works']
+    const urls = pages
+      .map((route) => `  <url><loc>${publicOrigin}${route}</loc></url>`)
+      .join('\n')
+    res
+      .type('application/xml')
+      .set('Cache-Control', 'public, max-age=3600')
+      .send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`)
+  })
+
   app.get('/health', (_req, res) => {
     res.set('Cache-Control', 'no-store').json({ data: { status: 'ok', service: 'life-rpg-api' } })
   })
@@ -110,6 +138,7 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
   app.use(`${API_PREFIX}/quests`, createQuestRouter({ config, database, clock }))
   app.use(`${API_PREFIX}/activity`, createActivityRouter({ config, database, clock }))
   app.use(`${API_PREFIX}/progress`, createProgressionRouter({ config, database }))
+  app.use(`${API_PREFIX}/dashboard`, createDashboardRouter({ config, database, clock }))
   app.use(API_PREFIX, createEconomyRouter({ config, database }))
   // Unknown API routes must never return the SPA's HTML.
   app.use('/api', (req, res) =>
@@ -118,10 +147,13 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
     }),
   )
   if (staticDirectory) {
-    app.use(express.static(staticDirectory, { index: false, maxAge: 0 }))
+    app.use(express.static(staticDirectory, { index: false, maxAge: 0, extensions: ['html'], redirect: false }))
     app.get('/{*path}', (req, res, next) => {
       if (!req.accepts('html') || path.extname(req.path) || req.path.startsWith('/health/'))
         return next()
+      if (req.path !== '/' && req.path !== '/how-it-works') {
+        res.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
+      }
       res.set('Cache-Control', 'no-cache').sendFile(path.join(staticDirectory, 'index.html'))
     })
   }

@@ -1,161 +1,373 @@
-import { useState } from 'react'
-import { useAuth } from '../auth/useAuth.js'
+import { useMemo, useRef, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { Activity, ArrowRight, RefreshCw, Waves } from 'lucide-react'
-import { API_PREFIX, worldSchema } from '@life-rpg/shared'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  Activity,
+  CheckCircle2,
+  KeyRound,
+  LoaderCircle,
+  LogOut,
+  MonitorSmartphone,
+  RefreshCw,
+  ShieldCheck,
+  Volume2,
+  Waves,
+} from 'lucide-react'
+import { profileSettingsSchema, changePasswordSchema } from '@life-rpg/shared'
+import { useAuth } from '../auth/useAuth.js'
+import FormField from '../components/FormField.jsx'
 import { PageHeading } from '../components/ui.jsx'
-import { apiGet } from '../lib/api.js'
+import { useSessions, sessionsKey } from '../settings/hooks.js'
+
+function localTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+  } catch {
+    return 'UTC'
+  }
+}
+
+function timezoneOptions(current) {
+  return [
+    ...new Set([
+      current,
+      localTimezone(),
+      'UTC',
+      'Asia/Kolkata',
+      'Asia/Kathmandu',
+      ...(Intl.supportedValuesOf?.('timeZone') || []),
+    ]),
+  ].filter(Boolean).sort()
+}
+
+function sessionDate(value) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value))
+}
 
 export default function Settings() {
-  const { user, logout } = useAuth()
+  const auth = useAuth()
+  const user = auth.user
+  const queryClient = useQueryClient()
+  const { gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled } = useOutletContext()
+  const sessions = useSessions()
+  const profileForm = useRef(null)
+  const passwordForm = useRef(null)
+  const [profilePending, setProfilePending] = useState(false)
+  const [profileFields, setProfileFields] = useState({})
+  const [profileMessage, setProfileMessage] = useState('')
+  const [passwordPending, setPasswordPending] = useState(false)
+  const [passwordFields, setPasswordFields] = useState({})
+  const [passwordMessage, setPasswordMessage] = useState('')
+  const [sessionPending, setSessionPending] = useState('')
+  const [sessionMessage, setSessionMessage] = useState('')
   const [signingOut, setSigningOut] = useState(false)
-  const [logoutError, setLogoutError] = useState('')
+  const zones = useMemo(() => timezoneOptions(user.timezone), [user.timezone])
+
+  async function saveProfile(event) {
+    event.preventDefault()
+    if (profilePending) return
+    const values = Object.fromEntries(new FormData(event.currentTarget))
+    const parsed = profileSettingsSchema.safeParse(values)
+    if (!parsed.success) {
+      const errors = {}
+      for (const issue of parsed.error.issues) if (!errors[issue.path[0]]) errors[issue.path[0]] = issue.message
+      setProfileFields(errors)
+      setProfileMessage('Please check the profile details below.')
+      profileForm.current.elements.namedItem(Object.keys(errors)[0])?.focus()
+      return
+    }
+    setProfilePending(true)
+    setProfileFields({})
+    setProfileMessage('')
+    try {
+      await auth.updateProfile(parsed.data)
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['activity'] })
+      queryClient.invalidateQueries({ queryKey: ['quests'] })
+      setProfileMessage('Profile saved. Your existing daily quest schedules keep their original timezone.')
+    } catch (error) {
+      setProfileFields(error.fields || {})
+      setProfileMessage(error.message)
+    } finally {
+      setProfilePending(false)
+    }
+  }
+
+  async function changePassword(event) {
+    event.preventDefault()
+    if (passwordPending) return
+    const values = Object.fromEntries(new FormData(event.currentTarget))
+    const fields = {}
+    if (values.newPassword !== values.confirmPassword) fields.confirmPassword = 'Passwords do not match.'
+    const parsed = changePasswordSchema.safeParse({
+      currentPassword: values.currentPassword,
+      newPassword: values.newPassword,
+    })
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) if (!fields[issue.path[0]]) fields[issue.path[0]] = issue.message
+    }
+    if (Object.keys(fields).length) {
+      setPasswordFields(fields)
+      setPasswordMessage('Please check the password fields.')
+      passwordForm.current.elements.namedItem(Object.keys(fields)[0])?.focus()
+      return
+    }
+    setPasswordPending(true)
+    setPasswordFields({})
+    setPasswordMessage('')
+    try {
+      const result = await auth.changePassword(parsed.data)
+      passwordForm.current.reset()
+      await queryClient.invalidateQueries({ queryKey: sessionsKey })
+      setPasswordMessage(
+        result.revokedSessions
+          ? `Password changed. ${result.revokedSessions} other ${result.revokedSessions === 1 ? 'session was' : 'sessions were'} signed out.`
+          : 'Password changed. This session remains signed in.',
+      )
+    } catch (error) {
+      setPasswordFields(error.fields || {})
+      setPasswordMessage(error.message)
+    } finally {
+      setPasswordPending(false)
+    }
+  }
+
+  async function revokeSession(session) {
+    if (sessionPending) return
+    setSessionPending(session.id)
+    setSessionMessage('')
+    try {
+      await auth.revokeSession(session.id)
+      if (!session.current) {
+        await queryClient.invalidateQueries({ queryKey: sessionsKey })
+        setSessionMessage('That session has been signed out.')
+      }
+    } catch (error) {
+      setSessionMessage(error.message)
+    } finally {
+      setSessionPending('')
+    }
+  }
+
+  async function revokeOthers() {
+    if (sessionPending) return
+    setSessionPending('others')
+    setSessionMessage('')
+    try {
+      const result = await auth.revokeOtherSessions()
+      await queryClient.invalidateQueries({ queryKey: sessionsKey })
+      setSessionMessage(
+        result.revokedSessions
+          ? `${result.revokedSessions} other ${result.revokedSessions === 1 ? 'session has' : 'sessions have'} been signed out.`
+          : 'There were no other active sessions to revoke.',
+      )
+    } catch (error) {
+      setSessionMessage(error.message)
+    } finally {
+      setSessionPending('')
+    }
+  }
+
   async function signOut(all) {
     setSigningOut(true)
-    setLogoutError('')
+    setSessionMessage('')
     try {
-      await logout(all)
+      await auth.logout(all)
     } catch (error) {
-      setLogoutError(error.message)
-    } finally {
+      setSessionMessage(error.message)
       setSigningOut(false)
     }
   }
-  const { gentleMotion, setGentleMotion } = useOutletContext()
-  const world = useQuery({
-    queryKey: ['world'],
-    queryFn: async ({ signal }) => worldSchema.parse(await apiGet(`${API_PREFIX}/world`, signal)),
-    retry: 1,
-  })
+
+  const otherSessionCount = sessions.data?.sessions?.filter((session) => !session.current).length || 0
+
   return (
-    <div className="page">
+    <div className="page settings-page">
       <PageHeading
-        eyebrow="MAKE YOURSELF AT HOME"
-        title={
-          <>
-            A little more <em>you.</em>
-          </>
-        }
-        description="Small preferences for a comfortable adventure."
+        eyebrow="ACCOUNT & PREFERENCES"
+        title={<>Make the adventure <em>yours.</em></>}
+        description="Manage your profile, timezone, security, active sessions, and local comfort preferences."
       />
-      <section className="panel settings-panel account-panel">
+
+      <div className="settings-grid">
+        <section className="panel settings-panel settings-profile-panel">
+          <div className="section-heading">
+            <div><span className="eyebrow">YOUR PROFILE</span><h2>Adventurer details</h2></div>
+            <ShieldCheck size={21} className="green" />
+          </div>
+          <form key={`${user.displayName}:${user.timezone}`} className="settings-form" onSubmit={saveProfile} ref={profileForm} noValidate aria-busy={profilePending}>
+            <FormField
+              name="displayName"
+              label="Adventurer name"
+              defaultValue={user.displayName}
+              maxLength={40}
+              autoComplete="nickname"
+              error={profileFields.displayName}
+              disabled={profilePending}
+              required
+            />
+            <div className="form-field">
+              <label htmlFor="settings-timezone">Timezone</label>
+              <select
+                id="settings-timezone"
+                name="timezone"
+                defaultValue={user.timezone}
+                disabled={profilePending}
+                aria-invalid={Boolean(profileFields.timezone)}
+                aria-describedby="settings-timezone-hint"
+              >
+                {zones.map((zone) => <option key={zone} value={zone}>{zone.replaceAll('_', ' ')}</option>)}
+              </select>
+              <p className="field-hint" id="settings-timezone-hint">
+                Used for activity dates and streak display. Existing daily quests keep the timezone they were created with.
+              </p>
+              {profileFields.timezone && <p className="field-error">{profileFields.timezone}</p>}
+            </div>
+            <div className="settings-readonly-field">
+              <span>Email address</span>
+              <strong>{user.email}</strong>
+              <small>Email changes are not enabled in this release.</small>
+            </div>
+            {profileMessage && <p className={`settings-message ${profileFields.displayName || profileFields.timezone ? 'error' : ''}`} role="status">{profileMessage}</p>}
+            <button className="button button-gold" type="submit" disabled={profilePending}>
+              {profilePending ? <><LoaderCircle size={16} className="spin" /> Saving…</> : <><CheckCircle2 size={16} /> Save profile</>}
+            </button>
+          </form>
+        </section>
+
+        <section className="panel settings-panel settings-password-panel">
+          <div className="section-heading">
+            <div><span className="eyebrow">PASSWORD</span><h2>Protect your account</h2></div>
+            <KeyRound size={21} className="gold" />
+          </div>
+          <form className="settings-form" onSubmit={changePassword} ref={passwordForm} noValidate aria-busy={passwordPending}>
+            <FormField
+              name="currentPassword"
+              label="Current password"
+              type="password"
+              autoComplete="current-password"
+              maxLength={128}
+              error={passwordFields.currentPassword}
+              disabled={passwordPending}
+              required
+            />
+            <FormField
+              name="newPassword"
+              label="New password"
+              type="password"
+              autoComplete="new-password"
+              minLength={12}
+              maxLength={128}
+              hint="Use 12–128 characters. A sentence or several unrelated words works well."
+              error={passwordFields.newPassword}
+              disabled={passwordPending}
+              required
+            />
+            <FormField
+              name="confirmPassword"
+              label="Confirm new password"
+              type="password"
+              autoComplete="new-password"
+              minLength={12}
+              maxLength={128}
+              error={passwordFields.confirmPassword}
+              disabled={passwordPending}
+              required
+            />
+            {passwordMessage && <p className={`settings-message ${Object.keys(passwordFields).length ? 'error' : ''}`} role="status">{passwordMessage}</p>}
+            <button className="button button-outline" type="submit" disabled={passwordPending}>
+              {passwordPending ? <><LoaderCircle size={16} className="spin" /> Updating…</> : <><KeyRound size={16} /> Change password</>}
+            </button>
+          </form>
+        </section>
+      </div>
+
+      <section className="panel settings-panel sessions-panel">
         <div className="section-heading">
-          <div>
-            <span className="eyebrow">YOUR PLACE IN THIS WORLD</span>
-            <h2>Your account</h2>
-          </div>
+          <div><span className="eyebrow">ACTIVE SESSIONS</span><h2>Where you are signed in</h2></div>
+          <MonitorSmartphone size={21} className="green" />
         </div>
-        <dl className="account-details">
-          <div>
-            <dt>Adventurer name</dt>
-            <dd>{user.displayName}</dd>
+        {sessions.isPending ? (
+          <div className="sessions-loading" role="status"><LoaderCircle className="spin" size={18} /> Loading active sessions…</div>
+        ) : sessions.isError ? (
+          <div className="settings-inline-error" role="alert">
+            <span>{sessions.error.message}</span>
+            <button className="text-link" onClick={() => sessions.refetch()}><RefreshCw size={13} /> Retry</button>
           </div>
-          <div>
-            <dt>Email address</dt>
-            <dd>{user.email}</dd>
+        ) : (
+          <div className="session-list">
+            {sessions.data.sessions.map((session) => (
+              <article className={`session-row ${session.current ? 'current' : ''}`} key={session.id}>
+                <span className="session-icon"><MonitorSmartphone size={18} /></span>
+                <div>
+                  <strong>{session.device}</strong>
+                  <span>{session.current ? 'This device · ' : ''}Signed in {sessionDate(session.createdAt)}</span>
+                  <small>Expires {sessionDate(session.expiresAt)}</small>
+                </div>
+                <button
+                  className="button button-outline session-revoke"
+                  disabled={Boolean(sessionPending)}
+                  onClick={() => revokeSession(session)}
+                >
+                  {sessionPending === session.id ? <LoaderCircle size={14} className="spin" /> : <LogOut size={14} />}
+                  {session.current ? 'Sign out' : 'Revoke'}
+                </button>
+              </article>
+            ))}
           </div>
-          <div>
-            <dt>Timezone</dt>
-            <dd>{user.timezone.replaceAll('_', ' ')}</dd>
-          </div>
-        </dl>
-        <div className="account-actions">
-          <button
-            className="button button-outline"
-            disabled={signingOut}
-            onClick={() => signOut(false)}
-          >
-            Sign out
-          </button>
-          <button
-            className="button button-outline"
-            disabled={signingOut}
-            onClick={() => signOut(true)}
-          >
-            Sign out of all devices
-          </button>
-        </div>
-        {logoutError && (
-          <p className="form-message" role="alert">
-            {logoutError}
-          </p>
         )}
+        <div className="session-actions">
+          <button className="button button-outline" disabled={Boolean(sessionPending) || !otherSessionCount} onClick={revokeOthers}>
+            {sessionPending === 'others' ? <LoaderCircle size={15} className="spin" /> : <ShieldCheck size={15} />}
+            Sign out other devices
+          </button>
+          <button className="button button-outline danger-soft" disabled={signingOut} onClick={() => signOut(true)}>
+            <LogOut size={15} /> Sign out everywhere
+          </button>
+        </div>
+        {sessionMessage && <p className="settings-message" role="status">{sessionMessage}</p>}
       </section>
+
       <section className="panel settings-panel">
         <div className="section-heading">
-          <div>
-            <span className="eyebrow">LOOK & FEEL</span>
-            <h2>At your own pace</h2>
-          </div>
+          <div><span className="eyebrow">LOOK, FEEL & SOUND</span><h2>At your own pace</h2></div>
           <Waves size={23} className="green" />
         </div>
         <div className="setting-row">
           <div>
             <label htmlFor="gentle-motion">Gentle animations</label>
-            <p id="motion-description">
-              Subtle movement, softly appearing panels, and a little sparkle.
-              <br />
-              Your device’s reduced-motion preference always takes priority.
-            </p>
+            <p id="motion-description">Allow celebratory transitions and subtle movement. Your operating system’s reduced-motion setting still takes priority.</p>
           </div>
-          <input
-            type="checkbox"
-            role="switch"
-            className="switch"
-            id="gentle-motion"
-            aria-describedby="motion-description"
-            checked={gentleMotion}
-            onChange={(event) => setGentleMotion(event.target.checked)}
-          />
+          <input type="checkbox" role="switch" className="switch" id="gentle-motion" aria-describedby="motion-description" checked={gentleMotion} onChange={(event) => setGentleMotion(event.target.checked)} />
         </div>
         <div className="setting-row">
           <div>
-            <h3>Adventure theme</h3>
-            <p>Evergreen · Deep ink, forest green, and warm gold.</p>
+            <label htmlFor="celebration-sound">Celebration sounds</label>
+            <p id="sound-description">Allow short sounds for confirmed rewards and level-ups. This preference stays on this device and defaults to off.</p>
           </div>
-          <div className="theme-swatches" role="img" aria-label="Evergreen theme colors">
-            <i />
-            <i />
-            <i />
-          </div>
+          <span className="setting-control-with-icon"><Volume2 size={18} /><input type="checkbox" role="switch" className="switch" id="celebration-sound" aria-describedby="sound-description" checked={soundEnabled} onChange={(event) => setSoundEnabled(event.target.checked)} /></span>
+        </div>
+        <div className="setting-row">
+          <div><h3>Adventure theme</h3><p>Your equipped Marketplace theme controls the application palette.</p></div>
+          <div className="theme-swatches" role="img" aria-label="Current adventure palette"><i /><i /><i /></div>
         </div>
       </section>
-      <section className="panel settings-panel">
+
+      <section className="panel settings-panel connection-panel">
         <div className="section-heading">
-          <div>
-            <span className="eyebrow">CONNECTED TO YOUR WORLD</span>
-            <h2>Connection status</h2>
-          </div>
+          <div><span className="eyebrow">ACCOUNT SAFETY</span><h2>Your progress is server-backed</h2></div>
           <Activity size={21} className="gold" />
         </div>
         <div className="setting-row">
-          <div aria-live="polite">
-            <h3>
-              {world.isPending
-                ? 'Checking the connection…'
-                : world.isError
-                  ? 'The world server is out of reach.'
-                  : 'The world server is connected.'}
-            </h3>
-            <p>
-              {world.isError
-                ? 'You can try connecting again. Your saved account stays in your database.'
-                : 'Your account and character are saved. Your quest journal is ready for your next small step.'}
-            </p>
+          <div>
+            <h3>Database persistence</h3>
+            <p>Your profile, quests, progression, streak history, inventory, and wallet are stored with your account rather than relying on localStorage.</p>
           </div>
-          <button
-            className="button button-outline"
-            disabled={world.isFetching}
-            onClick={() => world.refetch()}
-          >
-            <RefreshCw size={15} className={world.isFetching ? 'spin' : ''} />
-            {world.isFetching ? 'Checking' : 'Check again'}
-          </button>
+          <ShieldCheck size={24} className="green" />
         </div>
-        <a className="text-link" href="/">
-          Back to your adventure <ArrowRight size={15} />
-        </a>
       </section>
     </div>
   )

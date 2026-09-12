@@ -15,3 +15,30 @@ test('timezone validation accepts IANA identifiers rather than invented zones', 
   assert.equal(timezoneSchema.parse('Asia/Kathmandu'), 'Asia/Kathmandu')
   assert.equal(timezoneSchema.safeParse('Moon/Secret').success, false)
 })
+
+test('account settings contracts keep profile fields bounded and require a genuinely new password', async () => {
+  const { profileSettingsSchema, changePasswordSchema } = await import('../src/index.js')
+  assert.equal(
+    profileSettingsSchema.parse({ displayName: '  Explorer  ', timezone: 'Asia/Kathmandu' }).displayName,
+    'Explorer',
+  )
+  assert.equal(
+    profileSettingsSchema.safeParse({ displayName: 'Explorer', timezone: 'Moon/Base' }).success,
+    false,
+  )
+  assert.equal(
+    changePasswordSchema.safeParse({
+      currentPassword: 'A sufficiently long password',
+      newPassword: 'A sufficiently long password',
+    }).success,
+    false,
+  )
+  assert.equal(
+    changePasswordSchema.safeParse({
+      currentPassword: 'old password',
+      newPassword: 'A different and long password',
+      role: 'ADMIN',
+    }).success,
+    false,
+  )
+})

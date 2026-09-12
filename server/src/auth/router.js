@@ -1,7 +1,14 @@
 import { randomUUID } from 'node:crypto'
 import { Router } from 'express'
 import { rateLimit } from 'express-rate-limit'
-import { ATTRIBUTES, signupSchema, loginSchema, onboardingSchema } from '@life-rpg/shared'
+import {
+  ATTRIBUTES,
+  signupSchema,
+  loginSchema,
+  onboardingSchema,
+  profileSettingsSchema,
+  changePasswordSchema,
+} from '@life-rpg/shared'
 import { createAuthentication } from './middleware.js'
 import { AppError, validate } from '../lib/errors.js'
 import {
@@ -45,6 +52,52 @@ const publicSelect = {
   },
 }
 const unauthorized = () => new AppError(401, 'AUTH_REQUIRED', 'Please sign in to continue.')
+const sessionIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function cleanUserAgent(value) {
+  if (typeof value !== 'string') return null
+  const withoutControlCharacters = Array.from(value, (character) => {
+    const codePoint = character.codePointAt(0)
+    return codePoint <= 0x1f || codePoint === 0x7f ? ' ' : character
+  }).join('')
+  const cleaned = withoutControlCharacters.replace(/\s+/g, ' ').trim()
+  return cleaned ? cleaned.slice(0, 300) : null
+}
+
+function sessionDevice(userAgent) {
+  if (!userAgent) return 'Existing browser session'
+  const browser = /Edg\//.test(userAgent)
+    ? 'Edge'
+    : /Firefox\//.test(userAgent)
+      ? 'Firefox'
+      : /Chrome\//.test(userAgent)
+        ? 'Chrome'
+        : /Safari\//.test(userAgent)
+          ? 'Safari'
+          : 'Browser'
+  const platform = /iPhone|iPad|iPod/.test(userAgent)
+    ? 'iOS'
+    : /Android/.test(userAgent)
+      ? 'Android'
+      : /Windows/.test(userAgent)
+        ? 'Windows'
+        : /Macintosh|Mac OS X/.test(userAgent)
+          ? 'macOS'
+          : /Linux/.test(userAgent)
+            ? 'Linux'
+            : 'device'
+  return `${browser} on ${platform}`
+}
+
+function publicSession(session, currentSessionId) {
+  return {
+    id: session.id,
+    device: sessionDevice(session.userAgent),
+    createdAt: session.createdAt.toISOString(),
+    expiresAt: session.expiresAt.toISOString(),
+    current: session.id === currentSessionId,
+  }
+}
 
 export function createAccountRouter({ config, database }) {
   const router = Router()
@@ -84,7 +137,7 @@ export function createAccountRouter({ config, database }) {
   }
   const getUser = (id, transaction = db) =>
     transaction.user.findUnique({ where: { id }, select: publicSelect })
-  function makeSession(userId) {
+  function makeSession(userId, req) {
     const id = randomUUID()
     const refresh = newRefreshToken(id)
     return {
@@ -94,6 +147,7 @@ export function createAccountRouter({ config, database }) {
         userId,
         tokenHash: hashToken(refresh),
         expiresAt: new Date(Date.now() + config.SESSION_DAYS * 86400000),
+        userAgent: cleanUserAgent(req.get('User-Agent')),
       },
     }
   }
@@ -103,7 +157,7 @@ export function createAccountRouter({ config, database }) {
   router.post('/auth/signup', security.requireCsrf, limiter(5), async (req, res) => {
     const input = validate(signupSchema, req.body)
     const passwordHash = await hashPassword(input.password)
-    const { session, refresh } = makeSession(randomUUID())
+    const { session, refresh } = makeSession(randomUUID(), req)
     let user
     try {
       const [createdUser] = await db.$transaction([
@@ -141,7 +195,7 @@ export function createAccountRouter({ config, database }) {
     const verified = await verifyPassword(account?.passwordHash, input.password)
     if (!account || !verified)
       throw new AppError(401, 'INVALID_CREDENTIALS', 'Email or password is incorrect.')
-    const { session, refresh } = makeSession(account.id)
+    const { session, refresh } = makeSession(account.id, req)
     await db.$transaction([
       db.session.deleteMany({ where: { userId: account.id, expiresAt: { lte: new Date() } } }),
       db.session.create({ data: session }),
@@ -211,6 +265,77 @@ export function createAccountRouter({ config, database }) {
     }
     res.json({ data: { user } })
   })
+
+  router.put('/me/profile', security.requireCsrf, requireAuth, async (req, res) => {
+    const input = validate(profileSettingsSchema, req.body)
+    const user = await db.user.update({
+      where: { id: req.auth.userId },
+      data: { displayName: input.displayName, timezone: input.timezone },
+      select: publicSelect,
+    })
+    // Daily quest schedule timezones remain immutable. A profile timezone change affects only
+    // future account-local activity dates and display, so it cannot mint another daily reward.
+    res.json({ data: { user } })
+  })
+
+  router.put(
+    '/me/password',
+    security.requireCsrf,
+    limiter(5, true),
+    requireAuth,
+    async (req, res) => {
+      const input = validate(changePasswordSchema, req.body)
+      const account = await db.user.findUnique({
+        where: { id: req.auth.userId },
+        select: { passwordHash: true },
+      })
+      if (!account) throw unauthorized()
+      const verified = await verifyPassword(account.passwordHash, input.currentPassword)
+      if (!verified)
+        throw new AppError(400, 'PASSWORD_INCORRECT', 'Your current password is incorrect.', {
+          currentPassword: 'Current password is incorrect.',
+        })
+      const passwordHash = await hashPassword(input.newPassword)
+      const result = await db.$transaction(async (tx) => {
+        await tx.user.update({ where: { id: req.auth.userId }, data: { passwordHash } })
+        const revoked = await tx.session.deleteMany({
+          where: { userId: req.auth.userId, id: { not: req.auth.sessionId } },
+        })
+        return revoked.count
+      })
+      res.json({ data: { changed: true, revokedSessions: result } })
+    },
+  )
+
+  router.get('/me/sessions', requireAuth, async (req, res) => {
+    const sessions = await db.session.findMany({
+      where: { userId: req.auth.userId, expiresAt: { gt: new Date() } },
+      select: { id: true, createdAt: true, expiresAt: true, userAgent: true },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    })
+    res.json({ data: { sessions: sessions.map((item) => publicSession(item, req.auth.sessionId)) } })
+  })
+
+  router.delete('/me/sessions/:sessionId', security.requireCsrf, requireAuth, async (req, res) => {
+    if (!sessionIdPattern.test(req.params.sessionId))
+      throw new AppError(404, 'SESSION_NOT_FOUND', 'That session is no longer active.')
+    const removed = await db.session.deleteMany({
+      where: { id: req.params.sessionId, userId: req.auth.userId },
+    })
+    if (!removed.count)
+      throw new AppError(404, 'SESSION_NOT_FOUND', 'That session is no longer active.')
+    const currentRevoked = req.params.sessionId === req.auth.sessionId
+    if (currentRevoked) security.clearSession(res)
+    res.json({ data: { revoked: true, currentRevoked } })
+  })
+
+  router.post('/me/sessions/revoke-others', security.requireCsrf, requireAuth, async (req, res) => {
+    const revoked = await db.session.deleteMany({
+      where: { userId: req.auth.userId, id: { not: req.auth.sessionId } },
+    })
+    res.json({ data: { revokedSessions: revoked.count } })
+  })
+
   router.post('/auth/logout', security.requireCsrf, async (req, res) => {
     // Even an expired access token can log out through the current refresh token.
     const session = await sessionFromAccess(req)

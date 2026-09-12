@@ -81,3 +81,21 @@ export * from './progression.js'
 export * from './activity.js'
 
 export * from './economy.js'
+
+export const profileSettingsSchema = z
+  .object({
+    displayName: displayNameSchema,
+    timezone: timezoneSchema,
+  })
+  .strict()
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Enter your current password.').max(128),
+    newPassword: passwordSchema,
+  })
+  .strict()
+  .refine(({ currentPassword, newPassword }) => currentPassword !== newPassword, {
+    path: ['newPassword'],
+    message: 'Choose a password different from your current password.',
+  })

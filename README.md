@@ -1,28 +1,28 @@
-# Life RPG — Part 7: reward shop, inventory & cosmetic equipment
+# Life RPG — Part 9: public website & account settings
 
 A full-stack JavaScript project using React, Express, Node.js, Neon PostgreSQL, Prisma, and Motion for React. Application code uses `.js` and `.jsx` throughout.
 
-Part 7 turns earned gold into a real server-authoritative cosmetic economy. The Marketplace now uses a seeded database catalog, purchases atomically deduct gold and grant ownership, Inventory persists equipped frames/badges/titles/themes, and an append-only wallet ledger records both quest earnings and shop spending. Part 6 recurring quests, streaks, progression and historical receipts remain compatible.
+Part 9 adds the complete public entry experience and real account management. Signed-out visitors now get a dedicated landing page and How It Works page, while authenticated users can edit their profile/timezone, change their password, inspect/revoke active sessions, and control local motion/sound preferences. Public metadata, social previews, sitemap/robots output, prerendered marketing HTML, and private-route noindex protection are included. Parts 1–8 remain compatible.
 
-## Upgrade from Part 6
+## Upgrade from Part 8
 
-Stop the development server. Run these commands in the **repository root**, where `client/`, `server/`, and the root `package.json` live. This patch targets the completed and migrated **Part 6 recurring-quest/streak** implementation.
+Stop the development server. Run these commands in the **repository root**, where `client/`, `server/`, and the root `package.json` live. This patch targets the completed **Part 8 Adventure Dashboard** implementation.
 
 ```powershell
-git apply --ignore-space-change --check .\life-rpg-part-7.patch
+git apply --ignore-space-change --check .\life-rpg-part-9.patch
 ```
 
 If the check succeeds:
 
 ```powershell
-git apply --ignore-space-change .\life-rpg-part-7.patch
+git apply --ignore-space-change .\life-rpg-part-9.patch
 npm run db:generate
 npm run db:deploy
 npm run verify
 npm run dev
 ```
 
-Part 7 adds no npm dependencies. Keep your existing `server/.env`, JWT secret, and Neon connection strings. The patch preserves `.env`, root `.gitignore`, and your lockfile. The additive economy migration preserves existing accounts, sessions, quests, completion receipts, streaks and character progress, and backfills historical quest-gold ledger rows without changing balances. **Do not reset your database.**
+Part 9 adds no npm dependencies. It adds one additive migration, `20260912000700_account_settings`, which stores optional session user-agent metadata for safe device/session presentation. Keep your existing `server/.env`, JWT secret, Neon connection strings, and all earlier migrations. **Do not reset your database.**
 
 For a fresh clone with Part 2 dependencies recorded in its lockfile:
 
@@ -42,6 +42,7 @@ If already configured for Part 1, keep your existing connection strings. Otherwi
 DATABASE_URL=postgresql://USER:PASSWORD@YOUR-POOLED-HOST/DBNAME?sslmode=require
 DIRECT_URL=postgresql://USER:PASSWORD@YOUR-DIRECT-HOST/DBNAME?sslmode=require
 CLIENT_ORIGIN=http://localhost:5173,http://127.0.0.1:5173
+PUBLIC_APP_URL=http://localhost:5173
 ```
 
 Use the actual pooled and direct URLs copied from Neon, preserving any additional connection parameters. Never put database URLs or JWT secrets in `client/.env` or `VITE_*` variables. Keep the generated `JWT_SECRET` in `server/.env`.
@@ -54,11 +55,25 @@ npm run dev
 
 Open **http://localhost:5173**. Sign in, or choose **Begin your adventure** to create an account and character. Open **Quest Journal** to save a quest. Mark it complete after doing the task, then open **Character** to see your XP, gold, attribute levels, and completion history. Open **Activity** to see your streak, then open **Marketplace** to spend earned gold and **Inventory** to equip owned cosmetics. Refresh to confirm progression, ownership and equipment persistence. New characters start at level 1 with zero XP and gold.
 
-The API runs on port 4000. `GET /health` checks the process; `GET /health/ready` checks database connectivity. Part 7 adds the shop catalog, inventory ownership, cosmetic equipment and currency ledger on top of the existing recurring-quest schema. `db:deploy` applies all pending committed migrations without resetting existing tables.
+The API runs on port 4000. `GET /health` checks the process; `GET /health/ready` checks database connectivity. Part 9 adds profile/password/session-management endpoints plus public robots/sitemap output. `db:deploy` applies the additive session metadata migration and preserves all existing account/game data.
 
 Without database configuration, the public preview works, but account forms return a clear unavailable message. If `DATABASE_URL` is set, a valid `JWT_SECRET` is required at startup.
 
 ## What is implemented
+
+- A dedicated responsive public landing page and How It Works page with accurate Life RPG product previews and signup/login actions.
+- Route-specific metadata, canonical/social metadata, a bundled social card, robots.txt, sitemap.xml, and post-build prerendering for public marketing content.
+- HTTP `X-Robots-Tag` protection for private/account SPA routes so authenticated screens are not indexed.
+- Editable display name and account timezone with shared validation and daily-quest schedule timezone preservation.
+- Authenticated password changes that verify the old Argon2id password, hash the new password, and revoke every other session atomically.
+- Active-session listing/revocation with safe browser/platform labels, current-session handling, ownership isolation, and sign-out-other-devices.
+- Device-local gentle-motion and celebration-sound preferences, with sound defaulting off for the Part 10 interaction layer.
+
+- A server-authoritative Adventure Dashboard built from one repeatable-read database snapshot.
+- Character level/XP, gold, current streak, lifetime completions, and attribute progression in one daily view.
+- Prioritized actionable quests with a prominent new-quest path and the existing secure completion confirmation flow.
+- Seven-day activity graph with completion/XP/gold totals plus recent immutable reward receipts.
+- First-use guidance, loading skeletons, recoverable retry state, focus refetch, and cross-tab invalidation after quest/economy changes.
 
 - A real database-backed Marketplace with 12 curated frames, badges, titles and themes.
 - Atomic purchases that serialize against quest rewards, prevent negative balances, and return safe replay results for already-owned items.
@@ -103,7 +118,7 @@ The earlier parts also provide:
 - Responsive Evergreen visuals, local fonts/artwork, reduced-motion support, and accessible forms.
 - Integration tests using Prisma against disposable PostgreSQL via PGlite. Tests never read or modify your Neon database.
 
-**Core progression and the cosmetic economy are now implemented.** Easy/Medium/Hard quests award 25/60/120 XP and 5/12/24 gold. The chosen attribute earns the same XP. Character levels need 100 × current level to advance; attributes need 50 × current level. Archiving earns no rewards. Completed details are read-only; removing an entry keeps its reward history. Streaks count consecutive days with at least one completed quest. Marketplace purchases and inventory equipment are now implemented. Cosmetics do not change XP, attributes, streaks or reward balance; journal ideas become real only after you save them. Email verification, password reset, and profile/password editing are not implemented.
+**Core progression and the cosmetic economy are now implemented.** Easy/Medium/Hard quests award 25/60/120 XP and 5/12/24 gold. The chosen attribute earns the same XP. Character levels need 100 × current level to advance; attributes need 50 × current level. Archiving earns no rewards. Completed details are read-only; removing an entry keeps its reward history. Streaks count consecutive days with at least one completed quest. Marketplace purchases and inventory equipment are now implemented. Cosmetics do not change XP, attributes, streaks or reward balance; journal ideas become real only after you save them. Email verification, password reset, and email-address changes are not implemented.
 
 ## Commands
 
@@ -130,6 +145,6 @@ The earlier parts also provide:
 - **`P1001` during migration:** `db:deploy` uses `DIRECT_URL` in `server/.env`. Restore connectivity to that Neon endpoint, then rerun the command. This patch preserves your connection code and credentials.
 - **Database unavailable:** check both Neon URLs, run `npm run db:deploy`, and check `/health/ready`. A successful API health check alone does not mean database tables exist.
 
-For the shop transaction, inventory/equipment model, gold ledger, API contracts and smoke tests, see [docs/PART_7.md](docs/PART_7.md). For daily recurrence rules, timezone policy, database constraints and smoke tests, see [docs/PART_6.md](docs/PART_6.md). For streak rules, activity API contracts, memory diagnostics and smoke tests, see [docs/PART_5.md](docs/PART_5.md). For progression rules, the completion transaction, API contracts, migration details, and smoke tests, see [docs/PART_4.md](docs/PART_4.md). Earlier journal details are in [docs/PART_3.md](docs/PART_3.md). Authentication design, deployment settings, and existing dependency audit findings remain in [docs/PART_2.md](docs/PART_2.md).
+For public-site routing, SEO/prerendering, account/profile/password/session contracts and smoke tests, see [docs/PART_9.md](docs/PART_9.md). For the dashboard snapshot, aggregation rules, first-use flow and smoke tests, see [docs/PART_8.md](docs/PART_8.md). For the shop transaction, inventory/equipment model, gold ledger, API contracts and smoke tests, see [docs/PART_7.md](docs/PART_7.md). For daily recurrence rules, timezone policy, database constraints and smoke tests, see [docs/PART_6.md](docs/PART_6.md). For streak rules, activity API contracts, memory diagnostics and smoke tests, see [docs/PART_5.md](docs/PART_5.md). For progression rules, the completion transaction, API contracts, migration details, and smoke tests, see [docs/PART_4.md](docs/PART_4.md). Earlier journal details are in [docs/PART_3.md](docs/PART_3.md). Authentication design, deployment settings, and existing dependency audit findings remain in [docs/PART_2.md](docs/PART_2.md).
 
 The automated test suite runs locally against disposable PostgreSQL via PGlite and never uses your Neon database. A successful verification run does not verify your live Neon connection; complete the create/complete/refresh smoke test after deployment.

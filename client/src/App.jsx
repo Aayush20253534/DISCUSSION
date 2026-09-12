@@ -9,7 +9,12 @@ import './auth.css'
 import './economy/economy.css'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { PageSkeleton } from './components/ui.jsx'
-import { readMotionPreference, saveMotionPreference } from './lib/preferences.js'
+import {
+  readMotionPreference,
+  readSoundPreference,
+  saveMotionPreference,
+  saveSoundPreference,
+} from './lib/preferences.js'
 
 const Authenticate = lazy(() => import('./pages/Authenticate.jsx'))
 const Onboarding = lazy(() => import('./pages/Onboarding.jsx'))
@@ -20,6 +25,7 @@ const Character = lazy(() => import('./pages/Character.jsx'))
 const Marketplace = lazy(() => import('./pages/Marketplace.jsx'))
 const Inventory = lazy(() => import('./pages/Inventory.jsx'))
 const Settings = lazy(() => import('./pages/Settings.jsx'))
+const HowItWorks = lazy(() => import('./pages/HowItWorks.jsx'))
 const NotFound = lazy(() => import('./pages/NotFound.jsx'))
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60000, refetchOnWindowFocus: true, retry: 1 } },
@@ -27,9 +33,14 @@ const queryClient = new QueryClient({
 
 export default function App() {
   const [gentleMotion, updateGentleMotion] = useState(readMotionPreference)
+  const [soundEnabled, updateSoundEnabled] = useState(readSoundPreference)
   const setGentleMotion = (value) => {
     updateGentleMotion(value)
     saveMotionPreference(value)
+  }
+  const setSoundEnabled = (value) => {
+    updateSoundEnabled(value)
+    saveSoundPreference(value)
   }
   return (
     <ErrorBoundary>
@@ -50,10 +61,16 @@ export default function App() {
                     <Route element={<AccountGate mode="public" />}>
                       <Route
                         element={
-                          <AppShell gentleMotion={gentleMotion} setGentleMotion={setGentleMotion} />
+                          <AppShell
+                            gentleMotion={gentleMotion}
+                            setGentleMotion={setGentleMotion}
+                            soundEnabled={soundEnabled}
+                            setSoundEnabled={setSoundEnabled}
+                          />
                         }
                       >
                         <Route index element={<Dashboard />} />
+                        <Route path="how-it-works" element={<HowItWorks />} />
                         <Route element={<AccountGate />}>
                           <Route path="quests" element={<Quests />} />
                           <Route path="activity" element={<Activity />} />

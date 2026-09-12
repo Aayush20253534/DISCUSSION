@@ -1,0 +1,251 @@
+import { useRef, useState } from 'react'
+import * as Dialog from '@radix-ui/react-dialog'
+import { motion, useReducedMotion } from 'motion/react'
+import { Link, useOutletContext } from 'react-router-dom'
+import {
+  ArrowRight,
+  Check,
+  CheckCheck,
+  Coins,
+  LoaderCircle,
+  RefreshCw,
+  Sparkles,
+  X,
+} from 'lucide-react'
+import { ATTRIBUTES } from '@life-rpg/shared'
+import { AttributeIcon, AttributeTag } from '../components/ui.jsx'
+import { apiGet } from '../lib/api.js'
+import { useQuestMutation } from '../quests/hooks.js'
+import ProgressMeter from './ProgressMeter.jsx'
+import RewardPreview from './RewardPreview.jsx'
+import './progression.css'
+
+export default function CompleteQuest({ quest, onClose }) {
+  const contentRef = useRef(null)
+  const [current, setCurrent] = useState(quest)
+  const [result, setResult] = useState(null)
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
+  const mutation = useQuestMutation()
+  const reduce = useReducedMotion()
+  const { gentleMotion = true } = useOutletContext() || {}
+  const moving = gentleMotion && !reduce
+  const busy = loading || mutation.isPending
+  const conflict = ['QUEST_CHANGED', 'QUEST_ARCHIVED'].includes(mutation.error?.code)
+  const missing = mutation.error?.code === 'QUEST_NOT_FOUND'
+  const receipt = result?.completion
+  const levelUp = receipt && receipt.levelAfter > receipt.levelBefore
+  const attribute = ATTRIBUTES.find(
+    (item) => item.key === (receipt?.attribute || current.attribute),
+  )
+  async function submit() {
+    if (busy || conflict || missing || current.status === 'ARCHIVED') return
+    setMessage('')
+    try {
+      setResult(
+        await mutation.mutateAsync({
+          action: 'complete',
+          id: current.id,
+          body: { revision: current.revision },
+        }),
+      )
+      requestAnimationFrame(() => {
+        if (contentRef.current) contentRef.current.scrollTop = 0
+        contentRef.current?.querySelector('[data-completion-result]')?.focus()
+      })
+    } catch (error) {
+      setMessage(error.message)
+    }
+  }
+  async function reload() {
+    setLoading(true)
+    try {
+      const data = await apiGet(`/api/v1/quests/${current.id}`)
+      setCurrent(data.quest)
+      mutation.reset()
+      setMessage(
+        data.quest.status === 'ARCHIVED'
+          ? 'This quest is archived. Close this window and restore it from your journal first.'
+          : '',
+      )
+    } catch (error) {
+      setMessage(error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+  const close = () => {
+    if (!busy) onClose()
+  }
+  return (
+    <Dialog.Root open onOpenChange={(open) => !open && close()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="dialog-overlay" />
+        <Dialog.Content
+          ref={contentRef}
+          className={`dialog-content completion-dialog ${result ? 'completion-earned' : ''}`}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            document.querySelector('[data-quest-focus]')?.focus()
+          }}
+        >
+          <button
+            className="icon-button dialog-close"
+            disabled={busy}
+            onClick={close}
+            aria-label="Close completion"
+          >
+            <X size={20} />
+          </button>
+          {result ? (
+            <>
+              <div className="completion-emblem" aria-hidden="true">
+                {moving &&
+                  result.newlyCompleted &&
+                  Array.from({ length: 8 }, (_, i) => (
+                    <motion.i
+                      key={i}
+                      initial={{ opacity: 0, x: 0, y: 0, scale: 0.5 }}
+                      animate={{
+                        opacity: [0, 1, 0],
+                        x: Math.cos((i * Math.PI) / 4) * 100,
+                        y: Math.sin((i * Math.PI) / 4) * 90,
+                        scale: [0.5, 1, 0.5],
+                      }}
+                      transition={{ duration: 1.4, delay: i * 0.04, ease: 'easeOut' }}
+                    />
+                  ))}
+                <motion.span
+                  initial={moving ? { scale: 0.7, opacity: 0 } : false}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 180, damping: 16 }}
+                >
+                  {levelUp ? <Sparkles size={34} /> : <CheckCheck size={34} />}
+                </motion.span>
+              </div>
+              <span className="eyebrow">
+                {result.newlyCompleted
+                  ? 'A PROMISE TO YOURSELF, KEPT'
+                  : 'ALREADY PART OF YOUR STORY'}
+              </span>
+              <Dialog.Title data-completion-result tabIndex={-1} className="dialog-title">
+                {!result.newlyCompleted
+                  ? 'Your quest is recorded.'
+                  : levelUp
+                    ? `Hello, level ${receipt.levelAfter}.`
+                    : 'One small step. Well done.'}
+              </Dialog.Title>
+              <Dialog.Description className="dialog-description">
+                {result.newlyCompleted
+                  ? 'Your effort has a place in your story. These rewards are saved.'
+                  : 'This quest was completed earlier. Its rewards were credited once; no extra rewards were added.'}
+              </Dialog.Description>
+              <p className="completion-quest-title">{receipt.title}</p>
+              <div className="earned-rewards" aria-label="Recorded rewards">
+                <div>
+                  <Sparkles size={20} />
+                  <strong>+{receipt.xpAwarded}</strong>
+                  <span>Experience</span>
+                </div>
+                <div>
+                  <Coins size={20} />
+                  <strong>+{receipt.goldAwarded}</strong>
+                  <span>Gold earned</span>
+                </div>
+                <div>
+                  <AttributeIcon attribute={receipt.attribute} size={20} />
+                  <strong>+{receipt.attributeXpAwarded}</strong>
+                  <span>{attribute.name} XP</span>
+                </div>
+              </div>
+              {receipt.attributeLevelAfter > receipt.attributeLevelBefore && (
+                <div className="attribute-unlocked">
+                  <AttributeIcon attribute={receipt.attribute} size={17} />
+                  <span>
+                    {attribute.name} reached level {receipt.attributeLevelAfter}.
+                  </span>
+                </div>
+              )}
+              <ProgressMeter progress={result.character.progression} />
+              <div className="completion-actions">
+                <button className="button button-gold" onClick={close}>
+                  Back to journal
+                  <ArrowRight size={16} />
+                </button>
+                <Link className="text-link" to="/character">
+                  View your growth
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <span className="completion-check" aria-hidden="true">
+                <Check size={25} />
+              </span>
+              <span className="eyebrow">MAKE THIS MOMENT COUNT</span>
+              <Dialog.Title className="dialog-title">Ready to call it done?</Dialog.Title>
+              <Dialog.Description className="dialog-description">
+                Mark this quest complete once you’ve done the real-world task. Its details will
+                become a lasting record.
+              </Dialog.Description>
+              <div className="completion-intention">
+                <AttributeTag attribute={current.attribute} />
+                <h2>{current.title}</h2>
+                {current.description && <p>{current.description}</p>}
+                <RewardPreview difficulty={current.difficulty} attribute={current.attribute} />
+              </div>
+              <p className="completion-note">
+                Rewards are credited once. You can remove the journal entry later; the completion
+                and earned progress will stay in your history.
+              </p>
+              {message && (
+                <p className="form-message" role="alert">
+                  {message}
+                </p>
+              )}
+              {conflict && (
+                <button className="button button-outline" disabled={busy} onClick={reload}>
+                  <RefreshCw size={16} />
+                  Load latest quest
+                </button>
+              )}
+              {['NETWORK_ERROR', 'INVALID_RESPONSE'].includes(mutation.error?.code) && (
+                <p className="field-hint">
+                  The request may have arrived. Retry to recover its saved result without awarding
+                  rewards twice.
+                </p>
+              )}
+              <div className="completion-actions">
+                <button className="button button-outline" disabled={busy} onClick={close}>
+                  Not yet
+                </button>
+                <button
+                  autoFocus
+                  className="button button-gold"
+                  disabled={busy || conflict || missing || current.status === 'ARCHIVED'}
+                  onClick={submit}
+                >
+                  {busy ? (
+                    <>
+                      <LoaderCircle className="spin" size={16} />
+                      Recording…
+                    </>
+                  ) : (
+                    <>
+                      <Check size={17} />
+                      {mutation.isError
+                        ? 'Retry completion'
+                        : current.status === 'COMPLETED'
+                          ? 'View saved result'
+                          : 'Mark complete'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}

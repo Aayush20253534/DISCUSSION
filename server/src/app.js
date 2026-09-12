@@ -8,10 +8,12 @@ import { rateLimit } from 'express-rate-limit'
 import { APP_NAME, API_PREFIX, ATTRIBUTES, worldSchema } from '@life-rpg/shared'
 import { log } from './lib/logger.js'
 import { AppError } from './lib/errors.js'
+import { createActivityRouter } from './activity/router.js'
+import { createProgressionRouter } from './progression/router.js'
 import { createQuestRouter } from './quests/router.js'
 import { createAccountRouter } from './auth/router.js'
 
-export function createApp({ config, database, staticDirectory, logger = log }) {
+export function createApp({ config, database, staticDirectory, logger = log, clock }) {
   const app = express()
   app.disable('x-powered-by')
   if (config.TRUST_PROXY_HOPS) app.set('trust proxy', config.TRUST_PROXY_HOPS)
@@ -97,7 +99,7 @@ export function createApp({ config, database, staticDirectory, logger = log }) {
     res.json({
       data: worldSchema.parse({
         name: APP_NAME,
-        stage: 'quests',
+        stage: 'progression',
         accountsAvailable: Boolean(config.JWT_SECRET && database.configured),
         attributes: ATTRIBUTES,
       }),
@@ -105,6 +107,8 @@ export function createApp({ config, database, staticDirectory, logger = log }) {
   })
   app.use(API_PREFIX, createAccountRouter({ config, database }))
   app.use(`${API_PREFIX}/quests`, createQuestRouter({ config, database }))
+  app.use(`${API_PREFIX}/activity`, createActivityRouter({ config, database, clock }))
+  app.use(`${API_PREFIX}/progress`, createProgressionRouter({ config, database }))
   // Unknown API routes must never return the SPA's HTML.
   app.use('/api', (req, res) =>
     res.status(404).json({

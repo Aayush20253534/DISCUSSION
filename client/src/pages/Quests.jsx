@@ -6,6 +6,7 @@ import {
   ArrowRight,
   BookOpen,
   CalendarDays,
+  CheckCheck,
   ChevronDown,
   Compass,
   LoaderCircle,
@@ -20,10 +21,12 @@ import { useAuth } from '../auth/useAuth.js'
 import { AttributeIcon, PageHeading } from '../components/ui.jsx'
 import QuestRow from '../quests/QuestRow.jsx'
 import QuestEditor from '../quests/QuestEditor.jsx'
+import CompleteQuest from '../progression/CompleteQuest.jsx'
 import QuestDetails from '../quests/QuestDetails.jsx'
-import { useQuestMutation, useQuests, useQuestSummary, useQuestSync } from '../quests/hooks.js'
+import { useQuestMutation, useQuests, useQuestSummary } from '../quests/hooks.js'
 import { sampleQuests } from '../data/preview.js'
 import '../quests.css'
+import '../progression/progression.css'
 
 const defaults = {
   q: '',
@@ -56,11 +59,11 @@ function QuestJournal() {
   const query = useQuests({ ...filters, q: debouncedSearch })
   const summary = useQuestSummary()
   const mutation = useQuestMutation()
-  useQuestSync()
   const [editor, setEditor] = useState(() => (params.get('new') === '1' ? {} : null))
   const [detailId, setDetailId] = useState(() =>
     questIdSchema.safeParse(params.get('quest')).success ? params.get('quest') : null,
   )
+  const [completing, setCompleting] = useState(null)
   const [notice, setNotice] = useState('')
   const [actionError, setActionError] = useState('')
   function changeFilters(updates) {
@@ -162,6 +165,13 @@ function QuestJournal() {
             caption: 'A LITTLE FOCUS',
           },
           {
+            key: 'completed',
+            label: 'Completed',
+            icon: CheckCheck,
+            updates: { status: 'COMPLETED', due: 'ALL', sort: 'COMPLETED' },
+            caption: 'EFFORT, REMEMBERED',
+          },
+          {
             key: 'archived',
             label: 'Archived',
             icon: Archive,
@@ -198,7 +208,11 @@ function QuestJournal() {
             <div>
               <span className="eyebrow">YOUR EVERYDAY ADVENTURE</span>
               <h2>
-                {filters.status === 'ARCHIVED' ? 'Kept for another day' : 'The next small step'}
+                {filters.status === 'ARCHIVED'
+                  ? 'Kept for another day'
+                  : filters.status === 'COMPLETED'
+                    ? 'Small promises, kept'
+                    : 'The next small step'}
               </h2>
             </div>
             <BookOpen size={23} className="green" />
@@ -210,6 +224,13 @@ function QuestJournal() {
               onClick={() => changeFilters({ status: 'ACTIVE' })}
             >
               Active
+            </button>
+            <button
+              className={filters.status === 'COMPLETED' ? 'selected' : ''}
+              aria-pressed={filters.status === 'COMPLETED'}
+              onClick={() => changeFilters({ status: 'COMPLETED', sort: 'COMPLETED' })}
+            >
+              Completed
             </button>
             <button
               className={filters.status === 'ARCHIVED' ? 'selected' : ''}
@@ -248,6 +269,7 @@ function QuestJournal() {
                 <option value="OLDEST">Oldest first</option>
                 <option value="DUE">Due date</option>
                 <option value="TITLE">Title A–Z</option>
+                <option value="COMPLETED">Recently completed</option>
               </select>
               <ChevronDown size={14} />
             </label>
@@ -378,6 +400,7 @@ function QuestJournal() {
                   onOpen={(item) => setDetailId(item.id)}
                   onEdit={(item) => setEditor({ quest: item })}
                   onArchive={archive}
+                  onComplete={setCompleting}
                 />
               ))}
             </div>
@@ -389,30 +412,34 @@ function QuestJournal() {
               <h3>
                 {hasFilters
                   ? 'A different path, perhaps?'
-                  : filters.status === 'ARCHIVED'
-                    ? 'Nothing tucked away yet.'
-                    : 'A fresh page. A small beginning.'}
+                  : filters.status === 'COMPLETED'
+                    ? 'Good things take a first step.'
+                    : filters.status === 'ARCHIVED'
+                      ? 'Nothing tucked away yet.'
+                      : 'A fresh page. A small beginning.'}
               </h3>
               <p>
                 {hasFilters
                   ? 'No quests match these filters. Try another word or give your search a little more room.'
-                  : filters.status === 'ARCHIVED'
-                    ? 'Archived quests will wait here until you’re ready to return to them.'
-                    : 'Read a few pages. Take a walk. Make something. Start with a quest that feels like you.'}
+                  : filters.status === 'COMPLETED'
+                    ? 'Finish a real-world quest and mark it complete. Your earned rewards and finished quests will appear here.'
+                    : filters.status === 'ARCHIVED'
+                      ? 'Archived quests will wait here until you’re ready to return to them.'
+                      : 'Read a few pages. Take a walk. Make something. Start with a quest that feels like you.'}
               </p>
               <button
                 className="button button-outline"
                 onClick={() =>
                   hasFilters
                     ? changeFilters({ ...defaults, status: filters.status })
-                    : filters.status === 'ARCHIVED'
+                    : ['ARCHIVED', 'COMPLETED'].includes(filters.status)
                       ? changeFilters({ status: 'ACTIVE' })
                       : setEditor({})
                 }
               >
                 {hasFilters
                   ? 'Clear filters'
-                  : filters.status === 'ARCHIVED'
+                  : ['ARCHIVED', 'COMPLETED'].includes(filters.status)
                     ? 'Back to active quests'
                     : 'Create your first quest'}
                 <ArrowRight size={15} />
@@ -446,7 +473,7 @@ function QuestJournal() {
             <CalendarDays size={14} />
             <span>
               Dates follow {summary.data?.timezone?.replaceAll('_', ' ') || 'your account timezone'}
-              . Completion & rewards open in the next chapter.
+              . Complete a real-world quest to earn XP, gold, and growth.
             </span>
           </div>
         </section>
@@ -496,6 +523,7 @@ function QuestJournal() {
           </div>
         </aside>
       </div>
+      {completing && <CompleteQuest quest={completing} onClose={() => setCompleting(null)} />}
       {editor && <QuestEditor {...editor} onClose={closeEditor} onSaved={saved} />}
       {detailId && (
         <QuestDetails
@@ -504,6 +532,10 @@ function QuestJournal() {
           onEdit={(quest) => {
             closeDetails()
             setEditor({ quest })
+          }}
+          onComplete={(quest) => {
+            closeDetails()
+            setCompleting(quest)
           }}
           onChanged={(message) => {
             closeDetails()

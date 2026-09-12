@@ -1,4 +1,14 @@
-import { Archive, ArrowUpRight, CalendarDays, Clock3, Pencil, RotateCcw } from 'lucide-react'
+import {
+  Check,
+  CheckCheck,
+  Coins,
+  Archive,
+  ArrowUpRight,
+  CalendarDays,
+  Clock3,
+  Pencil,
+  RotateCcw,
+} from 'lucide-react'
 import { QUEST_DIFFICULTIES, formatQuestDate } from '@life-rpg/shared'
 import { AttributeIcon, AttributeTag } from '../components/ui.jsx'
 
@@ -8,6 +18,7 @@ export default function QuestRow({
   onOpen,
   onEdit,
   onArchive,
+  onComplete,
   busy = false,
   compact = false,
 }) {
@@ -15,7 +26,7 @@ export default function QuestRow({
   const dueToday = quest.dueDate === today
   return (
     <article
-      className={`saved-quest ${quest.attribute.toLowerCase()} ${compact ? 'saved-quest-compact' : ''}`}
+      className={`saved-quest ${quest.attribute.toLowerCase()} ${compact ? 'saved-quest-compact' : ''} ${quest.status === 'COMPLETED' ? 'saved-quest-completed' : ''}`}
     >
       <span className="saved-quest-icon">
         <AttributeIcon attribute={quest.attribute} size={22} />
@@ -39,12 +50,24 @@ export default function QuestRow({
               {quest.estimatedMinutes} min
             </span>
           )}
-          {quest.dueDate && (
+          {quest.dueDate && quest.status !== 'COMPLETED' && (
             <span className={overdue ? 'due-overdue' : dueToday ? 'due-today' : ''}>
               <CalendarDays size={13} />
               {overdue ? 'Overdue · ' : dueToday ? 'Today · ' : ''}
               {formatQuestDate(quest.dueDate)}
             </span>
+          )}
+          {quest.status === 'COMPLETED' && quest.completion && (
+            <>
+              <span className="completed-label">
+                <CheckCheck size={13} />
+                Completed · {formatQuestDate(quest.completion.completedDate)}
+              </span>
+              <span>+{quest.completion.xpAwarded} XP</span>
+              <span>
+                <Coins size={13} />+{quest.completion.goldAwarded} gold
+              </span>
+            </>
           )}
           {quest.status === 'ARCHIVED' && (
             <span>
@@ -54,8 +77,19 @@ export default function QuestRow({
           )}
         </div>
       </div>
-      {!compact && (
+      {!compact && quest.status !== 'COMPLETED' && (
         <div className="saved-quest-actions">
+          {quest.status === 'ACTIVE' && (
+            <button
+              className="icon-button quest-complete-button"
+              aria-label={`Complete ${quest.title}`}
+              title="Complete quest"
+              disabled={busy}
+              onClick={() => onComplete(quest)}
+            >
+              <Check size={17} />
+            </button>
+          )}
           <button
             className="icon-button"
             aria-label={`Edit ${quest.title}`}

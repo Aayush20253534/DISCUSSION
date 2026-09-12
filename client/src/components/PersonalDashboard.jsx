@@ -1,6 +1,10 @@
 import { ArrowRight, Coins, Compass, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { ATTRIBUTES } from '@life-rpg/shared'
+import { ATTRIBUTES, characterProgress } from '@life-rpg/shared'
+import { useProgress } from '../progression/hooks.js'
+import ProgressMeter from '../progression/ProgressMeter.jsx'
+import ProgressNotice from '../progression/ProgressNotice.jsx'
+import StreakCard from '../activity/StreakCard.jsx'
 import DashboardQuests from '../quests/DashboardQuests.jsx'
 import { useAuth } from '../auth/useAuth.js'
 import Landscape from './Landscape.jsx'
@@ -9,25 +13,35 @@ import { AttributeIcon, PageHeading, SectionLink } from './ui.jsx'
 
 export default function PersonalDashboard() {
   const { user } = useAuth()
-  const character = user.character
+  const progress = useProgress()
+  const character = progress.data?.character || characterProgress(user.character)
+  const level = character.progression.level
   return (
     <div className="page dashboard-page">
       <PageHeading
         eyebrow="WELCOME TO YOUR NEXT CHAPTER"
         title={
           <>
-            Your story, <em>just beginning.</em>
+            Your story, <em>still unfolding.</em>
           </>
         }
         description={`Welcome, ${user.displayName}. Make a little room for the person you want to become.`}
       >
         <span className="chapter-badge">
-          <Compass size={16} /> CHAPTER 03 <span>·</span> YOUR ADVENTURE
+          <Compass size={16} /> CHAPTER 05 <span>·</span> YOUR ADVENTURE
         </span>
       </PageHeading>
       <div className="account-welcome">
-        <Sparkles size={17} /> Your journal is open. Make a little room for what matters.
+        <Sparkles size={17} /> Every small effort adds to your story.
+        <Link to="/character">
+          {progress.isError
+            ? 'View your growth'
+            : progress.isPending
+              ? 'Your progress'
+              : `${progress.data.completedCount} ${progress.data.completedCount === 1 ? 'quest' : 'quests'} completed`}
+        </Link>
       </div>
+      <ProgressNotice query={progress} />
       <div className="hero-grid">
         <section className="adventure-hero">
           <Landscape />
@@ -51,7 +65,7 @@ export default function PersonalDashboard() {
           </div>
           <div className="hero-coordinate">
             <span>THE EVERGREEN TRAIL</span>
-            <span>03 / ∞</span>
+            <span>05 / ∞</span>
           </div>
         </section>
         <section className="character-card panel">
@@ -60,34 +74,26 @@ export default function PersonalDashboard() {
           </div>
           <div className="portrait-ring">
             <Portrait avatarKey={character.avatarKey} />
-            <span className="level-medallion">01</span>
+            <span className="level-medallion">{String(level).padStart(2, '0')}</span>
           </div>
           <h2>{user.displayName}</h2>
           <p className="character-subtitle">Curious soul. Endless possibilities.</p>
-          <div className="xp-heading">
-            <span>Level 1</span>
-            <span>
-              <strong>{character.totalXp}</strong> total XP
-            </span>
-          </div>
-          <p className="field-hint">
-            Your journey begins here. Quest completion and XP rewards open next.
-          </p>
+          <ProgressMeter progress={character.progression} />
           <Link className="character-link" to="/settings">
             Your account & preferences <ArrowRight size={16} />
           </Link>
         </section>
       </div>
-      <div className="stats-strip" aria-label="Your starting adventure">
+      <div className="stats-strip" aria-label="Your saved progress">
         <div>
           <span className="stat-icon green">
             <Compass size={22} />
           </span>
           <span>
-            <strong>1</strong>
-            <span>Starting level</span>
+            <strong>{level}</strong>
+            <span>Character level</span>
           </span>
-          <span className="stat-detail">A NEW BEGINNING</span>
+          <span className="stat-detail">KEEP BECOMING</span>
         </div>
         <div>
           <span className="stat-icon green">
@@ -97,7 +103,7 @@ export default function PersonalDashboard() {
             <strong>{character.totalXp}</strong>
             <span>Total experience</span>
           </span>
-          <span className="stat-detail">ROOM TO GROW</span>
+          <span className="stat-detail">EFFORT, REMEMBERED</span>
         </div>
         <div>
           <span className="stat-icon gold">
@@ -111,6 +117,7 @@ export default function PersonalDashboard() {
           </span>
         </div>
       </div>
+      <StreakCard />
       <div className="lower-grid">
         <DashboardQuests />
         <section className="panel attributes-panel">
@@ -127,10 +134,16 @@ export default function PersonalDashboard() {
                 <AttributeIcon attribute={key} size={17} />
                 <span>{name}</span>
                 <div className="attribute-track" aria-hidden="true">
-                  <span style={{ width: 0 }} />
+                  <span
+                    style={{
+                      width: `${character.attributes.find((attribute) => attribute.key === key)?.progression.percent || 0}%`,
+                    }}
+                  />
                 </div>
                 <span className="attribute-level">
-                  {character.attributes.find((attribute) => attribute.key === key)?.xp ?? 0} XP
+                  Lv.{' '}
+                  {character.attributes.find((attribute) => attribute.key === key)?.progression
+                    .level || 1}
                 </span>
               </div>
             ))}

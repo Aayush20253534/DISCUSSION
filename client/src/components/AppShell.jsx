@@ -2,6 +2,7 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   BookOpen,
+  CalendarDays,
   ChevronRight,
   Compass,
   HelpCircle,
@@ -13,6 +14,7 @@ import {
   Sparkles,
   UserRound,
 } from 'lucide-react'
+import { useQuestSync } from '../quests/hooks.js'
 import Portrait from './Portrait.jsx'
 import { useAuth } from '../auth/useAuth.js'
 import { Modal, PageSkeleton } from './ui.jsx'
@@ -20,12 +22,14 @@ import { Modal, PageSkeleton } from './ui.jsx'
 const navigation = [
   { to: '/', label: 'Overview', icon: Map },
   { to: '/quests', label: 'Quest journal', icon: BookOpen },
+  { to: '/activity', label: 'Activity', icon: CalendarDays },
   { to: '/character', label: 'Character', icon: UserRound },
   { to: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
 ]
 
 export default function AppShell({ gentleMotion, setGentleMotion }) {
   const { user } = useAuth()
+  useQuestSync()
   const [collapsed, setCollapsed] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
   const { pathname } = useLocation()
@@ -210,9 +214,9 @@ export default function AppShell({ gentleMotion, setGentleMotion }) {
           </li>
         </ol>
         <div className="modal-note">
-          Create an account and choose your character to begin. Quest completion, earned XP,
-          streaks, and purchases will arrive in the next chapters. Preview examples do not change
-          your progress.
+          Complete a saved quest to earn XP and gold, then watch your character and chosen attribute
+          grow. Track your daily streak in Activity. Marketplace purchases arrive in a later
+          chapter. Preview examples do not change your progress.
         </div>
         <button className="button button-gold full-width" onClick={() => setGuideOpen(false)}>
           Let’s explore <Compass size={16} />

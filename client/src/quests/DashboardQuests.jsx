@@ -2,13 +2,12 @@ import { BookOpen, Compass, LoaderCircle, Plus } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { SectionLink } from '../components/ui.jsx'
 import QuestRow from './QuestRow.jsx'
-import { useQuests, useQuestSync } from './hooks.js'
+import { useQuests } from './hooks.js'
 import '../quests.css'
 
 export default function DashboardQuests() {
   const query = useQuests({ status: 'ACTIVE', sort: 'DUE', limit: 3 })
   const navigate = useNavigate()
-  useQuestSync()
   return (
     <section className="panel quest-panel dashboard-quest-panel">
       <div className="section-heading">

@@ -14,6 +14,7 @@ const Authenticate = lazy(() => import('./pages/Authenticate.jsx'))
 const Onboarding = lazy(() => import('./pages/Onboarding.jsx'))
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
 const Quests = lazy(() => import('./pages/Quests.jsx'))
+const Activity = lazy(() => import('./pages/Activity.jsx'))
 const Character = lazy(() => import('./pages/Character.jsx'))
 const Marketplace = lazy(() => import('./pages/Marketplace.jsx'))
 const Settings = lazy(() => import('./pages/Settings.jsx'))
@@ -53,6 +54,7 @@ export default function App() {
                         <Route index element={<Dashboard />} />
                         <Route element={<AccountGate />}>
                           <Route path="quests" element={<Quests />} />
+                          <Route path="activity" element={<Activity />} />
                           <Route path="character" element={<Character />} />
                           <Route path="marketplace" element={<Marketplace />} />
                           <Route path="settings" element={<Settings />} />

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../auth/useAuth.js'
 import { apiGet, apiSend } from '../lib/api.js'
 
-function useAccountError(error) {
+export function useAccountError(error) {
   const client = useQueryClient()
   useEffect(() => {
     if (['AUTH_REQUIRED', 'ONBOARDING_REQUIRED'].includes(error?.code)) {
@@ -44,7 +44,12 @@ export function useQuestSync() {
     if (!user || !('BroadcastChannel' in window)) return
     const channel = new BroadcastChannel('life-rpg-quests')
     channel.onmessage = ({ data }) => {
-      if (data?.userId === user.id) void client.invalidateQueries({ queryKey: ['quests', user.id] })
+      if (data?.userId !== user.id) return
+      void client.invalidateQueries({ queryKey: ['quests', user.id] })
+      if (data.progressChanged) {
+        void client.invalidateQueries({ queryKey: ['progress', user.id] })
+        void client.invalidateQueries({ queryKey: ['auth', 'me'] })
+      }
     }
     return () => channel.close()
   }, [user, client])
@@ -55,18 +60,27 @@ export function useQuestMutation() {
   const mutation = useMutation({
     retry: false,
     mutationFn: ({ action, id, body }) => {
-      const method = { create: 'POST', update: 'PATCH', delete: 'DELETE' }[action]
-      return apiSend(`/api/v1/quests${id ? `/${id}` : ''}`, body, method)
+      const method = { create: 'POST', update: 'PATCH', delete: 'DELETE', complete: 'POST' }[action]
+      return apiSend(
+        `/api/v1/quests${id ? `/${id}` : ''}${action === 'complete' ? '/complete' : ''}`,
+        body,
+        method,
+      )
     },
     onMutate: () => ({ accountId: user?.id }),
-    onSuccess: (_data, _variables, context) => {
+    onSuccess: (_data, variables, context) => {
       // A request finishing after an account switch must not repopulate the new user's cache.
       const accountId = context?.accountId
       if (accountId && accountId === client.getQueryData(['auth', 'me'])?.user?.id) {
         void client.invalidateQueries({ queryKey: ['quests', accountId] })
+        const progressChanged = ['complete', 'delete'].includes(variables.action)
+        if (progressChanged) {
+          void client.invalidateQueries({ queryKey: ['progress', accountId] })
+          void client.invalidateQueries({ queryKey: ['auth', 'me'] })
+        }
         if ('BroadcastChannel' in window) {
           const channel = new BroadcastChannel('life-rpg-quests')
-          channel.postMessage({ userId: accountId })
+          channel.postMessage({ userId: accountId, progressChanged })
           channel.close()
         }
       }

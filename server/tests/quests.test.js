@@ -233,7 +233,7 @@ test('validation rejects invalid dates, unsupported fields, fake rewards and mal
     { page: '1.5' },
     { limit: '1e2' },
     { due: 'YESTERDAY' },
-    { status: 'COMPLETED' },
+    { status: 'INVALID_STATUS' },
     { userId: client.user.id },
     { q: ['a', 'b'] },
   ])

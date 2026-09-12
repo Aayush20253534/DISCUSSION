@@ -9,6 +9,7 @@ import {
 } from '@life-rpg/shared'
 import { AttributeIcon } from '../components/ui.jsx'
 import { apiGet } from '../lib/api.js'
+import RewardPreview from '../progression/RewardPreview.jsx'
 import { useQuestMutation } from './hooks.js'
 
 function valuesFrom(quest) {
@@ -35,7 +36,7 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
   const mutation = useQuestMutation()
   const busy = mutation.isPending || reloading
   const conflict = mutation.error?.code === 'QUEST_CHANGED'
-  const missing = mutation.error?.code === 'QUEST_NOT_FOUND'
+  const missing = ['QUEST_NOT_FOUND', 'QUEST_COMPLETED'].includes(mutation.error?.code)
   const dirty = JSON.stringify(values) !== JSON.stringify(valuesFrom(original || template))
   function close() {
     if (busy) return
@@ -93,6 +94,10 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
     setMessage('')
     try {
       const result = await apiGet(`/api/v1/quests/${original.id}`)
+      if (result.quest.status === 'COMPLETED') {
+        setMessage('This quest has been completed. Close this draft to view the saved result.')
+        return
+      }
       setOriginal(result.quest)
       setValues(valuesFrom(result.quest))
       setFields({})
@@ -287,6 +292,10 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
                   </div>
                 </div>
               </fieldset>
+              <div className="quest-form-rewards">
+                <span>WHEN YOU COMPLETE THIS QUEST</span>
+                <RewardPreview difficulty={values.difficulty} attribute={values.attribute} />
+              </div>
               {message && (
                 <p className="form-message" role="alert">
                   {message}
@@ -310,7 +319,7 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
                 </p>
               )}
               <div className="quest-form-footer">
-                <span>Completion & rewards open in the next chapter.</span>
+                <span>Give your effort a place to grow.</span>
                 <div>
                   <button
                     className="button button-outline"

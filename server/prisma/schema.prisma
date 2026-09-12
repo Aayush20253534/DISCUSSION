@@ -25,6 +25,7 @@ model User {
   sessions     Session[]
   character    Character?
   quests       Quest[]
+  completions  QuestCompletion[]
 
   @@map("users")
 }
@@ -77,6 +78,7 @@ enum QuestDifficulty {
 enum QuestStatus {
   ACTIVE
   ARCHIVED
+  COMPLETED
 }
 
 model Quest {
@@ -94,11 +96,49 @@ model Quest {
   revision         Int             @default(1)
   createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  completedAt      DateTime?       @map("completed_at") @db.Timestamptz(3)
+  completion       QuestCompletion?
   user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, requestId])
   @@index([userId, status, createdAt, id])
   @@index([userId, status, dueDate, id])
   @@index([userId, attribute, status])
+  @@index([userId, status, completedAt, id])
   @@map("quests")
+}
+
+model QuestCompletion {
+  id                   String          @id @default(uuid()) @db.Uuid
+  originalQuestId      String          @unique @map("original_quest_id") @db.Uuid
+  questId              String?         @unique @map("quest_id") @db.Uuid
+  userId               String          @map("user_id") @db.Uuid
+  sourceRevision       Int             @map("source_revision")
+  title                String          @db.VarChar(120)
+  description          String          @db.VarChar(2000)
+  attribute            AttributeKey
+  difficulty           QuestDifficulty
+  dueDate              DateTime?       @map("due_date") @db.Date
+  estimatedMinutes     Int?            @map("estimated_minutes")
+  xpAwarded            Int             @map("xp_awarded")
+  goldAwarded          Int             @map("gold_awarded")
+  attributeXpAwarded   Int             @map("attribute_xp_awarded")
+  rulesVersion         Int             @map("rules_version")
+  completedAt          DateTime        @map("completed_at") @db.Timestamptz(3)
+  completedDate        DateTime        @map("completed_date") @db.Date
+  timezone             String          @db.VarChar(80)
+  levelBefore          Int             @map("level_before")
+  levelAfter           Int             @map("level_after")
+  attributeLevelBefore Int             @map("attribute_level_before")
+  attributeLevelAfter  Int             @map("attribute_level_after")
+  totalXpAfter         Int             @map("total_xp_after")
+  goldAfter            Int             @map("gold_after")
+  attributeXpAfter     Int             @map("attribute_xp_after")
+  user                 User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quest                Quest?          @relation(fields: [questId], references: [id], onDelete: SetNull)
+
+  @@index([userId, completedAt, id])
+  @@index([userId, attribute, completedAt, id])
+  @@index([userId, completedDate, completedAt, id], map: "quest_completions_user_activity_idx")
+  @@map("quest_completions")
 }

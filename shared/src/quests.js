@@ -73,9 +73,9 @@ export const questListSchema = z
     q: z.string().trim().max(120).default(''),
     attribute: z.enum(['ALL', ...attribute.options]).default('ALL'),
     difficulty: z.enum(['ALL', ...difficulty.options]).default('ALL'),
-    status: z.enum(['ALL', ...status.options]).default('ACTIVE'),
+    status: z.enum(['ALL', 'COMPLETED', ...status.options]).default('ACTIVE'),
     due: z.enum(['ALL', 'TODAY', 'UPCOMING', 'OVERDUE', 'UNSCHEDULED']).default('ALL'),
-    sort: z.enum(['NEWEST', 'OLDEST', 'DUE', 'TITLE']).default('NEWEST'),
+    sort: z.enum(['NEWEST', 'OLDEST', 'DUE', 'TITLE', 'COMPLETED']).default('NEWEST'),
     page: integerParam(1, 10000),
     limit: integerParam(12, 50),
   })

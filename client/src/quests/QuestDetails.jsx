@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import * as Dialog from '@radix-ui/react-dialog'
 import {
   Archive,
+  Check,
+  CheckCheck,
   CalendarDays,
   Clock3,
   LoaderCircle,
@@ -12,13 +14,14 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import { QUEST_DIFFICULTIES, formatQuestDate } from '@life-rpg/shared'
+import { QUEST_DIFFICULTIES, formatQuestDate, formatCompletionDate } from '@life-rpg/shared'
 import { useAuth } from '../auth/useAuth.js'
 import { AttributeTag } from '../components/ui.jsx'
 import { apiGet } from '../lib/api.js'
-import { useQuestMutation } from './hooks.js'
+import RewardPreview from '../progression/RewardPreview.jsx'
+import { useQuestMutation, useAccountError } from './hooks.js'
 
-export default function QuestDetails({ id, onClose, onEdit, onChanged }) {
+export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplete }) {
   const { user } = useAuth()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [error, setError] = useState('')
@@ -28,6 +31,7 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged }) {
     retry: false,
     staleTime: 0,
   })
+  useAccountError(query.error)
   const mutation = useQuestMutation()
   const quest = query.data?.quest
   async function act(action) {
@@ -79,11 +83,17 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged }) {
           </button>
           <span className="eyebrow">A PAGE FROM YOUR JOURNAL</span>
           <Dialog.Title className="dialog-title">
-            {confirmDelete ? 'Delete this quest?' : quest?.title || 'Your quest'}
+            {confirmDelete
+              ? quest?.status === 'COMPLETED'
+                ? 'Remove from your journal?'
+                : 'Delete this quest?'
+              : quest?.title || 'Your quest'}
           </Dialog.Title>
           <Dialog.Description className="dialog-description">
             {confirmDelete
-              ? 'This permanently removes the quest. You can archive it instead if you may want it later.'
+              ? quest?.status === 'COMPLETED'
+                ? 'The journal entry will be removed. Your completion history, XP, and gold will stay saved.'
+                : 'This permanently removes the quest. You can archive it instead if you may want it later.'
               : 'A small intention, ready for your next step.'}
           </Dialog.Description>
           {query.isPending ? (
@@ -106,12 +116,16 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged }) {
                 <>
                   <div className="quest-detail-tags">
                     <AttributeTag attribute={quest.attribute} />
-                    <span className="difficulty-dot">
+                    <span className={`difficulty-dot ${quest.difficulty.toLowerCase()}`}>
                       <i />
                       {QUEST_DIFFICULTIES.find((item) => item.key === quest.difficulty)?.label}
                     </span>
                     <span className="quest-status-label">
-                      {quest.status === 'ARCHIVED' ? 'Archived' : 'Active quest'}
+                      {quest.status === 'COMPLETED'
+                        ? 'Completed'
+                        : quest.status === 'ARCHIVED'
+                          ? 'Archived'
+                          : 'Active quest'}
                     </span>
                   </div>
                   <p className={`quest-notes ${quest.description ? '' : 'quest-notes-empty'}`}>
@@ -137,10 +151,31 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged }) {
                       </dd>
                     </div>
                   </dl>
-                  <p className="quest-detail-boundary">
-                    Your quest is saved. Completing quests and earning rewards opens in the next
-                    chapter.
-                  </p>
+                  {quest.completion ? (
+                    <div className="completion-stamp">
+                      <span>
+                        <CheckCheck size={18} />A promise, kept
+                      </span>
+                      <p>
+                        {formatCompletionDate(
+                          quest.completion.completedAt,
+                          quest.completion.timezone,
+                        )}{' '}
+                        · {quest.completion.timezone.replaceAll('_', ' ')}
+                      </p>
+                      <p className="recorded-reward-line">
+                        +{quest.completion.xpAwarded} XP · +{quest.completion.goldAwarded} gold · +
+                        {quest.completion.attributeXpAwarded} attribute XP
+                      </p>
+                      <small>
+                        Recorded once. Your earned progress stays in your completion history.
+                      </small>
+                    </div>
+                  ) : (
+                    <div className="quest-detail-boundary">
+                      <RewardPreview difficulty={quest.difficulty} attribute={quest.attribute} />
+                    </div>
+                  )}
                 </>
               )}
               {error && (
@@ -184,31 +219,45 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged }) {
                       ) : (
                         <Trash2 size={16} />
                       )}
-                      Delete permanently
+                      {quest.status === 'COMPLETED' ? 'Remove journal entry' : 'Delete permanently'}
                     </button>
                   </>
                 ) : (
                   <>
-                    <button
-                      className="button button-gold"
-                      disabled={mutation.isPending}
-                      onClick={() => onEdit(quest)}
-                    >
-                      <Pencil size={15} />
-                      Edit quest
-                    </button>
-                    <button
-                      className="button button-outline"
-                      disabled={mutation.isPending}
-                      onClick={() => act('archive')}
-                    >
-                      {quest.status === 'ARCHIVED' ? (
-                        <RotateCcw size={15} />
-                      ) : (
-                        <Archive size={15} />
-                      )}
-                      {quest.status === 'ARCHIVED' ? 'Restore' : 'Archive'}
-                    </button>
+                    {quest.status === 'ACTIVE' && (
+                      <button
+                        className="button button-gold"
+                        disabled={mutation.isPending}
+                        onClick={() => onComplete(quest)}
+                      >
+                        <Check size={16} />
+                        Complete quest
+                      </button>
+                    )}
+                    {quest.status !== 'COMPLETED' && (
+                      <>
+                        <button
+                          className="button button-outline"
+                          disabled={mutation.isPending}
+                          onClick={() => onEdit(quest)}
+                        >
+                          <Pencil size={15} />
+                          Edit quest
+                        </button>
+                        <button
+                          className="button button-outline"
+                          disabled={mutation.isPending}
+                          onClick={() => act('archive')}
+                        >
+                          {quest.status === 'ARCHIVED' ? (
+                            <RotateCcw size={15} />
+                          ) : (
+                            <Archive size={15} />
+                          )}
+                          {quest.status === 'ARCHIVED' ? 'Restore' : 'Archive'}
+                        </button>
+                      </>
+                    )}
                     <button
                       className="quest-delete-link"
                       disabled={mutation.isPending}
@@ -219,7 +268,7 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged }) {
                       }}
                     >
                       <Trash2 size={15} />
-                      Delete
+                      {quest.status === 'COMPLETED' ? 'Remove from journal' : 'Delete'}
                     </button>
                   </>
                 )}

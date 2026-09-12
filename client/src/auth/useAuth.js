@@ -7,5 +7,7 @@ export function useAuth() {
 }
 export function safeDestination(value) {
   // Accept only known app destinations; never follow a caller-supplied external URL.
-  return ['/', '/character', '/quests', '/marketplace', '/settings'].includes(value) ? value : '/'
+  return ['/', '/activity', '/character', '/quests', '/marketplace', '/settings'].includes(value)
+    ? value
+    : '/'
 }

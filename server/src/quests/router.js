@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { Router } from 'express'
 import {
+  questCompleteSchema,
   questCreateSchema,
   questUpdateSchema,
   questDeleteSchema,
@@ -12,19 +13,9 @@ import { createAuthentication } from '../auth/middleware.js'
 import { createSecurity } from '../auth/security.js'
 import { AppError, validate } from '../lib/errors.js'
 
-const select = {
-  id: true,
-  title: true,
-  description: true,
-  attribute: true,
-  difficulty: true,
-  status: true,
-  estimatedMinutes: true,
-  dueDate: true,
-  revision: true,
-  createdAt: true,
-  updatedAt: true,
-}
+import { questSelect as select, serializeQuest as serialize } from './presentation.js'
+import { completeQuest } from '../progression/complete.js'
+
 const notFound = () => new AppError(404, 'QUEST_NOT_FOUND', 'This quest is no longer available.')
 const stale = () =>
   new AppError(
@@ -33,10 +24,6 @@ const stale = () =>
     'This quest changed in another tab. Load the latest version before saving again.',
   )
 const dateValue = (value) => (value ? new Date(`${value}T00:00:00.000Z`) : null)
-const serialize = (quest) => ({
-  ...quest,
-  dueDate: quest.dueDate?.toISOString().slice(0, 10) || null,
-})
 const escapeLike = (value) => value.replace(/[\\%_]/g, '\\$&')
 
 export function createQuestRouter({ config, database }) {
@@ -68,18 +55,21 @@ export function createQuestRouter({ config, database }) {
     const owned = { userId: req.auth.userId }
     const active = { ...owned, status: 'ACTIVE' }
     const today = dateValue(req.questToday)
-    const [activeCount, archivedCount, dueToday, overdue, byAttribute] = await db.$transaction(
-      [
-        db.quest.count({ where: active }),
-        db.quest.count({ where: { ...owned, status: 'ARCHIVED' } }),
-        db.quest.count({ where: { ...active, dueDate: today } }),
-        db.quest.count({ where: { ...active, dueDate: { lt: today } } }),
-        db.quest.groupBy({ by: ['attribute'], where: active, _count: { _all: true } }),
-      ],
-      { isolationLevel: 'RepeatableRead' },
-    )
+    const [activeCount, archivedCount, dueToday, overdue, byAttribute, completedCount] =
+      await db.$transaction(
+        [
+          db.quest.count({ where: active }),
+          db.quest.count({ where: { ...owned, status: 'ARCHIVED' } }),
+          db.quest.count({ where: { ...active, dueDate: today } }),
+          db.quest.count({ where: { ...active, dueDate: { lt: today } } }),
+          db.quest.groupBy({ by: ['attribute'], where: active, _count: { _all: true } }),
+          db.quest.count({ where: { ...owned, status: 'COMPLETED' } }),
+        ],
+        { isolationLevel: 'RepeatableRead' },
+      )
     res.json({
       data: {
+        completed: completedCount,
         active: activeCount,
         archived: archivedCount,
         dueToday,
@@ -109,6 +99,7 @@ export function createQuestRouter({ config, database }) {
       OLDEST: [{ createdAt: 'asc' }, { id: 'asc' }],
       DUE: [{ dueDate: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }, { id: 'desc' }],
       TITLE: [{ title: 'asc' }, { id: 'asc' }],
+      COMPLETED: [{ completedAt: { sort: 'desc', nulls: 'last' } }, { id: 'desc' }],
     }[query.sort]
     const result = await db.$transaction(
       async (tx) => {
@@ -174,6 +165,17 @@ export function createQuestRouter({ config, database }) {
     }
     res.status(created ? 201 : 200).json({ data: { quest: serialize(quest) } })
   })
+  router.post('/:id/complete', security.requireCsrf, async (req, res) => {
+    const questId = validate(questIdSchema, req.params.id)
+    const { revision } = validate(questCompleteSchema, req.body)
+    const data = await completeQuest(db, {
+      userId: req.auth.userId,
+      questId,
+      revision,
+      timezone: req.questTimezone,
+    })
+    res.status(data.newlyCompleted ? 201 : 200).json({ data })
+  })
   router.patch('/:id', security.requireCsrf, async (req, res) => {
     const id = validate(questIdSchema, req.params.id)
     const { revision, ...input } = validate(questUpdateSchema, req.body)
@@ -181,11 +183,18 @@ export function createQuestRouter({ config, database }) {
     const owned = { id, userId: req.auth.userId }
     const quest = await db.$transaction(async (tx) => {
       const result = await tx.quest.updateMany({
-        where: { ...owned, revision },
+        where: { ...owned, revision, status: { in: ['ACTIVE', 'ARCHIVED'] } },
         data: { ...input, revision: { increment: 1 } },
       })
       if (result.count !== 1) {
-        if (!(await tx.quest.findFirst({ where: owned, select: { id: true } }))) throw notFound()
+        const current = await tx.quest.findFirst({ where: owned, select: { status: true } })
+        if (!current) throw notFound()
+        if (current.status === 'COMPLETED')
+          throw new AppError(
+            409,
+            'QUEST_COMPLETED',
+            'Completed quests keep their original details. Create a new quest for another attempt.',
+          )
         throw stale()
       }
       return tx.quest.findFirst({ where: owned, select })

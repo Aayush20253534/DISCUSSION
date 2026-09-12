@@ -18,7 +18,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run db:generate && node --test server/tests/*.test.js shared/tests/*.test.js",
+    "test": "npm run db:generate && node --test --test-concurrency=1 server/tests/*.test.js shared/tests/*.test.js",
     "verify": "npm run lint && npm test && npm run db:validate && npm run build",
     "db:generate": "npm run db:generate -w server",
     "db:validate": "npm run db:validate -w server",

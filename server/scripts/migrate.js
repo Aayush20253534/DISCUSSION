@@ -12,7 +12,8 @@ try {
   if (!['dev', 'deploy'].includes(mode)) throw new Error('Use dev or deploy.')
   const result = spawnSync(
     process.execPath,
-    [require.resolve('prisma'), 'migrate', mode, ...process.argv.slice(3)],
+    // Prisma's package root exports types; the published CLI entry runs migrations.
+    [require.resolve('prisma/build/index.js'), 'migrate', mode, ...process.argv.slice(3)],
     { stdio: 'inherit' },
   )
   process.exitCode = result.status ?? 1

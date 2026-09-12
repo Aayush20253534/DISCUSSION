@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { BookOpen, Search } from 'lucide-react'
 import { ATTRIBUTES } from '@life-rpg/shared'
-import { PageHeading, PreviewNotice } from '../components/ui.jsx'
+import { PageHeading } from '../components/ui.jsx'
 import QuestList from '../components/QuestList.jsx'
 import { sampleQuests } from '../data/preview.js'
 
@@ -24,7 +24,14 @@ export default function Quests() {
         }
         description="Find inspiration for the things you want to make time for."
       />
-      <PreviewNotice />
+      <section className="panel account-panel empty-state">
+        <BookOpen size={30} />
+        <h2>Your journal is ready.</h2>
+        <p>
+          Quest creation and completion arrive in the next chapter. These sample ideas are here to
+          inspire you; they do not change your XP or gold.
+        </p>
+      </section>
       <section className="panel journal-panel">
         <div className="journal-toolbar">
           <div>
@@ -77,7 +84,8 @@ export default function Quests() {
           </div>
         )}
         <div className="panel-footnote">
-          Select a quest to explore its details. Personal quest creation opens with your account.
+          Select a quest to explore its details. Saving your own quests will open in the next
+          chapter.
         </div>
       </section>
       <div className="editorial-note">

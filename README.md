@@ -1,185 +1,83 @@
-# Life RPG — Part 1: the foundation
+# Life RPG — Part 2: accounts & character onboarding
 
-A JavaScript full-stack foundation for a Life RPG productivity app. Built against the supplied `0001.zip` (archive commit `0b2ae6b38983d8a09bd5e14b5cf786e0bea7ac3d`). All application source and configuration use `.js` or `.jsx`; no TypeScript compilation is required.
+A full-stack JavaScript project using React, Express, Node.js, Neon PostgreSQL, Prisma, and Motion for React. Application code uses `.js` and `.jsx` throughout.
 
-## What works in this part
+Part 2 adds working signup, login, JWT sessions, Argon2id password hashing, logout, protected routes, and character onboarding to the Part 1 Evergreen interface. Accounts and characters are persisted in PostgreSQL. Signed-in pages show your own saved data; the public overview remains an explicitly labeled sample preview.
 
-- React + Vite interface, an original evergreen adventure theme, local fonts and vector artwork.
-- Responsive overview, quest journal, character, marketplace, preferences, and 404 routes.
-- Collapsible desktop sidebar, mobile bottom navigation, route focus management, skip link, keyboard-accessible dialogs, loading states, and an error boundary.
-- Sample quest search, attribute filters, quest details, reward previews, and motion preferences.
-- Motion for React with both operating-system reduced motion and an in-app motion preference.
-- Express 5 API with exact-origin CORS, Helmet, bounded request bodies, request IDs, rate limiting, safe error responses, and graceful shutdown.
-- Prisma 7.8 with the PostgreSQL adapter, Neon connection configuration, and an initial migration for users, sessions, characters, and attributes.
-- Shared JavaScript validation and a public world configuration endpoint consumed by Preferences.
-- Root npm workspaces, a single reproducible lockfile, formatting, linting, and automated foundation tests.
+## Upgrade from Part 1
 
-**This is a read-only world preview.** The sample level, XP, gold, quests, and items are explicitly labeled throughout the interface. They are not saved user records. Authentication is Part 2; quest CRUD is Part 3; real completion and progression are Part 4. No account, completion, or purchase endpoints are falsely advertised as implemented. The only `localStorage` entry is the display preference `life-rpg:gentle-motion`.
-
-## Requirements
-
-Use **Node.js 24 LTS** and npm 11. Node 22.12+ also satisfies the package engine declaration. Install dependencies from the repository root, not separately inside client and server. The patch replaces the two starter lockfiles with one root `package-lock.json`.
-
-## Apply the patch
-
-From the directory that contains `client/` and `server/`:
+Run these commands in the **repository root**, where `client/`, `server/`, and the root `package.json` live. Stop the development server first. The patch targets the successfully applied **Part 1 Windows-fix** version (your commit `bd8cb0e`).
 
 ```powershell
-git apply --ignore-space-change --check .\life-rpg-part-1-js-windows-fix.patch
-git apply --ignore-space-change .\life-rpg-part-1-js-windows-fix.patch
-npm install
+git apply --ignore-space-change --check .\life-rpg-part-2-jwt-argon2.patch
+git apply --ignore-space-change .\life-rpg-part-2-jwt-argon2.patch
+npm install --workspaces --include-workspace-root --include=dev
 npm run setup
+npm run auth:configure
 ```
 
-The patch is based on the exact uploaded starter. If `git apply --check` fails, do not force it; compare your working tree with that starter first. The replacement patch accepts LF or CRLF starter files with `--ignore-space-change`. It leaves an existing root `.gitignore` in place. `npm run setup` appends missing foundation ignore rules without replacing existing content, then generates Prisma Client. The patch itself is ignored after setup. Do not combine the old and replacement patches.
+`auth:configure` creates `server/.env` if missing, generates a private random JWT secret, and preserves existing database settings and a valid existing secret. It never prints the secret. `setup` preserves your existing ignore rules. The patch does not replace `.env`, `.gitignore`, or your existing lockfile; `npm install` updates the root lockfile for the added dependencies. Commit that updated lockfile with Part 2. On a fresh clone with the updated lockfile, use `npm ci`.
 
-## Run the foundation preview
+If patch checking fails, stop and compare with the Part 1 baseline before applying. Use Node.js 24 LTS and npm 11; the supported Node range is in `package.json`. All setup commands belong at the root, not inside `client`.
 
-The interface and public API run without database credentials in development. From the root:
+## Connect your Neon database
 
-```powershell
-npm run dev
-```
-
-Open `http://localhost:5173`. The API runs on `http://localhost:4000`.
-
-If you get a port conflict, stop the conflicting process or set `PORT` in `server/.env`. When changing the API port, also change both proxy targets in `client/vite.config.js`. The Vite port is deliberately strict so the configured CORS origin does not silently drift.
-
-## Connect Neon PostgreSQL
-
-Create a Neon project and database, then copy its connection strings. Do not put them in frontend code or any `VITE_*` variable.
-
-```powershell
-Copy-Item server/.env.example server/.env
-Copy-Item client/.env.example client/.env
-```
-
-On macOS/Linux, use `cp` instead of `Copy-Item`. Edit `server/.env`:
+If already configured for Part 1, keep your existing connection strings. Otherwise edit **`server/.env`** and fill:
 
 ```dotenv
-NODE_ENV=development
-PORT=4000
-CLIENT_ORIGIN=http://localhost:5173
-DATABASE_URL=postgresql://USER:PASSWORD@YOUR-ENDPOINT-pooler.REGION.aws.neon.tech/DBNAME?sslmode=require
-DIRECT_URL=postgresql://USER:PASSWORD@YOUR-ENDPOINT.REGION.aws.neon.tech/DBNAME?sslmode=require
-TRUST_PROXY_HOPS=0
+DATABASE_URL=postgresql://USER:PASSWORD@YOUR-POOLED-HOST/DBNAME?sslmode=require
+DIRECT_URL=postgresql://USER:PASSWORD@YOUR-DIRECT-HOST/DBNAME?sslmode=require
+CLIENT_ORIGIN=http://localhost:5173,http://127.0.0.1:5173
 ```
 
-Use the actual pooled and direct URLs copied from Neon, including any additional parameters Neon supplies. The values above are illustrative placeholders. Credentials with special characters must be URL encoded. Keep `.env` untracked.
-
-Apply the included migration and restart the dev server:
+Use the actual pooled and direct URLs copied from Neon, preserving any additional connection parameters. Never put database URLs or JWT secrets in `client/.env` or `VITE_*` variables. Keep the generated `JWT_SECRET` in `server/.env`.
 
 ```powershell
 npm run db:deploy
+npm run verify
 npm run dev
 ```
 
-Verify the real database connection:
+Open **http://localhost:5173** and choose **Begin your adventure**. Signup leads to avatar/name/timezone onboarding, then your personal dashboard. New characters start at level 1, zero XP, zero gold, and five attributes with zero XP. Reloading or logging in again restores the saved character.
 
-```powershell
-Invoke-RestMethod http://localhost:4000/health/ready
-```
+The API runs on port 4000. `GET /health` checks the process; `GET /health/ready` checks database connectivity. Part 2 reuses the four tables from Part 1, so no new schema migration is needed. `db:deploy` applies the original migration if it is still pending. Never reset your database to install this patch.
 
-Expected result: `data.status = ready` and `data.database = connected`. In a browser, the same URL returns JSON. `/health` only checks the running API process; it deliberately does not claim the database is healthy.
+Without database configuration, the public preview works, but account forms return a clear unavailable message. If `DATABASE_URL` is set, a valid `JWT_SECRET` is required at startup.
 
-`db:deploy` applies the committed migration without a shadow database. Use it for the initial Neon setup and production. `db:migrate -- --name your_change` is for developing later schema changes; Prisma may require permission to create a shadow database or a separately configured shadow database URL. It should not be used against production.
+## What is implemented
 
-The checked-in migration adds database constraints preventing negative gold and XP, duplicate attribute entries, duplicate accounts, and orphaned character/session records. Future authentication must normalize email before insertion. Only token hashes belong in `sessions.token_hash`.
+- Email normalization, shared Zod validation, field errors, password visibility, loading and retry states.
+- Argon2id hashing with a unique salt per password; no plaintext password storage.
+- HS256 JWT access tokens in HTTP-only cookies, rotating refresh tokens, and PostgreSQL-backed session revocation.
+- Signed CSRF protection, exact-origin checks, login/signup rate limits, restricted cookie attributes, and safe API errors.
+- Signup/login pages, protected account routes, safe return-to navigation, automatic session refresh, and cross-tab sign-out.
+- Three avatar choices, display name and IANA timezone onboarding, with atomic creation of the character and its five attributes.
+- Personal dashboard, character details, account preferences, sign-out, and sign-out across all devices.
+- Responsive Evergreen visuals, local fonts/artwork, reduced-motion support, and accessible forms.
+- Integration tests using Prisma against disposable PostgreSQL via PGlite. Tests never read or modify your Neon database.
+
+Quest creation/completion is **Part 3**. XP/level rewards, streaks, and shop purchases arrive in later parts. Quest ideas and shop items remain clearly labeled previews. Email verification, password reset, and profile/password editing are not part of this patch.
 
 ## Commands
 
-| Command                                    | Purpose                                                               |
-| ------------------------------------------ | --------------------------------------------------------------------- |
-| `npm run setup` | Preserve/complete ignore rules and generate Prisma Client |
-| `npm run dev`                              | Start client and API together                                         |
-| `npm run lint`                             | Check JavaScript and JSX                                              |
-| `npm test`                                 | Run foundation API/configuration/contract tests                       |
-| `npm run db:generate`                      | Generate the JavaScript Prisma client                                 |
-| `npm run db:validate`                      | Validate the schema without a database connection                     |
-| `npm run db:deploy`                        | Apply existing migrations using `DIRECT_URL`                          |
-| `npm run db:migrate -- --name change_name` | Create/apply a development migration                                  |
-| `npm run db:studio`                        | Inspect the database configured in `DIRECT_URL`                       |
-| `npm run build`                            | Generate Prisma client and build React                                |
-| `npm run start`                            | Start Express; set `NODE_ENV=production` to serve the built React app |
-| `npm run verify`                           | Lint, tests, Prisma validation, and production build                  |
-| `npm run format`                           | Format project files                                                  |
-| `npm run format:check`                     | Check formatting                                                      |
+| Command                  | Purpose                                                      |
+| ------------------------ | ------------------------------------------------------------ |
+| `npm run dev`            | Start Express and Vite together                              |
+| `npm run auth:configure` | Safely generate the private authentication secret            |
+| `npm run setup`          | Preserve ignore rules and generate Prisma Client             |
+| `npm run db:deploy`      | Apply committed migrations through `DIRECT_URL`              |
+| `npm run verify`         | Lint, integration tests, Prisma validation, production build |
+| `npm run build`          | Generate Prisma Client and build the React app               |
+| `npm start`              | Run Express; production mode also serves the built client    |
+| `npm run format`         | Format project source                                        |
 
-## Structure
+## Windows troubleshooting
 
-- `client/src/components/`: shared interface primitives, shell, artwork, error boundary.
-- `client/src/pages/`: route-level screens loaded on demand.
-- `client/src/data/preview.js`: clearly separated read-only sample fixtures.
-- `client/src/lib/`: API client and display preference helpers.
-- `client/src/index.css`: visual tokens, responsive styles, and motion rules; Tailwind is also configured.
-- `server/src/app.js`: injectable Express app, public routes, security, and errors.
-- `server/src/index.js`: process lifecycle and production startup checks.
-- `server/src/config/`: validated configuration and explicit `server/.env` loading.
-- `server/src/lib/`: database adapter and safe structured logger.
-- `server/prisma/`: schema and committed SQL migrations.
-- `shared/src/`: shared constants and Zod contracts used by both applications.
+- **`ECONNRESET`:** dependency installation did not finish. Restore network access, then retry the root `npm install --workspaces --include-workspace-root --include=dev` command before running setup. Do not install Prisma globally to hide an incomplete install.
+- **`EPERM` / OneDrive locks:** stop running dev servers, close processes holding project files, and pause OneDrive syncing while installing. A local development folder outside OneDrive avoids recurring file locks.
+- **`prisma` not recognized:** install all workspaces and development dependencies from the root, then retry `npm run setup`.
+- **Origin errors:** open exactly `http://localhost:5173`, or include `http://127.0.0.1:5173` in the existing `CLIENT_ORIGIN` setting. Restart the API after changing `.env`.
+- **Invalid `JWT_SECRET`:** run `npm run auth:configure`. If an existing value is too short, the script explains how to replace that value while preserving the rest of `.env`.
+- **Database unavailable:** check both Neon URLs, run `npm run db:deploy`, and check `/health/ready`. A successful API health check alone does not mean database tables exist.
 
-The Prisma schema uses the supported `prisma-client-js` generator to generate JavaScript, with Prisma's PostgreSQL driver adapter. The default TypeScript-emitting `prisma-client` generator is intentionally not used for this JavaScript project.
-
-## Production foundation
-
-The simplest topology is one Node service hosting Express and the built React files at the same origin, with Neon as the remote database. Express handles React deep links while keeping missing API routes as JSON 404 responses.
-
-Build stage:
-
-```sh
-npm ci
-npm run build
-```
-
-Release stage (with the real direct URL provided securely):
-
-```sh
-npm run db:deploy
-```
-
-Runtime environment:
-
-```dotenv
-NODE_ENV=production
-PORT=4000
-CLIENT_ORIGIN=https://your-domain.example
-DATABASE_URL=YOUR_REAL_POOLED_NEON_URL
-DIRECT_URL=YOUR_REAL_DIRECT_NEON_URL
-TRUST_PROXY_HOPS=0
-```
-
-Then run `npm start`. Configure `TRUST_PROXY_HOPS=1` only if exactly one trusted reverse proxy fronts the application. Production requires HTTPS origins, a configured reachable database, and a built client; startup fails if these requirements are absent. The hosting provider normally terminates HTTPS before forwarding to Express.
-
-Keep `VITE_API_BASE_URL` blank for this topology. Separate frontend hosting requires a deliberate CORS, CSP, and cookie configuration review when authentication is implemented. Vite's proxy operates during development only.
-
-The public website/SEO phase and deployment submission are planned later. This foundation provides a title, description, theme color, local favicon, semantic HTML, and route titles; it is not the final public landing site.
-
-## Verification and limits
-
-Automated tests cover environment validation, secret-safe errors, liveness/readiness separation, database outage responses, CORS, malformed/oversized JSON, public contracts, production security headers, and SPA/API routing. A passing schema validation or build does **not** prove a Neon connection: use `/health/ready` with your real credentials.
-
-No Neon credentials are bundled. No data is written during startup. No user or character fixtures are automatically inserted. The test suite injects a database probe for API tests and never contacts your production database.
-
-## Next implementation parts
-
-2. Authentication, session management, and character onboarding.
-3. Persisted quest CRUD.
-4. Transactional completion, reward calculation, and nonlinear leveling.
-5. Real attribute progression and character equipment.
-6. Recurrence, daily activity, and timezone-aware streaks.
-7. Transactional purchases, inventory, and currency ledger.
-8. Dashboard aggregates and activity history.
-9. Public pages and complete account settings.
-10. Event-driven interaction and animation polish.
-11. End-to-end robustness and accessibility checks.
-12. Deployment, public repository, and submission video.
-
-Commit each substantive part as it is implemented. The problem statement requires at least three genuine chronological commits; do not manufacture a false history.
-
-## Reference documentation
-
-- [Motion for React](https://motion.dev/docs/react)
-- [Prisma configuration](https://www.prisma.io/docs/orm/reference/prisma-config-reference)
-- [Neon connection pooling](https://neon.com/docs/connect/connection-pooling)
-- [Express documentation](https://expressjs.com/)
+For endpoints, authentication design, deployment settings, and implementation boundaries, see [docs/PART_2.md](docs/PART_2.md).

@@ -63,7 +63,7 @@ export function PreviewNotice() {
       <span className="preview-dot" />
       <p>
         <strong>A glimpse of your adventure.</strong> You’re exploring sample progress. Personal
-        accounts open soon.
+        accounts are now open.
       </p>
       <span className="preview-label">WORLD PREVIEW</span>
     </div>

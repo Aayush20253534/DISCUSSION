@@ -3,9 +3,12 @@ import path from 'node:path'
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
+import cookieParser from 'cookie-parser'
 import { rateLimit } from 'express-rate-limit'
 import { APP_NAME, API_PREFIX, ATTRIBUTES, worldSchema } from '@life-rpg/shared'
 import { log } from './lib/logger.js'
+import { AppError } from './lib/errors.js'
+import { createAccountRouter } from './auth/router.js'
 
 export function createApp({ config, database, staticDirectory, logger = log }) {
   const app = express()
@@ -45,6 +48,7 @@ export function createApp({ config, database, staticDirectory, logger = log }) {
     }),
   )
   app.use(express.json({ limit: '32kb' }))
+  app.use(cookieParser())
   app.get('/health', (_req, res) => {
     res.set('Cache-Control', 'no-store').json({ data: { status: 'ok', service: 'life-rpg-api' } })
   })
@@ -92,12 +96,13 @@ export function createApp({ config, database, staticDirectory, logger = log }) {
     res.json({
       data: worldSchema.parse({
         name: APP_NAME,
-        stage: 'foundation',
-        accountsAvailable: false,
+        stage: 'accounts',
+        accountsAvailable: Boolean(config.JWT_SECRET && database.configured),
         attributes: ATTRIBUTES,
       }),
     })
   })
+  app.use(API_PREFIX, createAccountRouter({ config, database }))
   // Unknown API routes must never return the SPA's HTML.
   app.use('/api', (req, res) =>
     res.status(404).json({
@@ -118,6 +123,28 @@ export function createApp({ config, database, staticDirectory, logger = log }) {
     }),
   )
   app.use((error, req, res, _next) => {
+    if (error.name?.startsWith('Prisma')) {
+      error = new AppError(
+        503,
+        'DATABASE_UNAVAILABLE',
+        'Your adventure could not be loaded. Please try again shortly.',
+      )
+    }
+    if (error instanceof AppError) {
+      logger('error', 'http.error', {
+        requestId: req.requestId,
+        status: error.status,
+        code: error.code,
+      })
+      return res.status(error.status).json({
+        error: {
+          code: error.code,
+          message: error.message,
+          fields: error.fields,
+          requestId: req.requestId,
+        },
+      })
+    }
     const status = error.status >= 400 && error.status < 600 ? error.status : 500
     const code =
       error.type === 'entity.parse.failed'

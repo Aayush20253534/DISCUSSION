@@ -14,6 +14,7 @@ import {
   UserRound,
 } from 'lucide-react'
 import Portrait from './Portrait.jsx'
+import { useAuth } from '../auth/useAuth.js'
 import { Modal, PageSkeleton } from './ui.jsx'
 
 const navigation = [
@@ -24,6 +25,7 @@ const navigation = [
 ]
 
 export default function AppShell({ gentleMotion, setGentleMotion }) {
+  const { user } = useAuth()
   const [collapsed, setCollapsed] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
   const { pathname } = useLocation()
@@ -104,12 +106,12 @@ export default function AppShell({ gentleMotion, setGentleMotion }) {
           <NavLink
             to="/character"
             className="sidebar-profile"
-            aria-label="View the sample Wanderer character"
+            aria-label={user ? 'View your character' : 'Sign in to create a character'}
           >
-            <Portrait />
+            <Portrait avatarKey={user?.character?.avatarKey} />
             <span>
-              <strong>The Wanderer</strong>
-              <small>Sample adventurer</small>
+              <strong>{user?.displayName || 'Your story starts here'}</strong>
+              <small>{user ? 'Your adventurer' : 'Create your character'}</small>
             </span>
             <ChevronRight size={15} />
           </NavLink>
@@ -130,9 +132,14 @@ export default function AppShell({ gentleMotion, setGentleMotion }) {
             <span>THE EVERYDAY ADVENTURE</span>
           </div>
           <div className="topbar-right">
+            {!user && (
+              <NavLink to="/login" className="text-link">
+                Sign in
+              </NavLink>
+            )}
             <span className="preview-pill">
               <span />
-              World preview
+              {user ? 'Your adventure' : 'World preview'}
             </span>
             <button
               className="icon-button guide-button"
@@ -203,8 +210,9 @@ export default function AppShell({ gentleMotion, setGentleMotion }) {
           </li>
         </ol>
         <div className="modal-note">
-          This world is a read-only preview. Accounts, saved quests, and rewards are coming in the
-          next chapters.
+          Create an account and choose your character to begin. Quest creation, earned XP, streaks,
+          and purchases will arrive in the next chapters. Preview examples do not change your
+          progress.
         </div>
         <button className="button button-gold full-width" onClick={() => setGuideOpen(false)}>
           Let’s explore <Compass size={16} />

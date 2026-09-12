@@ -130,6 +130,7 @@ test('production sets a restrictive content security policy', async () => {
     NODE_ENV: 'production',
     DATABASE_URL: 'postgresql://test:test@localhost/db',
     CLIENT_ORIGIN: 'https://example.test',
+    JWT_SECRET: 'test-only-secret-'.repeat(5),
   })
   const app = createApp({ config: production, database: { ping: async () => true }, logger })
   const response = await request(app).get('/health').expect(200)

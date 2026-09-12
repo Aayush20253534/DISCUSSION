@@ -15,7 +15,7 @@ const schema = z
     PORT: z.coerce.number().int().min(1).max(65535).default(4000),
     CLIENT_ORIGIN: z
       .string()
-      .default('http://localhost:5173')
+      .default('http://localhost:5173,http://127.0.0.1:5173')
       .transform((value) => value.split(',').map((origin) => origin.trim()))
       .pipe(
         z
@@ -36,9 +36,22 @@ const schema = z
       ),
     DATABASE_URL: optionalDatabaseUrl,
     DIRECT_URL: optionalDatabaseUrl,
+    JWT_SECRET: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().min(64).optional(),
+    ),
+    ACCESS_TOKEN_MINUTES: z.coerce.number().int().min(1).max(30).default(15),
+    SESSION_DAYS: z.coerce.number().int().min(1).max(30).default(7),
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
   })
   .superRefine((value, context) => {
+    if ((value.DATABASE_URL || value.NODE_ENV === 'production') && !value.JWT_SECRET) {
+      context.addIssue({
+        code: 'custom',
+        path: ['JWT_SECRET'],
+        message: 'Run npm run auth:configure',
+      })
+    }
     if (value.NODE_ENV === 'production' && !value.DATABASE_URL) {
       context.addIssue({
         code: 'custom',

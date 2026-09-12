@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Coins, Leaf, Moon, Sparkles, Sun } from 'lucide-react'
-import { Modal, PageHeading, PreviewNotice } from '../components/ui.jsx'
+import { Modal, PageHeading } from '../components/ui.jsx'
+import { useAuth } from '../auth/useAuth.js'
 import { sampleItems } from '../data/preview.js'
 
 const icons = { moon: Moon, leaf: Leaf, sun: Sun }
 
 export default function Marketplace() {
+  const { user } = useAuth()
   const [selected, setSelected] = useState(null)
   return (
     <div className="page">
@@ -18,7 +20,7 @@ export default function Marketplace() {
         }
         description="A glimpse of the rewards waiting along your path."
       />
-      <PreviewNotice />
+
       <div className="market-intro">
         <Sparkles size={23} />
         <p>
@@ -28,7 +30,7 @@ export default function Marketplace() {
         </p>
         <span className="market-balance">
           <Coins size={17} />
-          185 <small>SAMPLE GOLD</small>
+          {user.character.gold} <small>YOUR GOLD</small>
         </span>
       </div>
       <section className="market-grid" aria-label="Sample reward catalog">

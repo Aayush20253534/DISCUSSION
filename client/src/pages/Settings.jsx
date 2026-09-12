@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { useAuth } from '../auth/useAuth.js'
 import { useOutletContext } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Activity, ArrowRight, RefreshCw, Waves } from 'lucide-react'
@@ -6,6 +8,20 @@ import { PageHeading } from '../components/ui.jsx'
 import { apiGet } from '../lib/api.js'
 
 export default function Settings() {
+  const { user, logout } = useAuth()
+  const [signingOut, setSigningOut] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
+  async function signOut(all) {
+    setSigningOut(true)
+    setLogoutError('')
+    try {
+      await logout(all)
+    } catch (error) {
+      setLogoutError(error.message)
+    } finally {
+      setSigningOut(false)
+    }
+  }
   const { gentleMotion, setGentleMotion } = useOutletContext()
   const world = useQuery({
     queryKey: ['world'],
@@ -23,6 +39,49 @@ export default function Settings() {
         }
         description="Small preferences for a comfortable adventure."
       />
+      <section className="panel settings-panel account-panel">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">YOUR PLACE IN THIS WORLD</span>
+            <h2>Your account</h2>
+          </div>
+        </div>
+        <dl className="account-details">
+          <div>
+            <dt>Adventurer name</dt>
+            <dd>{user.displayName}</dd>
+          </div>
+          <div>
+            <dt>Email address</dt>
+            <dd>{user.email}</dd>
+          </div>
+          <div>
+            <dt>Timezone</dt>
+            <dd>{user.timezone.replaceAll('_', ' ')}</dd>
+          </div>
+        </dl>
+        <div className="account-actions">
+          <button
+            className="button button-outline"
+            disabled={signingOut}
+            onClick={() => signOut(false)}
+          >
+            Sign out
+          </button>
+          <button
+            className="button button-outline"
+            disabled={signingOut}
+            onClick={() => signOut(true)}
+          >
+            Sign out of all devices
+          </button>
+        </div>
+        {logoutError && (
+          <p className="form-message" role="alert">
+            {logoutError}
+          </p>
+        )}
+      </section>
       <section className="panel settings-panel">
         <div className="section-heading">
           <div>
@@ -81,8 +140,8 @@ export default function Settings() {
             </h3>
             <p>
               {world.isError
-                ? 'The sample adventure is still available. You can try connecting again.'
-                : 'Personal accounts and saved adventures will arrive in a future chapter.'}
+                ? 'You can try connecting again. Your saved account stays in your database.'
+                : 'Your account and character are saved. Quest creation opens in the next chapter.'}
             </p>
           </div>
           <button

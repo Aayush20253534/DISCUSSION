@@ -11,6 +11,8 @@ import {
 import { Link, useOutletContext } from 'react-router-dom'
 import { motion, useReducedMotion } from 'motion/react'
 import { ATTRIBUTES } from '@life-rpg/shared'
+import { useAuth } from '../auth/useAuth.js'
+import PersonalDashboard from '../components/PersonalDashboard.jsx'
 import Landscape from '../components/Landscape.jsx'
 import Portrait from '../components/Portrait.jsx'
 import QuestList from '../components/QuestList.jsx'
@@ -18,9 +20,11 @@ import { AttributeIcon, PageHeading, PreviewNotice, SectionLink } from '../compo
 import { sampleAttributeLevels, sampleQuests } from '../data/preview.js'
 
 export default function Dashboard() {
+  const { user } = useAuth()
   const { gentleMotion } = useOutletContext()
   const reducedMotion = useReducedMotion()
   const animate = gentleMotion && !reducedMotion
+  if (user) return <PersonalDashboard />
   return (
     <div className="page dashboard-page">
       <PageHeading
@@ -55,8 +59,8 @@ export default function Dashboard() {
               Read one more page. Take that first step.
               <br className="desktop-break" /> Turn small intentions into a remarkable journey.
             </p>
-            <Link className="button button-gold" to="/quests">
-              Explore your quests <ArrowRight size={17} />
+            <Link className="button button-gold" to="/signup">
+              Begin your adventure <ArrowRight size={17} />
             </Link>
           </div>
           <div className="hero-coordinate">

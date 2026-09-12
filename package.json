@@ -18,16 +18,19 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --test server/tests/*.test.js shared/tests/*.test.js",
+    "test": "npm run db:generate && node --test server/tests/*.test.js shared/tests/*.test.js",
     "verify": "npm run lint && npm test && npm run db:validate && npm run build",
     "db:generate": "npm run db:generate -w server",
     "db:validate": "npm run db:validate -w server",
     "db:migrate": "npm run db:migrate -w server",
     "db:deploy": "npm run db:deploy -w server",
     "db:studio": "npm run db:studio -w server",
-    "setup": "node scripts/setup.js && npm run db:generate"
+    "setup": "node scripts/setup.js && npm run db:generate",
+    "auth:configure": "node scripts/configure-auth.js"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-socket": "^0.2.11",
     "@eslint/js": "^10.0.1",
     "concurrently": "^9.2.1",
     "eslint": "^10.10.0",

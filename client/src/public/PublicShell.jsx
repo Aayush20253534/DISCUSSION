@@ -125,17 +125,40 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
           </motion.div>
         </AnimatePresence>
       </main>
-      <footer className="public-footer">
-        <div>
-          <span className="public-footer-brand"><Compass size={18} /> Life RPG</span>
-          <p>Turn ordinary effort into visible progress.</p>
-        </div>
-        <nav aria-label="Footer navigation">
-          <NavLink to="/how-it-works">How it works</NavLink>
-          <NavLink to="/login">Sign in</NavLink>
-          <NavLink to="/signup">Create account</NavLink>
-        </nav>
-        <small>Life is the adventure. You are the hero.</small>
+      <footer className={`public-footer ${isLanding ? 'atlas-footer' : ''}`}>
+        {isLanding ? (
+          <>
+            <div className="atlas-footer-brand">
+              <span className="public-footer-brand"><Compass size={20} strokeWidth={1.25} /> LIFE RPG</span>
+              <small>THE ADVENTURER’S ATLAS</small>
+              <p>Every journey begins with a single step.</p>
+            </div>
+            <nav aria-label="Footer navigation">
+              <a href="#journey">The Journey</a>
+              <NavLink to="/how-it-works">How It Works</NavLink>
+              <a href="#about">About</a>
+              <NavLink to="/login">Login</NavLink>
+            </nav>
+            <div className="atlas-footer-cta">
+              <span>YOUR NEXT QUEST AWAITS</span>
+              <NavLink to="/signup">Begin Your Journey <span aria-hidden="true">→</span></NavLink>
+            </div>
+            <small className="atlas-footer-legal">© 2026 LIFE RPG · YOUR LIFE IS THE ADVENTURE.</small>
+          </>
+        ) : (
+          <>
+            <div>
+              <span className="public-footer-brand"><Compass size={18} /> Life RPG</span>
+              <p>Turn ordinary effort into visible progress.</p>
+            </div>
+            <nav aria-label="Footer navigation">
+              <NavLink to="/how-it-works">How it works</NavLink>
+              <NavLink to="/login">Sign in</NavLink>
+              <NavLink to="/signup">Create account</NavLink>
+            </nav>
+            <small>Life is the adventure. You are the hero.</small>
+          </>
+        )}
       </footer>
     </div>
   )

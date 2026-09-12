@@ -1,5 +1,9 @@
 import { z } from 'zod'
 
+export const QUEST_RECURRENCES = Object.freeze([
+  { key: 'ONCE', label: 'One-time', description: 'Finish it once and keep the record.' },
+  { key: 'DAILY', label: 'Daily', description: 'Available once on each scheduled local day.' },
+])
 export const QUEST_DIFFICULTIES = Object.freeze([
   { key: 'EASY', label: 'Easy', description: 'A small, approachable step.' },
   { key: 'MEDIUM', label: 'Medium', description: 'A little focus and effort.' },
@@ -7,6 +11,7 @@ export const QUEST_DIFFICULTIES = Object.freeze([
 ])
 const attribute = z.enum(['INTELLECT', 'STRENGTH', 'DISCIPLINE', 'CREATIVITY', 'VITALITY'])
 const difficulty = z.enum(QUEST_DIFFICULTIES.map(({ key }) => key))
+const recurrence = z.enum(QUEST_RECURRENCES.map(({ key }) => key))
 const status = z.enum(['ACTIVE', 'ARCHIVED'])
 export const questIdSchema = z.string().uuid('Choose a valid quest.')
 export const calendarDateSchema = z
@@ -30,6 +35,7 @@ const fields = z.object({
   description: z.string().trim().max(2000, 'Keep your notes within 2,000 characters.'),
   attribute,
   difficulty,
+  recurrence,
   estimatedMinutes: z
     .number()
     .int('Use a whole number of minutes.')
@@ -42,11 +48,20 @@ export const questCreateSchema = fields
   .extend({
     description: fields.shape.description.default(''),
     difficulty: difficulty.default('EASY'),
+    recurrence: recurrence.default('ONCE'),
     estimatedMinutes: fields.shape.estimatedMinutes.default(null),
     dueDate: fields.shape.dueDate.default(null),
     requestId: z.string().uuid('Reopen the form and try again.'),
   })
   .strict()
+  .superRefine((value, context) => {
+    if (value.recurrence === 'DAILY' && value.dueDate)
+      context.addIssue({
+        code: 'custom',
+        path: ['dueDate'],
+        message: 'Daily quests repeat by schedule and cannot have a one-time due date.',
+      })
+  })
 export const questUpdateSchema = fields
   .partial()
   .extend({
@@ -58,6 +73,14 @@ export const questUpdateSchema = fields
     (value) => Object.keys(value).some((key) => key !== 'revision'),
     'Include something to update.',
   )
+  .superRefine((value, context) => {
+    if (value.recurrence === 'DAILY' && value.dueDate)
+      context.addIssue({
+        code: 'custom',
+        path: ['dueDate'],
+        message: 'Daily quests repeat by schedule and cannot have a one-time due date.',
+      })
+  })
 export const questDeleteSchema = z
   .object({ revision: z.number().int().min(1).max(2147483647) })
   .strict()
@@ -73,6 +96,7 @@ export const questListSchema = z
     q: z.string().trim().max(120).default(''),
     attribute: z.enum(['ALL', ...attribute.options]).default('ALL'),
     difficulty: z.enum(['ALL', ...difficulty.options]).default('ALL'),
+    recurrence: z.enum(['ALL', ...recurrence.options]).default('ALL'),
     status: z.enum(['ALL', 'COMPLETED', ...status.options]).default('ACTIVE'),
     due: z.enum(['ALL', 'TODAY', 'UPCOMING', 'OVERDUE', 'UNSCHEDULED']).default('ALL'),
     sort: z.enum(['NEWEST', 'OLDEST', 'DUE', 'TITLE', 'COMPLETED']).default('NEWEST'),
@@ -80,6 +104,14 @@ export const questListSchema = z
     limit: integerParam(12, 50),
   })
   .strict()
+  .superRefine((value, context) => {
+    if (value.recurrence === 'DAILY' && value.due !== 'ALL')
+      context.addIssue({
+        code: 'custom',
+        path: ['due'],
+        message: 'Daily quests do not use one-time due-date filters.',
+      })
+  })
 
 // Date-only strings remain calendar dates. Never convert a due date to the browser's local instant.
 export function todayInTimezone(timezone, now = new Date()) {

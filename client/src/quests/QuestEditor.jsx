@@ -4,6 +4,8 @@ import { ArrowRight, LoaderCircle, RefreshCw, X } from 'lucide-react'
 import {
   ATTRIBUTES,
   QUEST_DIFFICULTIES,
+  QUEST_RECURRENCES,
+  formatQuestDate,
   questCreateSchema,
   questUpdateSchema,
 } from '@life-rpg/shared'
@@ -18,6 +20,7 @@ function valuesFrom(quest) {
     description: quest?.description || '',
     attribute: quest?.attribute || 'INTELLECT',
     difficulty: quest?.difficulty || 'EASY',
+    recurrence: quest?.recurrence || 'ONCE',
     estimatedMinutes: quest?.estimatedMinutes?.toString() || '',
     dueDate: quest?.dueDate || '',
   }
@@ -47,8 +50,16 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
   }
   function change(event) {
     const { name, value } = event.target
-    setValues((previous) => ({ ...previous, [name]: value }))
-    setFields((previous) => ({ ...previous, [name]: undefined }))
+    setValues((previous) => ({
+      ...previous,
+      [name]: value,
+      ...(name === 'recurrence' && value === 'DAILY' ? { dueDate: '' } : {}),
+    }))
+    setFields((previous) => ({
+      ...previous,
+      [name]: undefined,
+      ...(name === 'recurrence' ? { dueDate: undefined } : {}),
+    }))
     setMessage('')
   }
   async function submit(event) {
@@ -69,7 +80,9 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
         if (issue.path[0] && !errors[issue.path[0]]) errors[issue.path[0]] = issue.message
       setFields(errors)
       setMessage('Please check your quest details.')
-      form.current.elements.namedItem(Object.keys(errors)[0])?.focus()
+      const invalid = form.current.elements.namedItem(Object.keys(errors)[0])
+      if (typeof invalid?.focus === 'function') invalid.focus()
+      else invalid?.[0]?.focus()
       return
     }
     setFields({})
@@ -229,6 +242,48 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
                   </div>
                   {fields.attribute && <p className="field-error">{fields.attribute}</p>}
                 </fieldset>
+                <fieldset className="quest-recurrence-picker">
+                  <legend>How often does this quest return?</legend>
+                  <div className="quest-recurrence-options">
+                    {QUEST_RECURRENCES.map(({ key, label, description }) => (
+                      <label
+                        key={key}
+                        className={values.recurrence === key ? 'chosen' : ''}
+                      >
+                        <input
+                          type="radio"
+                          name="recurrence"
+                          value={key}
+                          checked={values.recurrence === key}
+                          onChange={change}
+                          disabled={Boolean(original?.lastCompletion)}
+                        />
+                        <span>
+                          <strong>{label}</strong>
+                          <small>{description}</small>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  {fields.recurrence && <p className="field-error">{fields.recurrence}</p>}
+                  {original?.lastCompletion ? (
+                    <p className="field-hint">
+                      Recurrence is locked after the first saved completion so past and future
+                      reward eligibility cannot be rewritten.
+                    </p>
+                  ) : values.recurrence === 'DAILY' ? (
+                    <p className="field-hint">
+                      Daily quests become available once per scheduled day. Their schedule is
+                      anchored to your account timezone when this recurrence is saved.
+                    </p>
+                  ) : null}
+                  {original?.recurrence === 'DAILY' && original.scheduleTimezone && (
+                    <p className="quest-schedule-anchor">
+                      Schedule anchor: {original.scheduleTimezone.replaceAll('_', ' ')} · from{' '}
+                      {formatQuestDate(original.scheduleStartDate)}
+                    </p>
+                  )}
+                </fieldset>
                 <div className="quest-form-grid">
                   <div className="form-field">
                     <label htmlFor="quest-difficulty">Difficulty</label>
@@ -270,7 +325,7 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
                   </div>
                   <div className="form-field quest-date-field">
                     <label htmlFor="quest-date">
-                      Due date <span>Optional</span>
+                      Due date <span>{values.recurrence === 'DAILY' ? 'Not used for daily quests' : 'Optional'}</span>
                     </label>
                     <input
                       id="quest-date"
@@ -280,6 +335,7 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
                       max="2100-12-31"
                       value={values.dueDate}
                       onChange={change}
+                      disabled={values.recurrence === 'DAILY'}
                       aria-invalid={Boolean(fields.dueDate)}
                       aria-describedby="quest-date-help"
                     />
@@ -287,7 +343,10 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
                       id="quest-date-help"
                       className={fields.dueDate ? 'field-error' : 'field-hint'}
                     >
-                      {fields.dueDate || 'A calendar date in your account’s timezone.'}
+                      {fields.dueDate ||
+                        (values.recurrence === 'DAILY'
+                          ? 'Daily quests use their anchored local schedule instead of a one-time due date.'
+                          : 'A calendar date in your account’s timezone.')}
                     </p>
                   </div>
                 </div>

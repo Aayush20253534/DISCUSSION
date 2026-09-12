@@ -13,7 +13,10 @@ export const completionSelect = {
   description: true,
   attribute: true,
   difficulty: true,
+  recurrence: true,
   dueDate: true,
+  scheduledDate: true,
+  scheduleTimezone: true,
   estimatedMinutes: true,
   xpAwarded: true,
   goldAwarded: true,
@@ -35,5 +38,6 @@ export const serializeCompletion = (receipt) =>
   receipt && {
     ...receipt,
     dueDate: calendarString(receipt.dueDate),
+    scheduledDate: calendarString(receipt.scheduledDate),
     completedDate: calendarString(receipt.completedDate),
   }

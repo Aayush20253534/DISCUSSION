@@ -11,6 +11,7 @@ import {
   Pencil,
   RefreshCw,
   RotateCcw,
+  Repeat2,
   Trash2,
   X,
 } from 'lucide-react'
@@ -34,6 +35,8 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplet
   useAccountError(query.error)
   const mutation = useQuestMutation()
   const quest = query.data?.quest
+  const recorded = quest?.completion || quest?.lastCompletion
+  const hasHistory = Boolean(quest?.lastCompletion)
   async function act(action) {
     if (!quest || mutation.isPending) return
     setError('')
@@ -84,15 +87,15 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplet
           <span className="eyebrow">A PAGE FROM YOUR JOURNAL</span>
           <Dialog.Title className="dialog-title">
             {confirmDelete
-              ? quest?.status === 'COMPLETED'
+              ? hasHistory
                 ? 'Remove from your journal?'
                 : 'Delete this quest?'
               : quest?.title || 'Your quest'}
           </Dialog.Title>
           <Dialog.Description className="dialog-description">
             {confirmDelete
-              ? quest?.status === 'COMPLETED'
-                ? 'The journal entry will be removed. Your completion history, XP, and gold will stay saved.'
+              ? hasHistory
+                ? 'The journal entry will be removed. Every saved completion, XP reward, and gold reward will stay in your history.'
                 : 'This permanently removes the quest. You can archive it instead if you may want it later.'
               : 'A small intention, ready for your next step.'}
           </Dialog.Description>
@@ -120,12 +123,22 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplet
                       <i />
                       {QUEST_DIFFICULTIES.find((item) => item.key === quest.difficulty)?.label}
                     </span>
+                    {quest.recurrence === 'DAILY' && (
+                      <span className="recurrence-label">
+                        <Repeat2 size={13} />
+                        Daily
+                      </span>
+                    )}
                     <span className="quest-status-label">
                       {quest.status === 'COMPLETED'
                         ? 'Completed'
                         : quest.status === 'ARCHIVED'
                           ? 'Archived'
-                          : 'Active quest'}
+                          : quest.recurrence === 'DAILY'
+                            ? quest.completedToday
+                              ? 'Done for today'
+                              : 'Ready today'
+                            : 'Active'}
                     </span>
                   </div>
                   <p className={`quest-notes ${quest.description ? '' : 'quest-notes-empty'}`}>
@@ -135,9 +148,13 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplet
                     <div>
                       <dt>
                         <CalendarDays size={16} />
-                        Due date
+                        {quest.recurrence === 'DAILY' ? 'Schedule' : 'Due date'}
                       </dt>
-                      <dd>{formatQuestDate(quest.dueDate)}</dd>
+                      <dd>
+                        {quest.recurrence === 'DAILY'
+                          ? `Daily from ${formatQuestDate(quest.scheduleStartDate)}`
+                          : formatQuestDate(quest.dueDate)}
+                      </dd>
                     </div>
                     <div>
                       <dt>
@@ -151,24 +168,35 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplet
                       </dd>
                     </div>
                   </dl>
-                  {quest.completion ? (
+                  {quest.recurrence === 'DAILY' && quest.scheduleTimezone && (
+                    <p className="quest-schedule-note">
+                      <Repeat2 size={14} />
+                      One reward per scheduled day in {quest.scheduleTimezone.replaceAll('_', ' ')}.
+                      This anchor does not move if the account timezone changes later.
+                    </p>
+                  )}
+                  {recorded ? (
                     <div className="completion-stamp">
                       <span>
                         <CheckCheck size={18} />A promise, kept
                       </span>
                       <p>
                         {formatCompletionDate(
-                          quest.completion.completedAt,
-                          quest.completion.timezone,
+                          recorded.completedAt,
+                          recorded.timezone,
                         )}{' '}
-                        · {quest.completion.timezone.replaceAll('_', ' ')}
+                        · {recorded.timezone.replaceAll('_', ' ')}
                       </p>
                       <p className="recorded-reward-line">
-                        +{quest.completion.xpAwarded} XP · +{quest.completion.goldAwarded} gold · +
-                        {quest.completion.attributeXpAwarded} attribute XP
+                        +{recorded.xpAwarded} XP · +{recorded.goldAwarded} gold · +
+                        {recorded.attributeXpAwarded} attribute XP
                       </p>
                       <small>
-                        Recorded once. Your earned progress stays in your completion history.
+                        {quest.recurrence === 'DAILY'
+                          ? quest.completedToday
+                            ? 'Today’s scheduled completion is saved. This quest returns on the next scheduled day.'
+                            : 'Your latest completion is preserved. This quest is ready again for today.'
+                          : 'Recorded once. Your earned progress stays in your completion history.'}
                       </small>
                     </div>
                   ) : (
@@ -219,7 +247,7 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplet
                       ) : (
                         <Trash2 size={16} />
                       )}
-                      {quest.status === 'COMPLETED' ? 'Remove journal entry' : 'Delete permanently'}
+                      {hasHistory ? 'Remove journal entry' : 'Delete permanently'}
                     </button>
                   </>
                 ) : (
@@ -227,11 +255,11 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplet
                     {quest.status === 'ACTIVE' && (
                       <button
                         className="button button-gold"
-                        disabled={mutation.isPending}
+                        disabled={mutation.isPending || !quest.eligibleToday}
                         onClick={() => onComplete(quest)}
                       >
-                        <Check size={16} />
-                        Complete quest
+                        {quest.completedToday ? <CheckCheck size={16} /> : <Check size={16} />}
+                        {quest.completedToday ? 'Done for today' : 'Complete quest'}
                       </button>
                     )}
                     {quest.status !== 'COMPLETED' && (
@@ -268,7 +296,7 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplet
                       }}
                     >
                       <Trash2 size={15} />
-                      {quest.status === 'COMPLETED' ? 'Remove from journal' : 'Delete'}
+                      {hasHistory ? 'Remove from journal' : 'Delete'}
                     </button>
                   </>
                 )}

@@ -1037,3 +1037,134 @@
     transition: none;
   }
 }
+
+/* Part 6 — recurrence controls and daily schedule state. */
+.quest-recurrence-picker {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.quest-recurrence-picker legend {
+  margin-bottom: 12px;
+  color: #d5dfd2;
+  font-size: 12px;
+  font-weight: 500;
+}
+.quest-recurrence-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.quest-recurrence-options label {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  cursor: pointer;
+  border: 1px solid #405549;
+  border-radius: 9px;
+  background: #20322e;
+  padding: 14px 15px;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    transform 140ms ease;
+}
+.quest-recurrence-options label:hover {
+  border-color: #607361;
+  background: #253a33;
+}
+.quest-recurrence-options label.chosen {
+  border-color: #d7ba80;
+  background: #344033;
+  box-shadow: inset 0 0 0 1px #d7ba80;
+}
+.quest-recurrence-options input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.quest-recurrence-options label:has(input:focus-visible) {
+  outline: 2px solid #ead19e;
+  outline-offset: 3px;
+}
+.quest-recurrence-options label:has(input:disabled) {
+  cursor: not-allowed;
+}
+.quest-recurrence-options label > span {
+  display: grid;
+  gap: 5px;
+}
+.quest-recurrence-options strong {
+  color: #e8ecdf;
+  font-size: 12px;
+  font-weight: 600;
+}
+.quest-recurrence-options small {
+  color: #aec0b1;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.quest-schedule-anchor,
+.quest-schedule-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 10px 0 0;
+  color: #b9cbb9;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.quest-schedule-note {
+  margin: 16px 0 0;
+  padding: 11px 13px;
+  border: 1px solid #405a49;
+  border-radius: 8px;
+  background: #20352d;
+}
+.quest-schedule-note svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: #dac083;
+}
+.recurrence-label,
+.daily-ready-label {
+  color: #d9c38e;
+}
+.daily-ready-label::before {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #a8c993;
+  content: '';
+}
+.saved-quest-daily.saved-quest-completed {
+  opacity: 1;
+}
+.saved-quest-daily.saved-quest-completed .saved-quest-title {
+  color: #d6dfcf;
+}
+.quest-complete-button-done,
+.quest-complete-button-done:hover {
+  border-color: #4f6751 !important;
+  background: #26392e !important;
+  color: #b7d4ad !important;
+  cursor: default;
+}
+.journal-secondary-filters select:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+@media (max-width: 560px) {
+  .quest-recurrence-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quest-recurrence-options label {
+    transition: none;
+  }
+}

@@ -784,3 +784,14 @@
     font-size: 24px;
   }
 }
+
+.history-recurrence,
+.activity-recurrence {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  color: #d5bf89;
+  font-size: 9px;
+  letter-spacing: 0.3px;
+}

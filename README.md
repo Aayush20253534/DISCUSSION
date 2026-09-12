@@ -1,28 +1,28 @@
-# Life RPG — Part 5: streaks & activity calendar
+# Life RPG — Part 6: daily quests, streaks & activity calendar
 
 A full-stack JavaScript project using React, Express, Node.js, Neon PostgreSQL, Prisma, and Motion for React. Application code uses `.js` and `.jsx` throughout.
 
-Part 5 adds current and longest streaks, a monthly activity calendar, daily completion history, and a seven-day overview. It builds on real quest rewards and JWT/Argon2 accounts. The test runner now executes files sequentially to reduce PostgreSQL WASM memory pressure on Windows.
+Part 6 adds secure daily recurring quests to the existing current/longest streak and activity-calendar system. Daily reward eligibility is keyed to an immutable server-side schedule timezone, so retries, double clicks, concurrent clients, midnight boundaries, and later account-timezone changes cannot manufacture extra rewards. Existing one-time quests and completion history remain compatible.
 
-## Upgrade from Part 4
+## Upgrade from Part 5
 
-Stop the development server. Run these commands in the **repository root**, where `client/`, `server/`, and the root `package.json` live. This patch targets the completed **Part 4 progression** implementation.
+Stop the development server. Run these commands in the **repository root**, where `client/`, `server/`, and the root `package.json` live. This patch targets the completed **Part 5 activity/streak** implementation.
 
 ```powershell
-git apply --ignore-space-change --check .\life-rpg-part-5-activity.patch
+git apply --ignore-space-change --check .\life-rpg-part-6.patch
 ```
 
 If the check succeeds:
 
 ```powershell
-git apply --ignore-space-change .\life-rpg-part-5-activity.patch
+git apply --ignore-space-change .\life-rpg-part-6.patch
 npm run db:generate
 npm run db:deploy
 npm run verify
 npm run dev
 ```
 
-Part 5 adds no npm dependencies. Keep your existing `server/.env`, JWT secret, and Neon connection strings. The patch preserves `.env`, root `.gitignore`, and your lockfile. The additive activity-index migration preserves existing accounts, sessions, quests, and character progress. **Do not reset your database.**
+Part 6 adds no npm dependencies. Keep your existing `server/.env`, JWT secret, and Neon connection strings. The patch preserves `.env`, root `.gitignore`, and your lockfile. The additive recurrence migration preserves existing accounts, sessions, one-time quests, completion receipts, streaks, and character progress. **Do not reset your database.**
 
 For a fresh clone with Part 2 dependencies recorded in its lockfile:
 
@@ -54,11 +54,16 @@ npm run dev
 
 Open **http://localhost:5173**. Sign in, or choose **Begin your adventure** to create an account and character. Open **Quest Journal** to save a quest. Mark it complete after doing the task, then open **Character** to see your XP, gold, attribute levels, and completion history. Open **Activity** to see your streak, explore a month, and select a day to revisit its completed quests. Refresh to confirm persistence. New characters start at level 1 with zero XP and gold.
 
-The API runs on port 4000. `GET /health` checks the process; `GET /health/ready` checks database connectivity. Part 5 indexes the existing completion dates for activity and streak queries. `db:deploy` applies any pending committed migrations, including the new activity index, without resetting existing tables.
+The API runs on port 4000. `GET /health` checks the process; `GET /health/ready` checks database connectivity. Part 6 adds recurrence/schedule columns and partial uniqueness constraints for one-time versus daily reward claims. `db:deploy` applies all pending committed migrations without resetting existing tables.
 
 Without database configuration, the public preview works, but account forms return a clear unavailable message. If `DATABASE_URL` is set, a valid `JWT_SECRET` is required at startup.
 
 ## What is implemented
+
+- Daily recurring quests that remain active and become reward-eligible once per immutable scheduled local date.
+- Database-enforced duplicate protection for both one-time and daily occurrences, plus character/quest row locking.
+- Server-anchored schedule timezone/start date, with explicit anti-exploit behavior when the account timezone later changes.
+- Daily-ready journal summary/filtering, recurring state in quest editor/details/history, and responsive keyboard-accessible controls.
 
 - Current and longest streaks, all-time active days, and a seven-day dashboard card.
 - Monthly activity calendar with timezone-aware dates, keyboard navigation and daily receipt history.
@@ -119,6 +124,6 @@ The earlier parts also provide:
 - **`P1001` during migration:** `db:deploy` uses `DIRECT_URL` in `server/.env`. Restore connectivity to that Neon endpoint, then rerun the command. This patch preserves your connection code and credentials.
 - **Database unavailable:** check both Neon URLs, run `npm run db:deploy`, and check `/health/ready`. A successful API health check alone does not mean database tables exist.
 
-For streak rules, activity API contracts, memory diagnostics and smoke tests, see [docs/PART_5.md](docs/PART_5.md). For progression rules, the completion transaction, API contracts, migration details, and smoke tests, see [docs/PART_4.md](docs/PART_4.md). Earlier journal details are in [docs/PART_3.md](docs/PART_3.md). Authentication design, deployment settings, and existing dependency audit findings remain in [docs/PART_2.md](docs/PART_2.md).
+For daily recurrence rules, timezone policy, database constraints and smoke tests, see [docs/PART_6.md](docs/PART_6.md). For streak rules, activity API contracts, memory diagnostics and smoke tests, see [docs/PART_5.md](docs/PART_5.md). For progression rules, the completion transaction, API contracts, migration details, and smoke tests, see [docs/PART_4.md](docs/PART_4.md). Earlier journal details are in [docs/PART_3.md](docs/PART_3.md). Authentication design, deployment settings, and existing dependency audit findings remain in [docs/PART_2.md](docs/PART_2.md).
 
-The 61 automated tests run locally against disposable PostgreSQL via PGlite and never use your Neon database. A successful verification run does not verify your live Neon connection; complete the create/complete/refresh smoke test after deployment.
+The automated test suite runs locally against disposable PostgreSQL via PGlite and never uses your Neon database. A successful verification run does not verify your live Neon connection; complete the create/complete/refresh smoke test after deployment.

@@ -8,6 +8,7 @@ import {
   Clock3,
   Pencil,
   RotateCcw,
+  Repeat2,
 } from 'lucide-react'
 import { QUEST_DIFFICULTIES, formatQuestDate } from '@life-rpg/shared'
 import { AttributeIcon, AttributeTag } from '../components/ui.jsx'
@@ -24,9 +25,10 @@ export default function QuestRow({
 }) {
   const overdue = quest.status === 'ACTIVE' && quest.dueDate && quest.dueDate < today
   const dueToday = quest.dueDate === today
+  const daily = quest.recurrence === 'DAILY'
   return (
     <article
-      className={`saved-quest ${quest.attribute.toLowerCase()} ${compact ? 'saved-quest-compact' : ''} ${quest.status === 'COMPLETED' ? 'saved-quest-completed' : ''}`}
+      className={`saved-quest ${quest.attribute.toLowerCase()} ${compact ? 'saved-quest-compact' : ''} ${quest.status === 'COMPLETED' || quest.completedToday ? 'saved-quest-completed' : ''} ${daily ? 'saved-quest-daily' : ''}`}
     >
       <span className="saved-quest-icon">
         <AttributeIcon attribute={quest.attribute} size={22} />
@@ -44,6 +46,12 @@ export default function QuestRow({
             <i />
             {QUEST_DIFFICULTIES.find((item) => item.key === quest.difficulty)?.label}
           </span>
+          {daily && (
+            <span className="recurrence-label">
+              <Repeat2 size={13} />
+              Daily
+            </span>
+          )}
           {quest.estimatedMinutes && (
             <span>
               <Clock3 size={13} />
@@ -56,6 +64,21 @@ export default function QuestRow({
               {overdue ? 'Overdue · ' : dueToday ? 'Today · ' : ''}
               {formatQuestDate(quest.dueDate)}
             </span>
+          )}
+          {daily && quest.completedToday && quest.completion && (
+            <>
+              <span className="completed-label">
+                <CheckCheck size={13} />
+                Done today
+              </span>
+              <span>+{quest.completion.xpAwarded} XP</span>
+              <span>
+                <Coins size={13} />+{quest.completion.goldAwarded} gold
+              </span>
+            </>
+          )}
+          {daily && !quest.completedToday && quest.status === 'ACTIVE' && (
+            <span className="daily-ready-label">Ready today</span>
           )}
           {quest.status === 'COMPLETED' && quest.completion && (
             <>
@@ -81,13 +104,17 @@ export default function QuestRow({
         <div className="saved-quest-actions">
           {quest.status === 'ACTIVE' && (
             <button
-              className="icon-button quest-complete-button"
-              aria-label={`Complete ${quest.title}`}
-              title="Complete quest"
-              disabled={busy}
+              className={`icon-button quest-complete-button ${quest.completedToday ? 'quest-complete-button-done' : ''}`}
+              aria-label={
+                quest.completedToday
+                  ? `${quest.title} is complete for today`
+                  : `Complete ${quest.title}`
+              }
+              title={quest.completedToday ? 'Available again on the next scheduled day' : 'Complete quest'}
+              disabled={busy || !quest.eligibleToday}
               onClick={() => onComplete(quest)}
             >
-              <Check size={17} />
+              {quest.completedToday ? <CheckCheck size={17} /> : <Check size={17} />}
             </button>
           )}
           <button

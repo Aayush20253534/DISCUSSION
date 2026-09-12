@@ -75,6 +75,11 @@ enum QuestDifficulty {
   HARD
 }
 
+enum QuestRecurrence {
+  ONCE
+  DAILY
+}
+
 enum QuestStatus {
   ACTIVE
   ARCHIVED
@@ -90,19 +95,23 @@ model Quest {
   description      String          @default("") @db.VarChar(2000)
   attribute        AttributeKey
   difficulty       QuestDifficulty @default(EASY)
+  recurrence       QuestRecurrence @default(ONCE)
   status           QuestStatus     @default(ACTIVE)
   estimatedMinutes Int?            @map("estimated_minutes")
   dueDate          DateTime?        @map("due_date") @db.Date
+  scheduleStartDate DateTime?       @map("schedule_start_date") @db.Date
+  scheduleTimezone String?          @map("schedule_timezone") @db.VarChar(80)
   revision         Int             @default(1)
   createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
   completedAt      DateTime?       @map("completed_at") @db.Timestamptz(3)
-  completion       QuestCompletion?
+  completions      QuestCompletion[]
   user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, requestId])
   @@index([userId, status, createdAt, id])
   @@index([userId, status, dueDate, id])
+  @@index([userId, status, recurrence, scheduleStartDate, id], map: "quests_user_status_recurrence_schedule_idx")
   @@index([userId, attribute, status])
   @@index([userId, status, completedAt, id])
   @@map("quests")
@@ -110,15 +119,18 @@ model Quest {
 
 model QuestCompletion {
   id                   String          @id @default(uuid()) @db.Uuid
-  originalQuestId      String          @unique @map("original_quest_id") @db.Uuid
-  questId              String?         @unique @map("quest_id") @db.Uuid
+  originalQuestId      String          @map("original_quest_id") @db.Uuid
+  questId              String?         @map("quest_id") @db.Uuid
   userId               String          @map("user_id") @db.Uuid
   sourceRevision       Int             @map("source_revision")
   title                String          @db.VarChar(120)
   description          String          @db.VarChar(2000)
   attribute            AttributeKey
   difficulty           QuestDifficulty
+  recurrence           QuestRecurrence @default(ONCE)
   dueDate              DateTime?       @map("due_date") @db.Date
+  scheduledDate        DateTime?       @map("scheduled_date") @db.Date
+  scheduleTimezone     String?         @map("schedule_timezone") @db.VarChar(80)
   estimatedMinutes     Int?            @map("estimated_minutes")
   xpAwarded            Int             @map("xp_awarded")
   goldAwarded          Int             @map("gold_awarded")
@@ -138,6 +150,8 @@ model QuestCompletion {
   quest                Quest?          @relation(fields: [questId], references: [id], onDelete: SetNull)
 
   @@index([userId, completedAt, id])
+  @@index([questId])
+  @@index([originalQuestId, scheduledDate])
   @@index([userId, attribute, completedAt, id])
   @@index([userId, completedDate, completedAt, id], map: "quest_completions_user_activity_idx")
   @@map("quest_completions")

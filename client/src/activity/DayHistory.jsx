@@ -1,7 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, CheckCheck, Coins } from 'lucide-react'
-import { ATTRIBUTES, formatActivityDate, formatCompletionDate } from '@life-rpg/shared'
+import { ArrowLeft, ArrowRight, CheckCheck, Coins, Repeat2 } from 'lucide-react'
+import {
+  ATTRIBUTES,
+  formatActivityDate,
+  formatCompletionDate,
+  formatQuestDate,
+} from '@life-rpg/shared'
 import { AttributeIcon } from '../components/ui.jsx'
 import { useActivityDay } from './hooks.js'
 
@@ -45,11 +50,19 @@ export default function DayHistory({ date }) {
                 </span>
                 <div className="activity-receipt-body">
                   {receipt.questId ? (
-                    <Link to={`/quests?status=COMPLETED&quest=${receipt.questId}`}>
+                    <Link
+                      to={`/quests?status=${receipt.recurrence === 'DAILY' ? 'ALL' : 'COMPLETED'}&quest=${receipt.questId}`}
+                    >
                       {receipt.title}
                     </Link>
                   ) : (
                     <strong>{receipt.title}</strong>
+                  )}
+                  {receipt.recurrence === 'DAILY' && (
+                    <span className="activity-recurrence">
+                      <Repeat2 size={11} />
+                      Daily schedule · {formatQuestDate(receipt.scheduledDate)}
+                    </span>
                   )}
                   <time dateTime={receipt.completedAt}>
                     {formatCompletionDate(receipt.completedAt, receipt.timezone)} ·{' '}

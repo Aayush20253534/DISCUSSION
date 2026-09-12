@@ -7,9 +7,10 @@ import {
   Coins,
   History,
   LoaderCircle,
+  Repeat2,
   Sparkles,
 } from 'lucide-react'
-import { ATTRIBUTES, formatCompletionDate } from '@life-rpg/shared'
+import { ATTRIBUTES, formatCompletionDate, formatQuestDate } from '@life-rpg/shared'
 import { AttributeIcon } from '../components/ui.jsx'
 import { useCompletionHistory } from './hooks.js'
 import './progression.css'
@@ -72,11 +73,19 @@ export default function CompletionHistory() {
               <div className="history-entry">
                 <div className="history-title">
                   {receipt.questId ? (
-                    <Link to={`/quests?status=COMPLETED&quest=${receipt.questId}`}>
+                    <Link
+                      to={`/quests?status=${receipt.recurrence === 'DAILY' ? 'ALL' : 'COMPLETED'}&quest=${receipt.questId}`}
+                    >
                       {receipt.title}
                     </Link>
                   ) : (
                     <strong>{receipt.title}</strong>
+                  )}
+                  {receipt.recurrence === 'DAILY' && (
+                    <span className="history-recurrence">
+                      <Repeat2 size={11} />
+                      Daily · {formatQuestDate(receipt.scheduledDate)}
+                    </span>
                   )}
                   {receipt.levelAfter > receipt.levelBefore && (
                     <span className="history-level">

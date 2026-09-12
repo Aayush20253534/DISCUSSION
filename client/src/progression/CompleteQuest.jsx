@@ -34,12 +34,13 @@ export default function CompleteQuest({ quest, onClose }) {
   const conflict = ['QUEST_CHANGED', 'QUEST_ARCHIVED'].includes(mutation.error?.code)
   const missing = mutation.error?.code === 'QUEST_NOT_FOUND'
   const receipt = result?.completion
+  const daily = current.recurrence === 'DAILY'
   const levelUp = receipt && receipt.levelAfter > receipt.levelBefore
   const attribute = ATTRIBUTES.find(
     (item) => item.key === (receipt?.attribute || current.attribute),
   )
   async function submit() {
-    if (busy || conflict || missing || current.status === 'ARCHIVED') return
+    if (busy || conflict || missing || current.status === 'ARCHIVED' || !current.eligibleToday) return
     setMessage('')
     try {
       setResult(
@@ -66,7 +67,9 @@ export default function CompleteQuest({ quest, onClose }) {
       setMessage(
         data.quest.status === 'ARCHIVED'
           ? 'This quest is archived. Close this window and restore it from your journal first.'
-          : '',
+          : data.quest.completedToday
+            ? 'This daily quest is already recorded for its current scheduled day.'
+            : '',
       )
     } catch (error) {
       setMessage(error.message)
@@ -137,8 +140,12 @@ export default function CompleteQuest({ quest, onClose }) {
               </Dialog.Title>
               <Dialog.Description className="dialog-description">
                 {result.newlyCompleted
-                  ? 'Your effort has a place in your story. These rewards are saved.'
-                  : 'This quest was completed earlier. Its rewards were credited once; no extra rewards were added.'}
+                  ? daily
+                    ? 'Today’s effort is saved. This quest returns on its next scheduled local day.'
+                    : 'Your effort has a place in your story. These rewards are saved.'
+                  : daily
+                    ? 'This scheduled day was already recorded. No duplicate XP or gold was added.'
+                    : 'This quest was completed earlier. Its rewards were credited once; no extra rewards were added.'}
               </Dialog.Description>
               <p className="completion-quest-title">{receipt.title}</p>
               <div className="earned-rewards" aria-label="Recorded rewards">
@@ -185,8 +192,9 @@ export default function CompleteQuest({ quest, onClose }) {
               <span className="eyebrow">MAKE THIS MOMENT COUNT</span>
               <Dialog.Title className="dialog-title">Ready to call it done?</Dialog.Title>
               <Dialog.Description className="dialog-description">
-                Mark this quest complete once you’ve done the real-world task. Its details will
-                become a lasting record.
+                {daily
+                  ? 'Record today’s real-world effort. This daily quest can award rewards once for the current scheduled day.'
+                  : 'Mark this quest complete once you’ve done the real-world task. Its details will become a lasting record.'}
               </Dialog.Description>
               <div className="completion-intention">
                 <AttributeTag attribute={current.attribute} />
@@ -195,8 +203,9 @@ export default function CompleteQuest({ quest, onClose }) {
                 <RewardPreview difficulty={current.difficulty} attribute={current.attribute} />
               </div>
               <p className="completion-note">
-                Rewards are credited once. You can remove the journal entry later; the completion
-                and earned progress will stay in your history.
+                {daily
+                  ? `Rewards are credited once per scheduled day in ${current.scheduleTimezone?.replaceAll('_', ' ') || 'the quest schedule timezone'}. Changing account timezone later cannot reopen the same scheduled day.`
+                  : 'Rewards are credited once. You can remove the journal entry later; the completion and earned progress will stay in your history.'}
               </p>
               {message && (
                 <p className="form-message" role="alert">
@@ -222,7 +231,13 @@ export default function CompleteQuest({ quest, onClose }) {
                 <button
                   autoFocus
                   className="button button-gold"
-                  disabled={busy || conflict || missing || current.status === 'ARCHIVED'}
+                  disabled={
+                    busy ||
+                    conflict ||
+                    missing ||
+                    current.status === 'ARCHIVED' ||
+                    !current.eligibleToday
+                  }
                   onClick={submit}
                 >
                   {busy ? (
@@ -235,9 +250,11 @@ export default function CompleteQuest({ quest, onClose }) {
                       <Check size={17} />
                       {mutation.isError
                         ? 'Retry completion'
-                        : current.status === 'COMPLETED'
-                          ? 'View saved result'
-                          : 'Mark complete'}
+                        : current.status === 'COMPLETED' || current.completedToday
+                          ? 'Already recorded'
+                          : daily
+                            ? 'Record today'
+                            : 'Mark complete'}
                     </>
                   )}
                 </button>

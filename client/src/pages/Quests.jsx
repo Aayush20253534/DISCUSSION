@@ -12,11 +12,18 @@ import {
   LoaderCircle,
   Plus,
   RefreshCw,
+  Repeat2,
   Search,
   Sparkles,
   X,
 } from 'lucide-react'
-import { ATTRIBUTES, QUEST_DIFFICULTIES, questListSchema, questIdSchema } from '@life-rpg/shared'
+import {
+  ATTRIBUTES,
+  QUEST_DIFFICULTIES,
+  QUEST_RECURRENCES,
+  questListSchema,
+  questIdSchema,
+} from '@life-rpg/shared'
 import { useAuth } from '../auth/useAuth.js'
 import { AttributeIcon, PageHeading } from '../components/ui.jsx'
 import QuestRow from '../quests/QuestRow.jsx'
@@ -32,6 +39,7 @@ const defaults = {
   q: '',
   attribute: 'ALL',
   difficulty: 'ALL',
+  recurrence: 'ALL',
   status: 'ACTIVE',
   due: 'ALL',
   sort: 'NEWEST',
@@ -126,6 +134,7 @@ function QuestJournal() {
     filters.q ||
     filters.attribute !== 'ALL' ||
     filters.difficulty !== 'ALL' ||
+    filters.recurrence !== 'ALL' ||
     filters.due !== 'ALL',
   )
   return (
@@ -158,11 +167,11 @@ function QuestJournal() {
             caption: 'ROOM TO BEGIN',
           },
           {
-            key: 'dueToday',
-            label: 'Due today',
-            icon: CalendarDays,
-            updates: { status: 'ACTIVE', due: 'TODAY' },
-            caption: 'A LITTLE FOCUS',
+            key: 'dailyReady',
+            label: 'Daily ready',
+            icon: Repeat2,
+            updates: { status: 'ACTIVE', recurrence: 'DAILY', due: 'ALL' },
+            caption: 'RETURN & GROW',
           },
           {
             key: 'completed',
@@ -303,12 +312,32 @@ function QuestJournal() {
               </select>
             </label>
             <label>
-              Schedule
+              Recurrence
+              <select
+                value={filters.recurrence}
+                onChange={(event) =>
+                  changeFilters({
+                    recurrence: event.target.value,
+                    ...(event.target.value === 'DAILY' ? { due: 'ALL' } : {}),
+                  })
+                }
+              >
+                <option value="ALL">Any recurrence</option>
+                {QUEST_RECURRENCES.map(({ key, label }) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              One-time date
               <select
                 value={filters.due}
+                disabled={filters.recurrence === 'DAILY'}
                 onChange={(event) => changeFilters({ due: event.target.value })}
               >
-                <option value="ALL">Any date</option>
+                <option value="ALL">Any due date</option>
                 <option value="TODAY">Due today</option>
                 <option value="UPCOMING">Upcoming</option>
                 <option value="OVERDUE">Overdue</option>
@@ -472,8 +501,7 @@ function QuestJournal() {
           <div className="journal-footnote">
             <CalendarDays size={14} />
             <span>
-              Dates follow {summary.data?.timezone?.replaceAll('_', ' ') || 'your account timezone'}
-              . Complete a real-world quest to earn XP, gold, and growth.
+              One-time dates follow {summary.data?.timezone?.replaceAll('_', ' ') || 'your account timezone'}. Daily quests keep the timezone they were scheduled in and can reward once per scheduled day.
             </span>
           </div>
         </section>

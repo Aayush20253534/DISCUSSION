@@ -21,8 +21,15 @@ test('quest defaults are typed, bounded, and reject client-controlled ownership 
   assert.equal(quest.dueDate, null)
   assert.equal(quest.estimatedMinutes, null)
   assert.equal(quest.difficulty, 'EASY')
+  assert.equal(quest.recurrence, 'ONCE')
   assert.equal(questCreateSchema.safeParse({ ...minimal, userId: 'another-user' }).success, false)
   assert.equal(questCreateSchema.safeParse({ ...minimal, gold: 100 }).success, false)
+  assert.equal(
+    questCreateSchema.safeParse({ ...minimal, recurrence: 'DAILY', dueDate: '2026-09-13' })
+      .success,
+    false,
+  )
+  assert.equal(questListSchema.safeParse({ recurrence: 'DAILY', due: 'TODAY' }).success, false)
 })
 test('due dates remain dates and calendar boundaries follow the stored timezone', () => {
   assert.equal(calendarDateSchema.safeParse('2028-02-29').success, true)

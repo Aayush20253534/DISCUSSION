@@ -223,7 +223,7 @@ export default function Landing() {
       : Promise.resolve()
 
     const minimumHold = new Promise((resolve) => {
-      window.setTimeout(resolve, reducedMotion ? 120 : 1450)
+      window.setTimeout(resolve, reducedMotion ? 80 : 320)
     })
 
     const finishLoading = () => {
@@ -234,11 +234,11 @@ export default function Landing() {
         if (cancelled) return
         setLoaderPhase('done')
         document.body.style.overflow = previousOverflow
-      }, reducedMotion ? 120 : 860)
+      }, reducedMotion ? 90 : 360)
     }
 
     Promise.all([imageReady, fontsReady, minimumHold]).then(finishLoading)
-    fallbackTimer = window.setTimeout(finishLoading, reducedMotion ? 500 : 4200)
+    fallbackTimer = window.setTimeout(finishLoading, reducedMotion ? 400 : 2000)
 
     return () => {
       cancelled = true
@@ -254,7 +254,9 @@ export default function Landing() {
 
     const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)')
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    let frame = 0
+    let pointerFrame = 0
+    let scrollFrame = 0
+    let heroHeight = Math.max(hero.offsetHeight, 1)
 
     const resetPointer = () => {
       hero.style.setProperty('--hero-copy-x', '0px')
@@ -271,8 +273,8 @@ export default function Landing() {
       const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2
       const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2
 
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => {
+      cancelAnimationFrame(pointerFrame)
+      pointerFrame = requestAnimationFrame(() => {
         hero.style.setProperty('--hero-copy-x', `${x * 3}px`)
         hero.style.setProperty('--hero-copy-y', `${y * 2}px`)
         hero.style.setProperty('--hero-atmos-x', `${x * 7}px`)
@@ -282,24 +284,59 @@ export default function Landing() {
       })
     }
 
-    const handleScroll = () => {
+    const paintScroll = () => {
+      scrollFrame = 0
       if (reducedMotion.matches) return
-      const progress = Math.min(window.scrollY / Math.max(hero.offsetHeight, 1), 1)
-      hero.style.setProperty('--world-scale', String(1 + progress * 0.04))
-      hero.style.setProperty('--hero-scroll-y', `${progress * -22}px`)
-      hero.style.setProperty('--mist-scroll-y', `${progress * -14}px`)
+      const progress = Math.min(window.scrollY / heroHeight, 1)
+      hero.style.setProperty('--world-scale', String(1 + progress * 0.025))
+      hero.style.setProperty('--hero-scroll-y', `${progress * -14}px`)
+      hero.style.setProperty('--mist-scroll-y', `${progress * -8}px`)
     }
 
-    hero.addEventListener('pointermove', handlePointerMove)
+    const handleScroll = () => {
+      if (!scrollFrame) scrollFrame = requestAnimationFrame(paintScroll)
+    }
+
+    const handleResize = () => {
+      heroHeight = Math.max(hero.offsetHeight, 1)
+      handleScroll()
+    }
+
+    hero.addEventListener('pointermove', handlePointerMove, { passive: true })
     hero.addEventListener('pointerleave', resetPointer)
     window.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll()
+    window.addEventListener('resize', handleResize, { passive: true })
+    paintScroll()
 
     return () => {
-      cancelAnimationFrame(frame)
+      cancelAnimationFrame(pointerFrame)
+      cancelAnimationFrame(scrollFrame)
       hero.removeEventListener('pointermove', handlePointerMove)
       hero.removeEventListener('pointerleave', resetPointer)
       window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
+  useEffect(() => {
+    const hero = heroRef.current
+    if (!hero) return undefined
+
+    if (!('IntersectionObserver' in window)) {
+      hero.classList.add('is-hero-visible')
+      return () => {
+        hero.classList.remove('is-hero-visible')
+      }
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => hero.classList.toggle('is-hero-visible', Boolean(entry?.isIntersecting)),
+      { rootMargin: '120px 0px', threshold: 0 },
+    )
+    observer.observe(hero)
+    return () => {
+      observer.disconnect()
+      hero.classList.remove('is-hero-visible')
     }
   }, [])
 
@@ -312,8 +349,13 @@ export default function Landing() {
     let stormInterval
     let stopped = false
 
-    const fireStorm = (duration = 2150) => {
-      if (stopped) return
+    const fireStorm = (duration = 720) => {
+      if (
+        stopped ||
+        document.hidden ||
+        !heroRef.current?.classList.contains('is-hero-visible')
+      )
+        return
       setStormPattern((current) => (current % 3) + 1)
       setLightning(true)
       window.clearTimeout(flashEnd)
@@ -323,14 +365,14 @@ export default function Landing() {
       }, duration)
     }
 
-    // A visible storm immediately establishes the scene after loading, then a
-    // new strike starts every five seconds. The bolt geometry still rotates
-    // through three patterns so the cadence is predictable without looking
+    // A visible storm establishes the scene after loading, then a new strike
+    // starts at a slower cadence so the effect does not monopolize the compositor.
+    // The bolt geometry still rotates through three patterns without looking
     // like the same canned animation looping forever.
     introFlash = window.setTimeout(() => {
-      fireStorm(2280)
-      stormInterval = window.setInterval(() => fireStorm(2150), 5000)
-    }, 260)
+      fireStorm(780)
+      stormInterval = window.setInterval(() => fireStorm(720), 8000)
+    }, 420)
 
     return () => {
       stopped = true

@@ -1286,3 +1286,174 @@
     padding-top: 8px;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Compact account portal                                                       */
+/* -------------------------------------------------------------------------- */
+.login-portal-card {
+  width: min(31vw, 480px);
+  padding: clamp(40px, 4.5vh, 50px) clamp(30px, 2.6vw, 38px) clamp(22px, 2.8vh, 28px);
+}
+
+.signup-portal-card {
+  width: min(32.5vw, 500px);
+}
+
+.login-card-medallion {
+  width: 58px;
+  height: 58px;
+}
+
+.login-card-medallion svg {
+  width: 35px;
+  height: 35px;
+}
+
+.login-eyebrow {
+  margin-bottom: 12px;
+  font-size: 8px;
+  letter-spacing: 4px;
+}
+
+.login-title {
+  margin-bottom: 5px !important;
+  font-size: clamp(36px, 3vw, 46px) !important;
+  line-height: .94 !important;
+}
+
+.signup-portal-card .login-title {
+  font-size: clamp(34px, 2.65vw, 43px) !important;
+}
+
+.login-description {
+  margin: 10px auto 17px !important;
+  font-size: 12px !important;
+  line-height: 1.48 !important;
+}
+
+.login-account-form {
+  gap: 10px;
+}
+
+.login-account-form .form-field {
+  gap: 5px;
+}
+
+.login-account-form .form-field input {
+  min-height: 42px;
+  padding-block: 8px;
+}
+
+.login-account-form .field-hint,
+.login-account-form .field-error {
+  line-height: 1.35;
+}
+
+.login-account-form .password-toggle {
+  top: 1px;
+}
+
+.login-options {
+  min-height: 21px;
+  font-size: 10px;
+}
+
+.login-primary-button {
+  min-height: 43px;
+  margin-top: 0;
+  font-size: 12px;
+}
+
+.login-auth-switch {
+  margin-top: 11px;
+  line-height: 1.45;
+}
+
+.login-assurance {
+  margin-top: 11px;
+  padding-top: 11px;
+}
+
+@media (max-width: 1180px) and (min-width: 861px) {
+  .login-portal-card,
+  .signup-portal-card {
+    right: 28px;
+    width: min(40vw, 480px);
+  }
+}
+
+@media (max-width: 860px) {
+  .login-portal-card,
+  .signup-portal-card {
+    bottom: 12px;
+    width: min(500px, calc(100vw - 24px));
+    padding: 38px 24px 18px;
+  }
+
+  .login-title,
+  .signup-portal-card .login-title {
+    font-size: clamp(32px, 8.8vw, 40px) !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .login-portal-card,
+  .signup-portal-card {
+    bottom: 8px;
+    width: calc(100vw - 16px);
+    padding: 34px 17px 14px;
+  }
+
+  .login-card-medallion {
+    width: 48px;
+    height: 48px;
+  }
+
+  .login-card-medallion svg {
+    width: 29px;
+    height: 29px;
+  }
+
+  .login-eyebrow {
+    margin-bottom: 7px;
+    font-size: 6.5px;
+    letter-spacing: 2.8px;
+  }
+
+  .login-description {
+    margin: 7px auto 11px !important;
+    line-height: 1.35 !important;
+  }
+
+  .login-account-form {
+    gap: 8px;
+  }
+
+  .login-account-form .form-field input {
+    min-height: 39px;
+    padding-block: 6px;
+  }
+
+  .login-primary-button {
+    min-height: 40px;
+  }
+
+  .login-assurance {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+}
+
+@media (max-height: 700px) {
+  .login-description {
+    margin-bottom: 9px !important;
+  }
+
+  .signup-account-form .field-hint {
+    font-size: 9px;
+  }
+
+  .login-assurance {
+    font-size: 8.5px;
+  }
+}

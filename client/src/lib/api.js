@@ -1,4 +1,7 @@
-const baseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+const configuredBaseUrl = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+// Production auth is deliberately same-origin. Vercel/Express proxy /api to the backend so
+// session and CSRF cookies remain first-party even in browsers that block third-party cookies.
+const baseUrl = import.meta.env.PROD ? '' : configuredBaseUrl
 const authPath = '/api/v1/auth'
 let refreshInFlight
 let localLock = Promise.resolve()

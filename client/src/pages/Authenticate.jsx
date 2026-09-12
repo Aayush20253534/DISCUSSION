@@ -1,31 +1,18 @@
 import { useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ArrowRight, LoaderCircle, LockKeyhole, Mail, ShieldCheck } from 'lucide-react'
+import {
+  ArrowRight,
+  LoaderCircle,
+  LockKeyhole,
+  Mail,
+  ShieldCheck,
+  UserRound,
+} from 'lucide-react'
 import { signupSchema, loginSchema } from '@life-rpg/shared'
 import AuthLayout from '../components/AuthLayout.jsx'
 import FormField from '../components/FormField.jsx'
 import { useAuth } from '../auth/useAuth.js'
-
-const REMEMBERED_EMAIL_KEY = 'life-rpg:remembered-email'
-
-function readRememberedEmail() {
-  if (typeof window === 'undefined') return ''
-  try {
-    return window.localStorage.getItem(REMEMBERED_EMAIL_KEY) || ''
-  } catch {
-    return ''
-  }
-}
-
-function saveRememberedEmail(email, remember) {
-  if (typeof window === 'undefined') return
-  try {
-    if (remember) window.localStorage.setItem(REMEMBERED_EMAIL_KEY, email)
-    else window.localStorage.removeItem(REMEMBERED_EMAIL_KEY)
-  } catch {
-    // Storage can be unavailable in privacy-restricted browser contexts.
-  }
-}
+import { readRememberedEmail, saveRememberedEmail } from '../lib/preferences.js'
 
 export default function Authenticate({ signup = false }) {
   const auth = useAuth()
@@ -68,7 +55,7 @@ export default function Authenticate({ signup = false }) {
 
   return (
     <AuthLayout
-      variant={signup ? 'default' : 'login'}
+      variant={signup ? 'signup' : 'login'}
       eyebrow={signup ? 'YOUR ADVENTURE STARTS HERE' : 'YOUR STORY CONTINUES'}
       title={signup ? 'Begin your adventure.' : 'Welcome back,'}
       titleAccent={signup ? undefined : 'Wanderer.'}
@@ -79,7 +66,7 @@ export default function Authenticate({ signup = false }) {
       }
     >
       <form
-        className={`account-form ${signup ? '' : 'login-account-form'}`}
+        className={`account-form login-account-form ${signup ? 'signup-account-form' : ''}`}
         onSubmit={submit}
         ref={form}
         noValidate
@@ -94,6 +81,7 @@ export default function Authenticate({ signup = false }) {
           <FormField
             name="displayName"
             label="Adventurer name"
+            icon={<UserRound size={17} strokeWidth={1.8} aria-hidden="true" />}
             placeholder="What should we call you?"
             autoComplete="nickname"
             maxLength={40}
@@ -105,7 +93,7 @@ export default function Authenticate({ signup = false }) {
         <FormField
           name="email"
           label="Email address"
-          icon={!signup ? <Mail size={17} strokeWidth={1.8} aria-hidden="true" /> : undefined}
+          icon={<Mail size={17} strokeWidth={1.8} aria-hidden="true" />}
           type="email"
           placeholder="you@example.com"
           defaultValue={!signup ? rememberedEmail : undefined}
@@ -120,7 +108,7 @@ export default function Authenticate({ signup = false }) {
         <FormField
           name="password"
           label="Password"
-          icon={!signup ? <LockKeyhole size={17} strokeWidth={1.8} aria-hidden="true" /> : undefined}
+          icon={<LockKeyhole size={17} strokeWidth={1.8} aria-hidden="true" />}
           type="password"
           placeholder={!signup ? 'Enter your password' : undefined}
           autoComplete={signup ? 'new-password' : 'current-password'}
@@ -158,7 +146,7 @@ export default function Authenticate({ signup = false }) {
           </p>
         )}
         <button
-          className={`button button-gold full-width ${signup ? '' : 'login-primary-button'}`}
+          className="button button-gold full-width login-primary-button"
           disabled={pending}
           type="submit"
         >
@@ -175,43 +163,13 @@ export default function Authenticate({ signup = false }) {
         </button>
       </form>
 
-      {!signup && (
-        <>
-          <div className="login-divider" aria-hidden="true">
-            <span>OR</span>
-          </div>
-          <div className="login-social-grid" aria-label="Social sign in providers">
-            <button
-              type="button"
-              className="login-social-button"
-              disabled
-              title="Google sign-in is not configured in this build."
-            >
-              <span className="login-google-mark" aria-hidden="true">
-                G
-              </span>
-              <span>Continue with Google</span>
-            </button>
-            <button
-              type="button"
-              className="login-social-button"
-              disabled
-              title="Apple sign-in is not configured in this build."
-            >
-              <span className="login-apple-mark" aria-hidden="true" />
-              <span>Continue with Apple</span>
-            </button>
-          </div>
-        </>
-      )}
-
-      <p className={`auth-switch ${signup ? '' : 'login-auth-switch'}`}>
+      <p className="auth-switch login-auth-switch">
         {signup ? 'Already have a story here?' : 'No journey yet?'}{' '}
         <Link to={signup ? '/login' : '/signup'} state={location.state}>
           {signup ? 'Sign in' : 'Create your adventurer'}
         </Link>
       </p>
-      <div className={`auth-assurance ${signup ? '' : 'login-assurance'}`}>
+      <div className="auth-assurance login-assurance">
         <ShieldCheck size={17} />
         <span>
           {signup

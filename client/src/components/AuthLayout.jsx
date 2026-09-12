@@ -24,9 +24,10 @@ export default function AuthLayout({
     noindex: true,
   })
 
-  if (variant === 'login') {
+  if (variant === 'login' || variant === 'signup') {
+    const signupPortal = variant === 'signup'
     return (
-      <main className="auth-page login-auth-page">
+      <main className={`auth-page login-auth-page ${signupPortal ? 'signup-auth-page' : ''}`}>
         <div className="login-page-vignette" aria-hidden="true" />
 
         <Link className="login-brand" to="/" aria-label="Life RPG home">
@@ -45,17 +46,27 @@ export default function AuthLayout({
         </Link>
 
         <p className="login-world-quote" aria-hidden="true">
-          “The same you,
-          <br />
-          with a greater story ahead.”
+          {signupPortal ? (
+            <>
+              “Every legend starts,
+              <br />
+              with one deliberate step.”
+            </>
+          ) : (
+            <>
+              “The same you,
+              <br />
+              with a greater story ahead.”
+            </>
+          )}
         </p>
 
         <motion.section
-          className="auth-card login-portal-card"
+          className={`auth-card login-portal-card ${signupPortal ? 'signup-portal-card' : ''}`}
           initial={animate ? { opacity: 0 } : false}
           animate={{ opacity: 1 }}
           transition={{ duration: animate ? 0.32 : 0, ease: 'easeOut' }}
-          aria-label="Sign in to Life RPG"
+          aria-label={signupPortal ? 'Create a Life RPG account' : 'Sign in to Life RPG'}
         >
           <div className="login-card-medallion" aria-hidden="true">
             <Compass size={42} strokeWidth={1.1} />

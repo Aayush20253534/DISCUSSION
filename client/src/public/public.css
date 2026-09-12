@@ -6599,3 +6599,71 @@ html {
   from { background-position: 36px -520px, 104px -690px; }
   to { background-position: -122px 430px, -120px 540px; }
 }
+
+/* --------------------------------------------------------------------------
+   Performance pass: preserve the atmosphere without making the browser render
+   the entire fantasy continent on every frame.
+   -------------------------------------------------------------------------- */
+.atlas-section,
+.atlas-final {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 760px;
+}
+
+.landing-world img {
+  will-change: auto;
+}
+
+.landing-cinematic-hero.is-hero-visible .landing-world img {
+  will-change: transform;
+}
+
+/* One animated rain plane plus a static mist layer reads as rain just as well
+   at normal viewing size and is much cheaper than six full-screen moving
+   gradient textures. */
+.landing-rain-far,
+.landing-rain-near {
+  display: none;
+}
+
+.landing-rain-mid {
+  opacity: .18;
+}
+
+.landing-mist {
+  animation: none !important;
+  will-change: auto;
+}
+
+.atlas-world-dust,
+.atlas-world-stars {
+  animation: none !important;
+}
+
+.landing-cinematic-hero:not(.is-hero-visible) .landing-rain,
+.landing-cinematic-hero:not(.is-hero-visible) .landing-rain::before,
+.landing-cinematic-hero:not(.is-hero-visible) .landing-mist,
+.landing-cinematic-hero:not(.is-hero-visible) .landing-embers i,
+.landing-cinematic-hero:not(.is-hero-visible) .landing-world img {
+  animation-play-state: paused !important;
+}
+
+.public-header.landing-header.is-scrolled,
+.public-header.landing-header.menu-open {
+  backdrop-filter: blur(10px) saturate(108%);
+  -webkit-backdrop-filter: blur(10px) saturate(108%);
+}
+
+@media (max-width: 900px) {
+  .landing-rain-mid {
+    opacity: .1;
+  }
+
+  .landing-rain-mid::before {
+    display: none;
+  }
+
+  .landing-light-field {
+    mix-blend-mode: normal;
+  }
+}

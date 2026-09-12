@@ -30,3 +30,23 @@ export function saveSoundPreference(value) {
     /* A blocked storage API must not break the interface. */
   }
 }
+
+
+const REMEMBERED_EMAIL_KEY = 'life-rpg:remembered-email'
+
+export function readRememberedEmail() {
+  try {
+    return localStorage.getItem(REMEMBERED_EMAIL_KEY) || ''
+  } catch {
+    return ''
+  }
+}
+
+export function saveRememberedEmail(email, remember) {
+  try {
+    if (remember) localStorage.setItem(REMEMBERED_EMAIL_KEY, email)
+    else localStorage.removeItem(REMEMBERED_EMAIL_KEY)
+  } catch {
+    /* A blocked storage API must not break sign-in. */
+  }
+}

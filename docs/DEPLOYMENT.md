@@ -60,16 +60,31 @@ node -e "console.log(require('node:crypto').randomBytes(64).toString('hex'))"
 
 Do not commit the generated value.
 
-The Blueprint runs:
+The Blueprint uses one repository-owned build entry point:
 
 ```text
-npm ci --workspaces --include-workspace-root --include=dev
-npm run build
-npm run db:deploy
+npm run render:build
 npm start
 ```
 
-The build happens before migrations. A broken client build therefore cannot migrate the production database. The committed migrations are additive and the migration command is idempotent.
+`render:build` performs the release steps in this order:
+
+```text
+npm ci --workspaces --include-workspace-root --include=dev --no-audit --no-fund
+npm run build
+npm run db:deploy
+```
+
+Installing with `--include=dev` is intentional: Prisma CLI and Vite are build-time dependencies and must exist even though the service itself runs with `NODE_ENV=production`. The build happens before migrations, so a broken client build cannot migrate the production database. The committed migration chain is idempotent.
+
+If the Render service was created manually instead of from the repository Blueprint, `render.yaml` does **not** silently replace the service's Dashboard settings. In **Render → Service → Settings**, keep the root directory at the repository root and set:
+
+```text
+Build Command: npm run render:build
+Start Command: npm start
+```
+
+A build command that starts directly with `npm run db:generate` or `prisma generate` is invalid on a clean Render build host because dependencies have not been installed yet.
 
 `/health/ready` is configured as the service health check. A deployment is not healthy merely because Node started; Neon must also be reachable.
 
@@ -134,6 +149,16 @@ Then manually complete the core persistence smoke test in a private/incognito br
 7. Open the same account in a second browser/device and verify the same server-backed state.
 
 ## 8. Deployment troubleshooting
+
+### Build fails with `prisma: not found`
+
+This means Render is executing a stale/manual Build Command before installing the workspace dependencies. The repository's supported command is:
+
+```text
+npm run render:build
+```
+
+If the service was created manually, update **Render → Service → Settings → Build Command** to that exact value and redeploy with **Clear build cache & deploy**. If the service is Blueprint-managed, sync the Blueprint so its `render.yaml` configuration is applied.
 
 ### Build fails before deployment
 

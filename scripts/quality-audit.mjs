@@ -35,10 +35,12 @@ for (const file of sourceFiles) {
   }
 }
 
-const [appShell, publicShell, css] = await Promise.all([
+const [appShell, publicShell, css, renderYaml, packageJsonText] = await Promise.all([
   readFile(path.join(clientSource, 'components', 'AppShell.jsx'), 'utf8'),
   readFile(path.join(clientSource, 'public', 'PublicShell.jsx'), 'utf8'),
   readFile(path.join(clientSource, 'index.css'), 'utf8'),
+  readFile(path.join(root, 'render.yaml'), 'utf8'),
+  readFile(path.join(root, 'package.json'), 'utf8'),
 ])
 for (const [name, shell] of [
   ['authenticated shell', appShell],
@@ -51,5 +53,18 @@ for (const [name, shell] of [
 assert.match(css, /select:focus-visible/, 'select controls need a visible keyboard focus treatment')
 assert.match(css, /textarea:focus-visible/, 'textarea controls need a visible keyboard focus treatment')
 assert.match(css, /@media \(prefers-reduced-motion: reduce\)/, 'reduced-motion CSS fallback must remain present')
+
+const packageJson = JSON.parse(packageJsonText)
+const renderBuild = packageJson.scripts?.['render:build'] || ''
+assert.match(
+  renderBuild,
+  /^npm ci .*--include=dev.*&& npm run build && npm run db:deploy$/,
+  'Render build must install workspace dev dependencies before Prisma/Vite and deploy committed migrations after a successful build',
+)
+assert.match(
+  renderYaml,
+  /^\s*buildCommand:\s*npm run render:build\s*$/m,
+  'render.yaml must use the repository-owned render:build command instead of duplicating deployment steps in the dashboard',
+)
 
 console.log(JSON.stringify({ event: 'quality.audit_passed', clientSourceFiles: sourceFiles.length }))

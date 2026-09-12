@@ -90,7 +90,7 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
                 <a className="landing-nav-link" href="#top" onClick={closeMenu}>Home</a>
                 <a className="landing-nav-link" href="#journey" onClick={closeMenu}>The Journey</a>
                 <NavLink className="landing-nav-link" to="/how-it-works" onClick={closeMenu}>How It Works</NavLink>
-                <a className="landing-nav-link" href="#about" onClick={closeMenu}>About</a>
+                <a className="landing-nav-link" href="#atlas" onClick={closeMenu}>The Atlas</a>
               </span>
               <span className="landing-nav-actions">
                 <NavLink className="public-login landing-login" to="/login" onClick={closeMenu}>Login</NavLink>
@@ -136,7 +136,7 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
             <nav aria-label="Footer navigation">
               <a href="#journey">The Journey</a>
               <NavLink to="/how-it-works">How It Works</NavLink>
-              <a href="#about">About</a>
+              <a href="#atlas">The Atlas</a>
               <NavLink to="/login">Login</NavLink>
             </nav>
             <div className="atlas-footer-cta">

@@ -112,8 +112,8 @@ const relics = [
   { icon: BookOpen, name: 'Traveler’s Journal', type: 'Chronicle skin', rarity: 'RARE', className: '' },
   { icon: Diamond, name: 'Focus Ring', type: 'Discipline relic', rarity: 'EPIC', className: '' },
   { icon: Sparkles, name: 'Moonlight Lantern', type: 'Atlas cosmetic', rarity: 'RARE', className: 'relic-tall' },
-  { icon: Award, name: 'Explorer Title', type: 'Profile title', rarity: 'UNCOMMON', className: '' },
-  { icon: Flame, name: 'Ember Theme', type: 'World theme', rarity: 'EPIC', className: '' },
+  { icon: Award, name: 'Explorer’s Cloak', type: 'Journey cosmetic', rarity: 'EPIC', className: '' },
+  { icon: Flame, name: 'Ancient Tome', type: 'Knowledge relic', rarity: 'LEGENDARY', className: '' },
 ]
 
 const marketplaceItems = [
@@ -153,11 +153,55 @@ const differences = [
   },
 ]
 
+const questContracts = [
+  {
+    icon: BookOpen,
+    title: 'Solve 3 coding problems',
+    realm: 'Arcane Archives',
+    difficulty: 'HARD',
+    xp: 120,
+    gold: 24,
+    stat: 'INTELLECT',
+  },
+  {
+    icon: Dumbbell,
+    title: 'Train for 40 minutes',
+    realm: 'Iron Peaks',
+    difficulty: 'MEDIUM',
+    xp: 85,
+    gold: 16,
+    stat: 'STRENGTH',
+  },
+  {
+    icon: Shield,
+    title: 'Deep work for 60 minutes',
+    realm: 'Citadel of Resolve',
+    difficulty: 'EPIC',
+    xp: 150,
+    gold: 30,
+    stat: 'DISCIPLINE',
+  },
+]
+
+const journeyChapters = [
+  { id: 'top', label: 'The Call' },
+  { id: 'quests', label: 'Quests' },
+  { id: 'atlas', label: 'Atlas' },
+  { id: 'character', label: 'Character' },
+  { id: 'relics', label: 'Relics' },
+  { id: 'chronicle', label: 'Chronicle' },
+  { id: 'begin', label: 'Begin' },
+]
+
 export default function Landing() {
   const heroRef = useRef(null)
+  const atlasHomeRef = useRef(null)
   const [lightning, setLightning] = useState(false)
   const [stormPattern, setStormPattern] = useState(1)
   const [loaderPhase, setLoaderPhase] = useState('loading')
+  const [activeChapter, setActiveChapter] = useState('top')
+  const [levelMoment, setLevelMoment] = useState(false)
+  const [questComplete, setQuestComplete] = useState(false)
 
   usePageMeta({
     title: 'Life RPG · The Adventurer’s Atlas',
@@ -301,8 +345,8 @@ export default function Landing() {
 
     const scheduleFlash = () => {
       const mobile = window.matchMedia('(max-width: 720px)').matches
-      const minimum = mobile ? 6200 : 4300
-      const spread = mobile ? 5200 : 4600
+      const minimum = mobile ? 9000 : 7200
+      const spread = mobile ? 5000 : 6200
       nextFlash = window.setTimeout(() => fireStorm(2200 + Math.random() * 250), minimum + Math.random() * spread)
     }
 
@@ -342,6 +386,166 @@ export default function Landing() {
 
     nodes.forEach((node) => observer.observe(node))
     return () => observer.disconnect()
+  }, [loaderPhase])
+
+  useEffect(() => {
+    if (loaderPhase !== 'done') return undefined
+
+    const chapters = Array.from(document.querySelectorAll('[data-chapter]'))
+    if (!chapters.length || !('IntersectionObserver' in window)) return undefined
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        if (visible?.target?.id) setActiveChapter(visible.target.id)
+      },
+      { rootMargin: '-28% 0px -48% 0px', threshold: [0.08, 0.2, 0.45] },
+    )
+
+    chapters.forEach((chapter) => observer.observe(chapter))
+    return () => observer.disconnect()
+  }, [loaderPhase])
+
+  useEffect(() => {
+    if (loaderPhase !== 'done') return undefined
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const character = document.getElementById('character')
+    const questLog = document.getElementById('quest-log')
+    const timers = []
+    const observers = []
+
+    if (reducedMotion) {
+      setQuestComplete(true)
+      return undefined
+    }
+
+    if (character && 'IntersectionObserver' in window) {
+      let played = false
+      const observer = new IntersectionObserver(([entry]) => {
+        if (!entry?.isIntersecting || played) return
+        played = true
+        timers.push(window.setTimeout(() => setLevelMoment(true), 950))
+        timers.push(window.setTimeout(() => setLevelMoment(false), 2550))
+        observer.disconnect()
+      }, { threshold: 0.52 })
+      observer.observe(character)
+      observers.push(observer)
+    }
+
+    if (questLog && 'IntersectionObserver' in window) {
+      let played = false
+      const observer = new IntersectionObserver(([entry]) => {
+        if (!entry?.isIntersecting || played) return
+        played = true
+        timers.push(window.setTimeout(() => setQuestComplete(true), 850))
+        observer.disconnect()
+      }, { threshold: 0.42 })
+      observer.observe(questLog)
+      observers.push(observer)
+    }
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer))
+      observers.forEach((observer) => observer.disconnect())
+    }
+  }, [loaderPhase])
+
+  useEffect(() => {
+    if (loaderPhase !== 'done') return undefined
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)')
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (!finePointer.matches || reducedMotion.matches) return undefined
+
+    const root = document.documentElement
+    let frame = 0
+    const move = (event) => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        root.style.setProperty('--atlas-cursor-x', `${event.clientX}px`)
+        root.style.setProperty('--atlas-cursor-y', `${event.clientY}px`)
+      })
+      const interactive = event.target.closest('a, button, .atlas-realm, .atlas-relic, .atlas-market-item, .atlas-quest-contract')
+      root.classList.toggle('atlas-cursor-interactive', Boolean(interactive))
+    }
+    const leave = () => root.classList.remove('atlas-cursor-interactive')
+    window.addEventListener('pointermove', move, { passive: true })
+    window.addEventListener('blur', leave)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('blur', leave)
+      root.classList.remove('atlas-cursor-interactive')
+    }
+  }, [loaderPhase])
+
+
+  useEffect(() => {
+    if (loaderPhase !== 'done') return undefined
+    const atlas = atlasHomeRef.current
+    if (!atlas) return undefined
+
+    let frame = 0
+    const updateJourneyProgress = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        const rect = atlas.getBoundingClientRect()
+        const distance = Math.max(atlas.scrollHeight - window.innerHeight, 1)
+        const travelled = Math.min(Math.max(-rect.top, 0), distance)
+        atlas.style.setProperty('--atlas-scroll-progress', `${(travelled / distance) * 100}%`)
+      })
+    }
+
+    updateJourneyProgress()
+    window.addEventListener('scroll', updateJourneyProgress, { passive: true })
+    window.addEventListener('resize', updateJourneyProgress)
+
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', updateJourneyProgress)
+      window.removeEventListener('resize', updateJourneyProgress)
+    }
+  }, [loaderPhase])
+
+  useEffect(() => {
+    if (loaderPhase !== 'done') return undefined
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)')
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (!finePointer.matches || reducedMotion.matches) return undefined
+
+    const targets = Array.from(document.querySelectorAll('[data-atlas-tilt]'))
+    const cleanups = targets.map((target) => {
+      let frame = 0
+      const move = (event) => {
+        const bounds = target.getBoundingClientRect()
+        const x = ((event.clientX - bounds.left) / Math.max(bounds.width, 1) - 0.5) * 2
+        const y = ((event.clientY - bounds.top) / Math.max(bounds.height, 1) - 0.5) * 2
+        cancelAnimationFrame(frame)
+        frame = requestAnimationFrame(() => {
+          target.style.setProperty('--atlas-tilt-x', `${y * -2.4}deg`)
+          target.style.setProperty('--atlas-tilt-y', `${x * 3.2}deg`)
+          target.style.setProperty('--atlas-glow-x', `${50 + x * 18}%`)
+          target.style.setProperty('--atlas-glow-y', `${44 + y * 14}%`)
+        })
+      }
+      const reset = () => {
+        cancelAnimationFrame(frame)
+        target.style.setProperty('--atlas-tilt-x', '0deg')
+        target.style.setProperty('--atlas-tilt-y', '0deg')
+        target.style.setProperty('--atlas-glow-x', '50%')
+        target.style.setProperty('--atlas-glow-y', '44%')
+      }
+      target.addEventListener('pointermove', move)
+      target.addEventListener('pointerleave', reset)
+      return () => {
+        cancelAnimationFrame(frame)
+        target.removeEventListener('pointermove', move)
+        target.removeEventListener('pointerleave', reset)
+      }
+    })
+
+    return () => cleanups.forEach((cleanup) => cleanup())
   }, [loaderPhase])
 
   const loader = loaderPhase !== 'done' && typeof document !== 'undefined'
@@ -405,9 +609,23 @@ export default function Landing() {
     <>
       {loader}
       <div className="marketing-page landing-page">
+        <div className="atlas-cursor" aria-hidden="true"><i /><span /></div>
+        <nav className="atlas-chapter-progress" aria-label="Journey chapters">
+          {journeyChapters.map((chapter, index) => (
+            <a
+              className={activeChapter === chapter.id ? 'is-active' : ''}
+              href={`#${chapter.id}`}
+              key={chapter.id}
+              aria-label={`Chapter ${index + 1}: ${chapter.label}`}
+            >
+              <span>{chapter.label}</span><i />
+            </a>
+          ))}
+        </nav>
         <section
           ref={heroRef}
           id="top"
+          data-chapter
           className={`landing-cinematic-hero storm-pattern-${stormPattern} ${lightning ? 'is-lightning' : ''} ${loaderPhase !== 'loading' ? 'is-revealed' : ''}`}
           aria-labelledby="landing-title"
         >
@@ -509,34 +727,33 @@ export default function Landing() {
           </a>
         </section>
 
-        <div className="atlas-home">
+        <div className="atlas-home" ref={atlasHomeRef}>
           <div className="atlas-global-atmosphere" aria-hidden="true">
             <span className="atlas-world-dust" />
             <span className="atlas-world-stars" />
-            <span className="atlas-journey-spine"><i /><i /><i /><i /><i /><i /></span>
+            <span className="atlas-journey-spine"><b className="atlas-journey-tracker" /><i /><i /><i /><i /><i /><i /></span>
           </div>
           <section id="journey" className="atlas-section atlas-descent atlas-reveal" aria-labelledby="atlas-descent-title">
             <div className="atlas-atmosphere atlas-atmosphere-mist" aria-hidden="true" />
             <div className="atlas-stars" aria-hidden="true" />
             <div className="atlas-section-inner atlas-narrow">
               <span className="atlas-eyebrow">THE WORLD AWAITS</span>
-              <h2 id="atlas-descent-title">This is not just a planner.<br /><em>It is your personal adventure.</em></h2>
-              <p>
-                Life RPG transforms daily effort into an unfolding journey of quests, character growth, rewards, and discovery.
-              </p>
+              <h2 id="atlas-descent-title">Every journey begins with <em>one decision.</em></h2>
+              <p>What if every goal you pursued became part of a world you could actually explore?</p>
+              <span className="atlas-descent-caption">DESCEND FROM THE CLIFF · FOLLOW THE GOLDEN TRAIL</span>
               <div className="atlas-descent-route" aria-hidden="true">
                 <i /><span /><i /><span /><i />
               </div>
             </div>
           </section>
 
-          <section className="atlas-section atlas-core atlas-reveal" aria-labelledby="atlas-core-title">
+          <section id="quests" data-chapter className="atlas-section atlas-core atlas-reveal" aria-labelledby="atlas-core-title">
             <div className="atlas-contours" aria-hidden="true" />
             <div className="atlas-section-inner">
               <header className="atlas-section-heading atlas-heading-wide">
-                <span className="atlas-eyebrow">THE CORE LOOP</span>
-                <h2 id="atlas-core-title">Do the quest. Earn the progress. <em>Become the hero.</em></h2>
-                <p>Productivity apps usually end at the checkbox. Life RPG turns each completed task into progression, identity, and momentum.</p>
+                <span className="atlas-eyebrow">THE HERO’S LOOP</span>
+                <h2 id="atlas-core-title">Accept the quest. Earn the experience. <em>Become stronger.</em></h2>
+                <p>Productivity apps usually end at the checkbox. Here, each completed task changes your character and opens the next stretch of road.</p>
               </header>
 
               <div className="atlas-quest-route">
@@ -558,14 +775,14 @@ export default function Landing() {
             </div>
           </section>
 
-          <section className="atlas-section atlas-realms atlas-reveal" aria-labelledby="atlas-realms-title">
+          <section id="atlas" data-chapter className="atlas-section atlas-realms atlas-reveal" aria-labelledby="atlas-realms-title">
             <div className="atlas-map-fog atlas-map-fog-one" aria-hidden="true" />
             <div className="atlas-map-fog atlas-map-fog-two" aria-hidden="true" />
             <div className="atlas-section-inner">
               <header className="atlas-section-heading atlas-heading-centered">
-                <span className="atlas-eyebrow">THE REALMS OF GROWTH</span>
-                <h2 id="atlas-realms-title">Every part of your life trains a different part of your character.</h2>
-                <p>Your quests don’t just get checked off. They shape the kind of adventurer you become.</p>
+                <span className="atlas-eyebrow">THE ADVENTURER’S ATLAS</span>
+                <h2 id="atlas-realms-title">Your growth becomes a world <em>worth exploring.</em></h2>
+                <p>Five realms. Five dimensions of growth. Every quest leaves a visible mark on the map.</p>
               </header>
 
               <div className="atlas-world-map" aria-label="The five realms of character growth">
@@ -579,7 +796,7 @@ export default function Landing() {
 
                 <div className="atlas-map-center" aria-hidden="true">
                   <Compass size={36} strokeWidth={1.05} />
-                  <span>YOU</span>
+                  <span>YOU ARE HERE</span>
                 </div>
 
                 {realms.map(({ icon: Icon, stat, realm, copy, position, glyph }) => (
@@ -601,10 +818,16 @@ export default function Landing() {
             </div>
           </section>
 
-          <section className="atlas-section atlas-character atlas-reveal" aria-labelledby="atlas-character-title">
+          <section id="character" data-chapter className={`atlas-section atlas-character atlas-reveal ${levelMoment ? 'is-leveling' : ''}`} aria-labelledby="atlas-character-title">
             <div className="atlas-character-glow" aria-hidden="true" />
+            <div className="atlas-level-moment" aria-hidden="true">
+              <span className="atlas-level-particles"><i /><i /><i /><i /><i /><i /><i /><i /></span>
+              <div className="atlas-level-moment-crest">VIII</div>
+              <strong>LEVEL VIII</strong>
+              <small>THE ROAD CONTINUES</small>
+            </div>
             <div className="atlas-section-inner atlas-character-layout">
-              <div className="atlas-character-card" aria-label="Example Life RPG character progression">
+              <div className="atlas-character-card" data-atlas-tilt aria-label="Example Life RPG character progression">
                 <div className="atlas-character-card-topline">
                   <span>ADVENTURER RECORD</span>
                   <small>ATLAS ID · 07</small>
@@ -647,9 +870,9 @@ export default function Landing() {
               </div>
 
               <div className="atlas-character-copy">
-                <span className="atlas-eyebrow">CHARACTER PROGRESSION</span>
-                <h2 id="atlas-character-title">See your effort <em>become visible.</em></h2>
-                <p>Every completed quest adds up. Levels, streaks, stats, and momentum turn ordinary consistency into something you can actually feel.</p>
+                <span className="atlas-eyebrow">BECOME THE HERO</span>
+                <h2 id="atlas-character-title">Every quest <em>changes your character.</em></h2>
+                <p>Your habits stop being invisible. Experience, streaks, attributes, and milestones become a character record you can watch evolve.</p>
                 <div className="atlas-progress-notes">
                   {progressNotes.map(({ icon: Icon, label, value, meter }) => (
                     <article key={label}>
@@ -667,20 +890,55 @@ export default function Landing() {
             </div>
           </section>
 
-          <section className="atlas-section atlas-relics atlas-reveal" aria-labelledby="atlas-relics-title">
+          <section id="quest-log" className={`atlas-section atlas-contracts atlas-reveal ${questComplete ? 'is-quest-complete' : ''}`} aria-labelledby="atlas-contracts-title">
+            <div className="atlas-contracts-ink" aria-hidden="true" />
+            <div className="atlas-section-inner">
+              <header className="atlas-section-heading">
+                <span className="atlas-eyebrow">THE QUEST LOG</span>
+                <h2 id="atlas-contracts-title">Ordinary tasks. <em>Extraordinary progress.</em></h2>
+                <p>Plans become guild contracts with difficulty, realm alignment, experience, and rewards. One contract below completes itself as the section enters view.</p>
+              </header>
+              <div className="atlas-contract-stack">
+                {questContracts.map(({ icon: Icon, title, realm, difficulty, xp, gold, stat }, index) => (
+                  <article className={`atlas-quest-contract atlas-contract-${index + 1}`} key={title}>
+                    <span className="atlas-contract-seal" aria-hidden="true"><Icon size={24} strokeWidth={1.2} /></span>
+                    <div className="atlas-contract-head"><small>GUILD CONTRACT · {String(index + 1).padStart(2, '0')}</small><span>{difficulty}</span></div>
+                    <h3>{title}</h3>
+                    <p>{realm}</p>
+                    <div className="atlas-contract-rule" />
+                    <div className="atlas-contract-rewards">
+                      <span><Sparkles size={14} /> +{xp} XP</span>
+                      <span><Coins size={14} /> +{gold} GOLD</span>
+                      <span>+ {stat}</span>
+                    </div>
+                    {index === 0 && (
+                      <div className="atlas-contract-demo" aria-hidden="true">
+                        <span className="atlas-contract-check"><CheckCircle2 size={19} /></span>
+                        <b>QUEST COMPLETE</b>
+                        <em>+120 XP</em>
+                        <i>+24</i>
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section id="relics" data-chapter className="atlas-section atlas-relics atlas-reveal" aria-labelledby="atlas-relics-title">
             <div className="atlas-embers" aria-hidden="true">
               {Array.from({ length: 12 }, (_, index) => <i key={index} />)}
             </div>
             <div className="atlas-section-inner">
               <header className="atlas-section-heading atlas-heading-centered">
-                <span className="atlas-eyebrow">TREASURES OF THE JOURNEY</span>
-                <h2 id="atlas-relics-title">Earn more than a checkmark.</h2>
-                <p>Build streaks, collect gold, unlock relics, and turn progress into something tangible and satisfying.</p>
+                <span className="atlas-eyebrow">RELICS OF THE JOURNEY</span>
+                <h2 id="atlas-relics-title">Progress deserves <em>rewards.</em></h2>
+                <p>Build streaks, collect gold, and unlock artifacts that make effort feel tangible instead of disappearing into a checkbox.</p>
               </header>
 
               <div className="atlas-relic-vault">
                 {relics.map(({ icon: Icon, name, type, rarity, className }) => (
-                  <article className={`atlas-relic ${className}`} key={name}>
+                  <article className={`atlas-relic ${className}`} data-atlas-tilt key={name}>
                     <span className="atlas-relic-rarity">{rarity}</span>
                     <div className="atlas-relic-art" aria-hidden="true">
                       <span /><Icon size={className === 'relic-featured' ? 54 : 38} strokeWidth={1.05} />
@@ -701,7 +959,7 @@ export default function Landing() {
               <div className="atlas-market-heading-row">
                 <header className="atlas-section-heading">
                   <span className="atlas-eyebrow">THE WANDERING EMPORIUM</span>
-                  <h2 id="atlas-market-title">Spend your hard-earned gold on rewards worth chasing.</h2>
+                  <h2 id="atlas-market-title">Spend what your effort <em>earned.</em></h2>
                   <p>Unlock themes, cosmetics, badges, and relics that make your journey feel personal.</p>
                 </header>
                 <Link className="atlas-market-link" to="/marketplace">Enter the Emporium <ArrowRight size={15} /></Link>
@@ -712,7 +970,7 @@ export default function Landing() {
               </div>
               <div className="atlas-market-track">
                 {marketplaceItems.map(({ icon: Icon, name, category, price, rarity }) => (
-                  <article className="atlas-market-item" key={name}>
+                  <article className="atlas-market-item" data-atlas-tilt key={name}>
                     <div className="atlas-market-item-art" aria-hidden="true"><Icon size={40} strokeWidth={1.05} /></div>
                     <span>{category} · {rarity}</span>
                     <h3>{name}</h3>
@@ -723,12 +981,12 @@ export default function Landing() {
             </div>
           </section>
 
-          <section className="atlas-section atlas-chronicle atlas-reveal" aria-labelledby="atlas-chronicle-title">
+          <section id="chronicle" data-chapter className="atlas-section atlas-chronicle atlas-reveal" aria-labelledby="atlas-chronicle-title">
             <div className="atlas-constellation-field" aria-hidden="true" />
             <div className="atlas-section-inner">
               <header className="atlas-section-heading atlas-heading-centered">
-                <span className="atlas-eyebrow">THE CHRONICLE</span>
-                <h2 id="atlas-chronicle-title">Every day writes part of the story.</h2>
+                <span className="atlas-eyebrow">YOUR CHRONICLE</span>
+                <h2 id="atlas-chronicle-title">Every day <em>leaves a mark.</em></h2>
                 <p>Your activity history becomes a visible trail: streaks, milestones, and a record of how far you’ve come.</p>
               </header>
 
@@ -762,6 +1020,30 @@ export default function Landing() {
             </div>
           </section>
 
+          <section className="atlas-section atlas-world-evolution atlas-reveal" aria-labelledby="atlas-world-title">
+            <div className="atlas-world-evolution-sky" aria-hidden="true" />
+            <div className="atlas-section-inner">
+              <header className="atlas-section-heading atlas-heading-centered">
+                <span className="atlas-eyebrow">THE WORLD REMEMBERS</span>
+                <h2 id="atlas-world-title">The more you grow, the more your world <em>comes alive.</em></h2>
+                <p>Your progress is not only a number. The metaphorical world around your character becomes warmer, brighter, and more connected.</p>
+              </header>
+              <div className="atlas-evolution-stage" aria-label="Early journey changing into a progressed world">
+                <div className="atlas-evolution-half atlas-evolution-before">
+                  <span>EARLY JOURNEY</span><strong>Unlit road</strong><i className="atlas-evolution-tower" />
+                </div>
+                <div className="atlas-evolution-rift" aria-hidden="true"><i /></div>
+                <div className="atlas-evolution-half atlas-evolution-after">
+                  <span>WORLD AWAKENED</span><strong>Road restored</strong><i className="atlas-evolution-tower" />
+                  <b className="atlas-evolution-beacon" />
+                </div>
+                <svg className="atlas-evolution-road" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true">
+                  <path d="M-20 272 C220 236 341 206 492 155 S738 78 1020 32" />
+                </svg>
+              </div>
+            </div>
+          </section>
+
           <section id="about" className="atlas-section atlas-difference atlas-reveal" aria-labelledby="atlas-difference-title">
             <div className="atlas-section-inner">
               <header className="atlas-section-heading atlas-heading-centered">
@@ -783,15 +1065,15 @@ export default function Landing() {
             </div>
           </section>
 
-          <section className="atlas-final atlas-reveal" aria-labelledby="atlas-final-title">
+          <section id="begin" data-chapter className="atlas-final atlas-reveal" aria-labelledby="atlas-final-title">
             <div className="atlas-final-mountains" aria-hidden="true" />
             <div className="atlas-final-mist" aria-hidden="true" />
             <div className="atlas-final-road" aria-hidden="true"><i /></div>
             <div className="atlas-final-castle" aria-hidden="true"><span /><i /><b /></div>
             <div className="atlas-final-content">
-              <span className="atlas-eyebrow">THE ROAD IS OPEN</span>
-              <h2 id="atlas-final-title">Begin your journey.<br /><em>Become who you’re building.</em></h2>
-              <p>Turn your goals into quests, your effort into experience, and your consistency into a world worth exploring.</p>
+              <span className="atlas-eyebrow">YOUR JOURNEY IS WAITING</span>
+              <h2 id="atlas-final-title">Every great story begins before<br /><em>anyone knows how it will end.</em></h2>
+              <p>Start with one quest. Build one streak. Take one step forward.</p>
               <div className="atlas-final-actions">
                 <Link className="landing-button landing-button-primary" to="/signup">
                   <span>Begin Your Journey</span><span className="landing-button-arrow" aria-hidden="true">→</span>

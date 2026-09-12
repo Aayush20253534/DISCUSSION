@@ -4076,3 +4076,1908 @@
   .atlas-world-dust,
   .atlas-world-stars { opacity: .05; }
 }
+
+/* ==========================================================================
+   MASTER CINEMATIC HOMEPAGE PASS
+   The world is the interface: route lines, crests, contracts, relics, sky and
+   terrain. This layer deliberately avoids turning each chapter into another
+   polite rectangle with a drop shadow.
+   ========================================================================== */
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 76px;
+}
+
+.public-site-landing {
+  --atlas-gold: #d5af68;
+  --atlas-gold-bright: #f0cd83;
+  --atlas-ivory: #f0e7d5;
+  --atlas-silver: #aab7b7;
+  --atlas-void: #071017;
+  --atlas-storm: #0b1a25;
+  --atlas-forest: #13201b;
+  --atlas-moon: #8aaad2;
+  --atlas-ember: #c26c48;
+}
+
+/* Desktop journey cursor. Native pointer remains intact for accessibility. */
+.atlas-cursor {
+  position: fixed;
+  left: var(--atlas-cursor-x, -100px);
+  top: var(--atlas-cursor-y, -100px);
+  width: 32px;
+  height: 32px;
+  z-index: 120;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  opacity: .54;
+  transition: opacity .2s ease;
+  mix-blend-mode: screen;
+}
+
+.atlas-cursor > i,
+.atlas-cursor > span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.atlas-cursor > i {
+  width: 4px;
+  height: 4px;
+  background: #f0cd83;
+  box-shadow: 0 0 10px rgba(240, 205, 131, .75);
+}
+
+.atlas-cursor > span {
+  width: 23px;
+  height: 23px;
+  border: 1px solid rgba(213, 175, 104, .46);
+  box-shadow: inset 0 0 14px rgba(213, 175, 104, .04);
+  transition: width .22s ease, height .22s ease, border-color .22s ease, transform .22s ease;
+}
+
+.atlas-cursor-interactive .atlas-cursor > span {
+  width: 38px;
+  height: 38px;
+  border-color: rgba(240, 205, 131, .78);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.atlas-cursor-interactive .atlas-cursor > i {
+  box-shadow: 0 0 16px rgba(240, 205, 131, .96);
+}
+
+/* Tiny chapter navigator: enough to orient the visitor without behaving like
+   a dashboard sidebar that wandered into a fantasy game by mistake. */
+.atlas-chapter-progress {
+  position: fixed;
+  z-index: 70;
+  right: 19px;
+  top: 50%;
+  display: grid;
+  gap: 10px;
+  transform: translateY(-50%);
+}
+
+.atlas-chapter-progress::before {
+  content: '';
+  position: absolute;
+  right: 5px;
+  top: 7px;
+  bottom: 7px;
+  width: 1px;
+  background: linear-gradient(transparent, rgba(213, 175, 104, .2) 10%, rgba(213, 175, 104, .2) 90%, transparent);
+}
+
+.atlas-chapter-progress a {
+  min-width: 10px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  position: relative;
+  color: rgba(238, 230, 213, .42);
+  text-decoration: none;
+}
+
+.atlas-chapter-progress a span {
+  padding: 4px 7px;
+  border: 1px solid rgba(213, 175, 104, .12);
+  background: rgba(5, 13, 18, .74);
+  font-size: 7px;
+  font-weight: 650;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(8px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.atlas-chapter-progress a i {
+  width: 10px;
+  height: 10px;
+  position: relative;
+  z-index: 2;
+  border: 1px solid rgba(213, 175, 104, .34);
+  border-radius: 50%;
+  background: #071017;
+  transition: transform .24s ease, border-color .24s ease, background .24s ease, box-shadow .24s ease;
+}
+
+.atlas-chapter-progress a:hover span,
+.atlas-chapter-progress a:focus-visible span,
+.atlas-chapter-progress a.is-active span {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.atlas-chapter-progress a.is-active i {
+  transform: scale(1.22);
+  border-color: #f0cd83;
+  background: #d5af68;
+  box-shadow: 0 0 0 4px rgba(213, 175, 104, .08), 0 0 16px rgba(240, 205, 131, .3);
+}
+
+/* Navbar lives in the scene, then becomes a restrained HUD after scroll. */
+.public-header.landing-header {
+  min-height: 78px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  border-bottom-color: transparent;
+  background: linear-gradient(180deg, rgba(4, 11, 16, .38), rgba(4, 11, 16, .08));
+  transition: min-height .3s ease, background .3s ease, border-color .3s ease, backdrop-filter .3s ease, box-shadow .3s ease;
+}
+
+.public-header.landing-header.is-scrolled {
+  min-height: 66px;
+  background: rgba(5, 14, 20, .83);
+  border-bottom: 1px solid rgba(213, 175, 104, .16);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, .18);
+  backdrop-filter: blur(17px) saturate(1.08);
+}
+
+.landing-nav-link {
+  position: relative;
+}
+
+.landing-nav-link::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  width: 4px;
+  height: 4px;
+  border: 1px solid rgba(240, 205, 131, .58);
+  border-radius: 50%;
+  opacity: 0;
+  transform: translateX(-50%) scale(.5);
+  box-shadow: 0 0 10px rgba(240, 205, 131, .28);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.landing-nav-link:hover::after,
+.landing-nav-link:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.public-brand-compass {
+  transition: transform .45s cubic-bezier(.2, .7, .2, 1), filter .3s ease;
+}
+
+.public-brand:hover .public-brand-compass {
+  transform: rotate(18deg);
+  filter: drop-shadow(0 0 8px rgba(213, 175, 104, .3));
+}
+
+/* --------------------------------------------------------------------------
+   HERO: deepen the title-screen illusion without replacing the supplied art.
+   -------------------------------------------------------------------------- */
+@media (min-width: 721px) {
+  .landing-world img {
+    object-position: center 53%;
+    transform: translate3d(0, 30px, 0) scale(var(--world-scale)) scale(1.045);
+    transform-origin: 52% 43%;
+  }
+
+  .landing-copy-shell {
+    top: 46.6%;
+  }
+}
+
+@media (min-width: 721px) and (max-height: 820px) {
+  .landing-world img {
+    object-position: center 49%;
+    transform: translate3d(0, 34px, 0) scale(var(--world-scale)) scale(1.055);
+  }
+
+  .landing-copy-shell {
+    top: 45.5%;
+  }
+}
+
+.landing-cinematic-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 0 67%, rgba(2, 8, 11, .18) 79%, rgba(2, 8, 11, .72) 100%),
+    radial-gradient(ellipse 34% 48% at 60% 48%, rgba(2, 7, 10, .1), rgba(2, 7, 10, .5) 66%, transparent 86%);
+}
+
+.landing-cinematic-hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: -8%;
+  right: -8%;
+  bottom: -4px;
+  height: 96px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 12% 100%, #071017 0 32%, transparent 34%),
+    radial-gradient(ellipse at 32% 120%, #071017 0 35%, transparent 37%),
+    radial-gradient(ellipse at 73% 120%, #071017 0 32%, transparent 34%),
+    radial-gradient(ellipse at 92% 105%, #071017 0 37%, transparent 39%);
+  filter: blur(2px);
+  opacity: .9;
+}
+
+.landing-storm-strikes::before,
+.landing-storm-strikes::after {
+  content: '';
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.landing-storm-strikes::before {
+  right: 9%;
+  top: -8%;
+  width: 50%;
+  height: 45%;
+  background:
+    repeating-conic-gradient(from 212deg at 62% 8%, transparent 0 6deg, rgba(194, 230, 252, .08) 6.2deg 6.6deg, transparent 6.8deg 15deg);
+  mask-image: radial-gradient(ellipse at 62% 16%, #000, transparent 64%);
+  -webkit-mask-image: radial-gradient(ellipse at 62% 16%, #000, transparent 64%);
+}
+
+.landing-storm-strikes::after {
+  right: 0;
+  top: 0;
+  width: 60%;
+  height: 42%;
+  background: radial-gradient(ellipse at 68% 18%, rgba(225, 246, 255, .42), rgba(116, 186, 228, .11) 28%, transparent 65%);
+  filter: blur(14px);
+}
+
+.landing-cinematic-hero.is-lightning .landing-storm-strikes::before {
+  animation: atlas-sky-veins 2.08s linear both;
+}
+
+.landing-cinematic-hero.is-lightning .landing-storm-strikes::after {
+  animation: atlas-cloud-bloom 2.08s linear both;
+}
+
+.landing-rain-far {
+  opacity: .21;
+}
+
+.landing-rain-near {
+  opacity: .27;
+}
+
+.landing-cinematic-hero.is-lightning .landing-copy-shell {
+  text-shadow: 0 2px 20px rgba(0,0,0,.42), 0 0 26px rgba(131, 167, 216, .05);
+}
+
+/* --------------------------------------------------------------------------
+   CONTINUOUS WORLD / CHAPTER TRANSITIONS
+   -------------------------------------------------------------------------- */
+.atlas-home {
+  background:
+    radial-gradient(circle at 8% 7%, rgba(213, 175, 104, .07), transparent 25rem),
+    radial-gradient(circle at 84% 19%, rgba(84, 126, 159, .08), transparent 31rem),
+    radial-gradient(circle at 42% 58%, rgba(44, 78, 68, .045), transparent 34rem),
+    linear-gradient(180deg, #061119 0%, #07131b 34%, #08151c 67%, #061017 100%);
+}
+
+.atlas-home::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -4;
+  pointer-events: none;
+  opacity: .24;
+  background:
+    repeating-radial-gradient(ellipse at 18% 24%, transparent 0 58px, rgba(213, 175, 104, .03) 59px 60px, transparent 61px 83px),
+    repeating-radial-gradient(ellipse at 84% 67%, transparent 0 74px, rgba(131, 167, 216, .025) 75px 76px, transparent 77px 104px);
+  mask-image: linear-gradient(180deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.atlas-section {
+  min-height: 700px;
+  padding-block: clamp(110px, 10vw, 158px);
+}
+
+.atlas-section + .atlas-section::before {
+  width: min(920px, 65vw);
+  opacity: .5;
+}
+
+.atlas-section::after {
+  pointer-events: none;
+}
+
+.atlas-section-inner::before {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: -28px;
+  width: 56px;
+  height: 56px;
+  opacity: .2;
+  border-left: 1px solid rgba(213, 175, 104, .35);
+  border-top: 1px solid rgba(213, 175, 104, .35);
+  mask-image: linear-gradient(135deg, #000, transparent 68%);
+  -webkit-mask-image: linear-gradient(135deg, #000, transparent 68%);
+}
+
+.atlas-section-heading h2 {
+  text-shadow: 0 10px 38px rgba(0, 0, 0, .22);
+}
+
+.atlas-section-heading > p,
+.atlas-narrow > p,
+.atlas-character-copy > p,
+.atlas-final-content > p {
+  color: rgba(187, 198, 197, .79);
+}
+
+.atlas-descent-caption {
+  display: block;
+  margin-top: 29px;
+  color: rgba(213, 175, 104, .48);
+  font-size: 7px;
+  font-weight: 650;
+  letter-spacing: 2.6px;
+}
+
+/* ENTER THE WORLD: valley silhouette, route descending into the next chapter. */
+.atlas-descent {
+  min-height: 700px;
+  margin-top: -1px;
+  background:
+    linear-gradient(180deg, rgba(3, 9, 13, .78) 0%, rgba(6, 17, 24, .91) 33%, rgba(7, 19, 27, .98) 74%, #07131b 100%),
+    radial-gradient(ellipse at 50% 15%, rgba(126, 157, 166, .11), transparent 48%);
+}
+
+.atlas-descent::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  inset: -20px -12% auto;
+  height: 300px;
+  opacity: .72;
+  background:
+    linear-gradient(154deg, transparent 0 27%, #0b1d25 27.2% 37%, transparent 37.2%),
+    linear-gradient(25deg, transparent 0 42%, #0a1a21 42.2% 52%, transparent 52.2%),
+    linear-gradient(158deg, transparent 0 61%, #091820 61.2% 72%, transparent 72.2%);
+  filter: blur(.3px);
+}
+
+.atlas-descent-route {
+  position: relative;
+}
+
+.atlas-descent-route::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  width: 1px;
+  height: 115px;
+  opacity: 0;
+  background: linear-gradient(rgba(240, 205, 131, .74), rgba(213, 175, 104, .18), transparent);
+  box-shadow: 0 0 12px rgba(240, 205, 131, .15);
+  transform: scaleY(.2);
+  transform-origin: top;
+}
+
+.atlas-descent.is-visible .atlas-descent-route::after {
+  animation: atlas-descent-fall 1.6s 1.55s ease forwards;
+}
+
+/* HERO'S LOOP: one wandering route, not three cards. */
+.atlas-core {
+  min-height: 860px;
+  background:
+    radial-gradient(circle at 15% 72%, rgba(97, 121, 102, .05), transparent 28rem),
+    radial-gradient(circle at 88% 22%, rgba(194, 108, 72, .07), transparent 30rem),
+    linear-gradient(180deg, #07131b, #081720 48%, #07131b);
+}
+
+.atlas-core::before {
+  content: '';
+  position: absolute;
+  left: -11%;
+  bottom: -4%;
+  width: 60%;
+  height: 40%;
+  z-index: -2;
+  opacity: .36;
+  background:
+    linear-gradient(158deg, transparent 0 45%, #10241e 45.3% 57%, transparent 57.3%),
+    linear-gradient(28deg, transparent 0 62%, #0d201c 62.3% 74%, transparent 74.3%);
+}
+
+.atlas-quest-route::after {
+  content: '';
+  position: absolute;
+  left: 1.2%;
+  top: 166px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f0cd83;
+  box-shadow: 0 0 0 5px rgba(213,175,104,.05), 0 0 18px rgba(240,205,131,.45);
+  opacity: 0;
+}
+
+.atlas-core.is-visible .atlas-quest-route::after {
+  animation: atlas-route-traveler 4.8s 1s cubic-bezier(.4,0,.2,1) forwards;
+}
+
+.atlas-quest-crest {
+  box-shadow: inset 0 0 18px rgba(213, 175, 104, .035), 0 0 0 7px rgba(213, 175, 104, .018);
+}
+
+.atlas-quest-step:hover .atlas-quest-crest {
+  box-shadow: inset 0 0 22px rgba(213, 175, 104, .08), 0 0 0 9px rgba(213, 175, 104, .025), 0 0 28px rgba(213,175,104,.11);
+}
+
+.atlas-quest-step::after {
+  content: '';
+  position: absolute;
+  left: 28px;
+  top: 32px;
+  width: 1px;
+  height: 38px;
+  opacity: .25;
+  background: linear-gradient(#d5af68, transparent);
+}
+
+/* ADVENTURER'S ATLAS: make the map the visual showpiece. */
+.atlas-realms {
+  min-height: 1100px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 56%, rgba(53, 86, 74, .18), transparent 37rem),
+    radial-gradient(circle at 17% 43%, rgba(112, 85, 49, .08), transparent 23rem),
+    radial-gradient(circle at 82% 35%, rgba(89, 119, 145, .1), transparent 26rem),
+    linear-gradient(180deg, #07131b 0%, #0a181b 48%, #07131b 100%);
+}
+
+.atlas-realms::before {
+  content: '';
+  position: absolute;
+  inset: 12% -10% 2%;
+  z-index: -3;
+  opacity: .32;
+  background:
+    repeating-radial-gradient(ellipse at 50% 50%, transparent 0 48px, rgba(213,175,104,.06) 49px 50px, transparent 51px 74px);
+  transform: rotate(-3deg) scale(1.08);
+}
+
+.atlas-world-map {
+  min-height: 690px;
+  margin-top: 70px;
+  border: 1px solid rgba(213, 175, 104, .11);
+  border-radius: 46% 54% 44% 56% / 52% 44% 56% 48%;
+  background:
+    radial-gradient(ellipse at 26% 26%, rgba(121, 95, 60, .16), transparent 24%),
+    radial-gradient(ellipse at 75% 22%, rgba(89, 115, 126, .17), transparent 26%),
+    radial-gradient(ellipse at 25% 76%, rgba(99, 91, 58, .12), transparent 25%),
+    radial-gradient(ellipse at 76% 74%, rgba(75, 111, 86, .18), transparent 26%),
+    radial-gradient(ellipse at 51% 50%, rgba(89, 98, 86, .14), transparent 22%),
+    linear-gradient(145deg, rgba(16, 34, 35, .8), rgba(6, 18, 24, .88));
+  box-shadow: inset 0 0 90px rgba(0,0,0,.36), 0 45px 90px rgba(0,0,0,.16);
+  overflow: hidden;
+}
+
+.atlas-world-map::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: .32;
+  background:
+    repeating-radial-gradient(ellipse at 18% 28%, transparent 0 34px, rgba(213,175,104,.08) 35px 36px, transparent 37px 54px),
+    repeating-radial-gradient(ellipse at 78% 69%, transparent 0 42px, rgba(142,174,178,.05) 43px 44px, transparent 45px 63px);
+  transform: rotate(-5deg) scale(1.15);
+}
+
+.atlas-world-map::after {
+  content: '';
+  position: absolute;
+  inset: 7% 6%;
+  pointer-events: none;
+  background:
+    linear-gradient(151deg, transparent 0 16%, rgba(15, 31, 29, .78) 16.2% 19%, transparent 19.2%),
+    linear-gradient(32deg, transparent 0 67%, rgba(18, 38, 32, .82) 67.2% 71%, transparent 71.2%),
+    radial-gradient(ellipse at 73% 47%, rgba(119, 154, 159, .08), transparent 23%);
+  opacity: .62;
+}
+
+.atlas-map-routes {
+  filter: drop-shadow(0 0 5px rgba(213,175,104,.12));
+}
+
+.atlas-map-center {
+  width: 86px;
+  height: 86px;
+  box-shadow: 0 0 0 8px rgba(213,175,104,.018), 0 0 28px rgba(213,175,104,.12);
+}
+
+.atlas-map-center::before,
+.atlas-map-center::after {
+  content: '';
+  position: absolute;
+  inset: -18px;
+  border: 1px solid rgba(213, 175, 104, .1);
+  border-radius: 50%;
+  animation: atlas-map-center-pulse 4.8s ease-in-out infinite;
+}
+
+.atlas-map-center::after {
+  inset: -34px;
+  animation-delay: 1.1s;
+}
+
+.atlas-map-center span {
+  width: max-content;
+  font-size: 6px;
+  letter-spacing: 1.4px;
+}
+
+.atlas-realm {
+  z-index: 4;
+}
+
+.atlas-realm::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 160px;
+  height: 110px;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  opacity: .08;
+  transform: translate(-50%, -50%) scale(.8);
+  background: radial-gradient(ellipse, rgba(240,205,131,.5), transparent 68%);
+  transition: opacity .35s ease, transform .35s ease;
+}
+
+.atlas-realm:hover::before,
+.atlas-realm:focus-visible::before {
+  opacity: .22;
+  transform: translate(-50%, -50%) scale(1.18);
+}
+
+.atlas-realm-copy {
+  backdrop-filter: blur(3px);
+  box-shadow: 0 18px 34px rgba(0,0,0,.11);
+}
+
+.atlas-realm:hover .atlas-realm-copy,
+.atlas-realm:focus-visible .atlas-realm-copy {
+  transform: translateY(-5px);
+  border-color: rgba(240,205,131,.32);
+}
+
+.atlas-realm-marker {
+  animation: atlas-marker-hover 5s ease-in-out infinite;
+}
+
+.realm-north-east .atlas-realm-marker { animation-delay: .6s; }
+.realm-center .atlas-realm-marker { animation-delay: 1.1s; }
+.realm-south-west .atlas-realm-marker { animation-delay: 1.7s; }
+.realm-south-east .atlas-realm-marker { animation-delay: 2.2s; }
+
+/* CHARACTER CHAPTER + cinematic level-up demonstration. */
+.atlas-character {
+  min-height: 970px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 27% 51%, rgba(131, 167, 216, .11), transparent 28rem),
+    radial-gradient(ellipse at 72% 48%, rgba(213, 175, 104, .055), transparent 27rem),
+    linear-gradient(180deg, #07131b, #08141a 52%, #071017);
+}
+
+.atlas-character::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  opacity: .45;
+  background:
+    linear-gradient(90deg, transparent 0 18%, rgba(131,167,216,.028) 18.2% 18.3%, transparent 18.5% 81%, rgba(213,175,104,.028) 81.2% 81.3%, transparent 81.5%);
+}
+
+.atlas-character-card {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  box-shadow: 0 34px 90px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.015);
+  transition: transform .45s cubic-bezier(.2,.75,.2,1), box-shadow .45s ease;
+}
+
+.atlas-character-card:hover {
+  transform: perspective(1000px) rotateY(2deg) rotateX(-1deg) translateY(-5px);
+  box-shadow: 0 42px 100px rgba(0,0,0,.34), 0 0 38px rgba(131,167,216,.035), inset 0 0 0 1px rgba(255,255,255,.018);
+}
+
+.atlas-character-avatar::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 70%;
+  height: 125%;
+  transform: translate(-50%, -48%);
+  background: linear-gradient(180deg, rgba(131,167,216,.1), transparent 72%);
+  clip-path: polygon(48% 0, 61% 18%, 65% 45%, 83% 100%, 18% 100%, 34% 45%, 39% 17%);
+  filter: blur(5px);
+}
+
+.atlas-level-moment {
+  position: absolute;
+  z-index: 9;
+  left: 50%;
+  top: 50%;
+  width: min(470px, 80vw);
+  height: 300px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.92);
+}
+
+.atlas-level-moment::before {
+  content: '';
+  position: absolute;
+  inset: -35%;
+  opacity: 0;
+  background: radial-gradient(circle, rgba(240,205,131,.2), rgba(213,175,104,.055) 24%, transparent 54%);
+  filter: blur(7px);
+}
+
+.atlas-level-moment-crest {
+  width: 100px;
+  height: 100px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  border: 1px solid rgba(240,205,131,.72);
+  transform: rotate(45deg);
+  color: #f0cd83;
+  font: 600 28px/1 var(--font-display);
+  box-shadow: inset 0 0 28px rgba(240,205,131,.08), 0 0 32px rgba(240,205,131,.14);
+}
+
+.atlas-level-moment-crest::before,
+.atlas-level-moment-crest::after {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  border: 1px solid rgba(240,205,131,.18);
+}
+
+.atlas-level-moment strong,
+.atlas-level-moment small {
+  position: relative;
+  z-index: 2;
+  display: block;
+  text-align: center;
+}
+
+.atlas-level-moment strong {
+  margin-top: 25px;
+  color: #f0e7d5;
+  font: 600 25px/1 var(--font-display);
+  letter-spacing: 6px;
+}
+
+.atlas-level-moment small {
+  margin-top: 10px;
+  color: rgba(213,175,104,.72);
+  font-size: 7px;
+  letter-spacing: 3px;
+}
+
+.atlas-level-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.atlas-level-particles i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #f0cd83;
+  box-shadow: 0 0 9px rgba(240,205,131,.8);
+}
+
+.atlas-level-particles i:nth-child(1) { --px: -128px; --py: -86px; }
+.atlas-level-particles i:nth-child(2) { --px: -82px; --py: -126px; }
+.atlas-level-particles i:nth-child(3) { --px: 78px; --py: -126px; }
+.atlas-level-particles i:nth-child(4) { --px: 132px; --py: -72px; }
+.atlas-level-particles i:nth-child(5) { --px: 128px; --py: 74px; }
+.atlas-level-particles i:nth-child(6) { --px: 64px; --py: 118px; }
+.atlas-level-particles i:nth-child(7) { --px: -72px; --py: 116px; }
+.atlas-level-particles i:nth-child(8) { --px: -132px; --py: 68px; }
+
+.atlas-character.is-leveling::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  background: radial-gradient(circle at 50% 50%, rgba(20,26,22,.26), rgba(2,7,10,.82) 58%);
+  animation: atlas-level-dim 1.6s ease both;
+}
+
+.atlas-character.is-leveling .atlas-level-moment {
+  animation: atlas-level-appear 1.6s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.atlas-character.is-leveling .atlas-level-moment::before {
+  animation: atlas-level-light 1.6s ease both;
+}
+
+.atlas-character.is-leveling .atlas-level-particles i {
+  animation: atlas-level-particle 1.35s .12s ease-out both;
+}
+
+/* QUEST LOG / GUILD CONTRACTS */
+.atlas-contracts {
+  min-height: 900px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 16% 30%, rgba(194,108,72,.07), transparent 24rem),
+    radial-gradient(circle at 83% 68%, rgba(213,175,104,.055), transparent 26rem),
+    linear-gradient(180deg, #071017, #101714 48%, #07131b 100%);
+}
+
+.atlas-contracts::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+  opacity: .18;
+  background:
+    repeating-linear-gradient(104deg, transparent 0 79px, rgba(213,175,104,.06) 80px, transparent 81px 160px);
+  mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+}
+
+.atlas-contracts-ink {
+  position: absolute;
+  left: 6%;
+  top: 22%;
+  width: 360px;
+  height: 360px;
+  opacity: .12;
+  border: 1px solid rgba(213,175,104,.25);
+  border-radius: 50%;
+  box-shadow: 0 0 0 24px rgba(213,175,104,.012), 0 0 0 54px rgba(213,175,104,.008);
+}
+
+.atlas-contracts-ink::before,
+.atlas-contracts-ink::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: rgba(213,175,104,.28);
+}
+.atlas-contracts-ink::before { width: 120%; height: 1px; transform: translate(-50%, -50%); }
+.atlas-contracts-ink::after { width: 1px; height: 120%; transform: translate(-50%, -50%); }
+
+.atlas-contract-stack {
+  min-height: 500px;
+  margin-top: 70px;
+  position: relative;
+  perspective: 1400px;
+}
+
+.atlas-quest-contract {
+  width: min(440px, 40vw);
+  min-height: 310px;
+  padding: 30px 30px 26px;
+  position: absolute;
+  color: #e9dec8;
+  border: 1px solid rgba(213,175,104,.2);
+  background:
+    linear-gradient(135deg, rgba(213,175,104,.04), transparent 34%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 4px),
+    linear-gradient(145deg, rgba(27, 29, 23, .96), rgba(13, 24, 24, .98));
+  box-shadow: 0 28px 70px rgba(0,0,0,.31), inset 0 0 36px rgba(213,175,104,.018);
+  transform-style: preserve-3d;
+  transition: transform .4s cubic-bezier(.2,.75,.2,1), border-color .3s ease, box-shadow .3s ease;
+  opacity: 0;
+}
+
+.atlas-quest-contract::before,
+.atlas-quest-contract::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: rgba(213,175,104,.36);
+  border-style: solid;
+}
+.atlas-quest-contract::before { left: 8px; top: 8px; border-width: 1px 0 0 1px; }
+.atlas-quest-contract::after { right: 8px; bottom: 8px; border-width: 0 1px 1px 0; }
+
+.atlas-contract-1 { left: 3%; top: 42px; transform: rotate(-3.2deg) translateY(20px); z-index: 3; }
+.atlas-contract-2 { left: 34%; top: 122px; transform: rotate(1.9deg) translateY(20px); z-index: 2; }
+.atlas-contract-3 { right: 1%; top: 16px; transform: rotate(4.1deg) translateY(20px); z-index: 1; }
+
+.atlas-contracts.is-visible .atlas-quest-contract {
+  animation: atlas-contract-enter .8s cubic-bezier(.2,.75,.2,1) forwards;
+}
+.atlas-contracts.is-visible .atlas-contract-2 { animation-delay: .16s; }
+.atlas-contracts.is-visible .atlas-contract-3 { animation-delay: .32s; }
+
+.atlas-quest-contract:hover {
+  z-index: 5;
+  border-color: rgba(240,205,131,.45);
+  box-shadow: 0 36px 90px rgba(0,0,0,.38), 0 0 28px rgba(213,175,104,.055);
+}
+.atlas-contract-1:hover { transform: rotate(-1deg) translateY(-8px) scale(1.015); }
+.atlas-contract-2:hover { transform: rotate(.4deg) translateY(-8px) scale(1.015); }
+.atlas-contract-3:hover { transform: rotate(1.4deg) translateY(-8px) scale(1.015); }
+
+.atlas-contract-seal {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  position: absolute;
+  right: 28px;
+  top: 54px;
+  border: 1px solid rgba(213,175,104,.34);
+  border-radius: 50%;
+  color: #d5af68;
+  box-shadow: inset 0 0 18px rgba(213,175,104,.045);
+}
+
+.atlas-contract-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  color: rgba(213,175,104,.65);
+  font-size: 7px;
+  letter-spacing: 1.8px;
+}
+
+.atlas-contract-head span {
+  padding-left: 12px;
+  border-left: 1px solid rgba(213,175,104,.2);
+}
+
+.atlas-quest-contract h3 {
+  width: 74%;
+  margin-top: 48px;
+  color: #eee6d5;
+  font: 600 30px/.98 var(--font-display);
+  letter-spacing: -.7px;
+}
+
+.atlas-quest-contract > p {
+  margin-top: 8px;
+  color: rgba(170,183,183,.68);
+  font-size: 9px;
+  letter-spacing: .8px;
+}
+
+.atlas-contract-rule {
+  height: 1px;
+  margin: 28px 0 18px;
+  background: linear-gradient(90deg, rgba(213,175,104,.4), rgba(213,175,104,.04));
+}
+
+.atlas-contract-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  color: rgba(238,230,213,.68);
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.atlas-contract-rewards span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.atlas-contract-rewards svg { color: #d5af68; }
+
+.atlas-contract-demo {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  pointer-events: none;
+  background: rgba(5, 13, 16, .84);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+}
+
+.atlas-contract-demo::after {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 50%;
+  height: 1px;
+  background: #d5af68;
+  transform: scaleX(0) rotate(-3deg);
+  transform-origin: left;
+}
+
+.atlas-contract-check {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(240,205,131,.58);
+  border-radius: 50%;
+  color: #f0cd83;
+  transform: scale(.5);
+  opacity: 0;
+}
+
+.atlas-contract-demo b {
+  margin-top: 15px;
+  color: #f0e7d5;
+  font-size: 10px;
+  letter-spacing: 3px;
+  opacity: 0;
+}
+
+.atlas-contract-demo em,
+.atlas-contract-demo i {
+  position: absolute;
+  color: #f0cd83;
+  font-style: normal;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0;
+}
+.atlas-contract-demo em { left: 53%; top: 58%; }
+.atlas-contract-demo i { right: 23%; top: 43%; }
+
+.atlas-contracts.is-quest-complete .atlas-contract-1 .atlas-contract-demo {
+  animation: atlas-contract-complete-layer 2.3s ease both;
+}
+.atlas-contracts.is-quest-complete .atlas-contract-1 .atlas-contract-demo::after {
+  animation: atlas-ink-strike 1s .45s ease both;
+}
+.atlas-contracts.is-quest-complete .atlas-contract-1 .atlas-contract-check {
+  animation: atlas-check-pop .6s .18s cubic-bezier(.2,.9,.25,1.25) both;
+}
+.atlas-contracts.is-quest-complete .atlas-contract-1 .atlas-contract-demo b {
+  animation: atlas-reward-rise .55s .7s ease both;
+}
+.atlas-contracts.is-quest-complete .atlas-contract-1 .atlas-contract-demo em {
+  animation: atlas-xp-rise 1.05s 1.1s ease both;
+}
+.atlas-contracts.is-quest-complete .atlas-contract-1 .atlas-contract-demo i {
+  animation: atlas-gold-fly 1.15s 1.05s ease both;
+}
+
+/* RELIC VAULT: altar lighting and pseudo-3D objects. */
+.atlas-relics {
+  min-height: 960px;
+  background:
+    radial-gradient(ellipse at 50% 75%, rgba(194,108,72,.09), transparent 25rem),
+    radial-gradient(ellipse at 50% 45%, rgba(213,175,104,.035), transparent 40rem),
+    linear-gradient(180deg, #07131b, #0d1312 46%, #071017);
+}
+
+.atlas-relics::before {
+  content: '';
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 8%;
+  height: 180px;
+  z-index: -1;
+  opacity: .33;
+  background:
+    linear-gradient(180deg, rgba(213,175,104,.09), transparent 2px),
+    linear-gradient(90deg, transparent, rgba(194,108,72,.1) 50%, transparent);
+  box-shadow: 0 -1px 0 rgba(213,175,104,.08), 0 -26px 60px rgba(194,108,72,.03);
+}
+
+.atlas-relic {
+  transform-style: preserve-3d;
+  perspective: 900px;
+}
+
+.atlas-relic:hover {
+  transform: translateY(-8px) rotateX(1.5deg) rotateY(-1.5deg);
+}
+
+.atlas-relic-art {
+  position: relative;
+}
+
+.atlas-relic-art::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -12px;
+  width: 74px;
+  height: 16px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgba(213,175,104,.2), transparent 70%);
+  filter: blur(5px);
+  opacity: .25;
+  transition: opacity .3s ease, transform .3s ease;
+}
+
+.atlas-relic:hover .atlas-relic-art::after {
+  opacity: .72;
+  transform: translateX(-50%) scale(1.2);
+}
+
+.relic-featured .atlas-relic-art::before {
+  content: '';
+  position: absolute;
+  inset: -30px;
+  border: 1px solid rgba(240,205,131,.13);
+  border-radius: 50%;
+  animation: atlas-relic-orbit 10s linear infinite;
+}
+
+/* EMPORIUM: candlelit merchant table rather than an ecommerce grid. */
+.atlas-market {
+  min-height: 850px;
+  background:
+    radial-gradient(ellipse at 17% 72%, rgba(194,108,72,.1), transparent 22rem),
+    radial-gradient(ellipse at 74% 79%, rgba(194,108,72,.065), transparent 25rem),
+    linear-gradient(180deg, #071017, #101813 51%, #07131b);
+}
+
+.atlas-market::before {
+  content: '';
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  bottom: 5%;
+  height: 230px;
+  z-index: -1;
+  background:
+    repeating-linear-gradient(92deg, rgba(93,65,39,.14) 0 2px, transparent 2px 52px),
+    linear-gradient(180deg, rgba(80,53,31,.06), rgba(22,25,18,.72));
+  transform: perspective(500px) rotateX(63deg);
+  transform-origin: bottom;
+}
+
+.atlas-market-item {
+  box-shadow: 0 22px 48px rgba(0,0,0,.22);
+}
+
+.atlas-market-item:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 32px 60px rgba(0,0,0,.3), 0 0 28px rgba(213,175,104,.05);
+}
+
+.atlas-market-item:nth-child(2) .atlas-market-item-art::after,
+.atlas-market-item:nth-child(4) .atlas-market-item-art::after {
+  content: '✦';
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  color: #f0cd83;
+  font-size: 8px;
+  opacity: .25;
+  animation: atlas-rare-spark 3.6s ease-in-out infinite;
+}
+
+/* CHRONICLE: shift from terrain into magical night-sky geometry. */
+.atlas-chronicle {
+  min-height: 980px;
+  background:
+    radial-gradient(circle at 52% 24%, rgba(80,112,151,.105), transparent 30rem),
+    radial-gradient(circle at 16% 75%, rgba(213,175,104,.035), transparent 26rem),
+    linear-gradient(180deg, #07131b, #080f19 47%, #071017);
+}
+
+.atlas-chronicle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  opacity: .26;
+  background-image:
+    radial-gradient(circle at 12% 20%, #dce6e7 0 1px, transparent 1.4px),
+    radial-gradient(circle at 27% 36%, #8aaad2 0 1px, transparent 1.4px),
+    radial-gradient(circle at 66% 18%, #f0cd83 0 1px, transparent 1.4px),
+    radial-gradient(circle at 79% 44%, #dce6e7 0 1px, transparent 1.4px),
+    radial-gradient(circle at 86% 72%, #8aaad2 0 1px, transparent 1.4px),
+    radial-gradient(circle at 34% 82%, #dce6e7 0 1px, transparent 1.4px);
+  background-size: 310px 260px;
+  animation: atlas-starfield-drift 38s linear infinite;
+}
+
+.atlas-streak-map {
+  box-shadow: inset 0 0 60px rgba(131,167,216,.02), 0 28px 70px rgba(0,0,0,.19);
+}
+
+.atlas-streak-grid {
+  position: relative;
+}
+
+.atlas-streak-grid::before {
+  content: '';
+  position: absolute;
+  inset: 8% 2%;
+  pointer-events: none;
+  opacity: .18;
+  background:
+    linear-gradient(21deg, transparent 0 18%, rgba(131,167,216,.4) 18.2% 18.5%, transparent 18.7% 42%, rgba(213,175,104,.34) 42.2% 42.5%, transparent 42.7% 70%, rgba(131,167,216,.35) 70.2% 70.5%, transparent 70.7%);
+}
+
+.atlas-chronicle-feed article:hover > span {
+  color: #f0cd83;
+  box-shadow: 0 0 18px rgba(213,175,104,.08);
+}
+
+/* THE WORLD REMEMBERS: before/after environmental storytelling. */
+.atlas-world-evolution {
+  min-height: 930px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 72% 28%, rgba(194,150,79,.11), transparent 32rem),
+    radial-gradient(ellipse at 25% 27%, rgba(38,59,68,.12), transparent 28rem),
+    linear-gradient(180deg, #071017 0%, #08151a 50%, #081711 100%);
+}
+
+.atlas-world-evolution-sky {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(112deg, rgba(4,9,13,.4) 0 48%, transparent 48.3%),
+    radial-gradient(circle at 77% 14%, rgba(239,190,103,.12), transparent 19%);
+}
+
+.atlas-evolution-stage {
+  width: min(1080px, 100%);
+  height: 430px;
+  margin: 70px auto 0;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(213,175,104,.1);
+  border-radius: 2px;
+  box-shadow: 0 35px 90px rgba(0,0,0,.26), inset 0 -50px 80px rgba(0,0,0,.2);
+  background: #081218;
+}
+
+.atlas-evolution-half {
+  position: absolute;
+  inset: 0 50% 0 0;
+  overflow: hidden;
+  padding: 42px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.atlas-evolution-half::before,
+.atlas-evolution-half::after {
+  content: '';
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.atlas-evolution-half::before {
+  height: 62%;
+  background:
+    linear-gradient(153deg, transparent 0 23%, #0c1a1d 23.3% 39%, transparent 39.3%),
+    linear-gradient(28deg, transparent 0 49%, #0a161a 49.3% 66%, transparent 66.3%);
+}
+
+.atlas-evolution-half::after {
+  height: 25%;
+  background: linear-gradient(180deg, transparent, rgba(3,8,10,.78));
+}
+
+.atlas-evolution-after {
+  inset: 0 0 0 50%;
+  background:
+    radial-gradient(circle at 70% 23%, rgba(240,184,91,.18), transparent 24%),
+    linear-gradient(180deg, rgba(50,72,69,.15), rgba(16,38,28,.34));
+}
+
+.atlas-evolution-before {
+  background:
+    radial-gradient(circle at 25% 16%, rgba(91,121,145,.08), transparent 25%),
+    linear-gradient(180deg, rgba(20,34,42,.22), rgba(10,21,26,.46));
+}
+
+.atlas-evolution-half > span,
+.atlas-evolution-half > strong {
+  position: relative;
+  z-index: 3;
+}
+
+.atlas-evolution-half > span {
+  color: rgba(213,175,104,.56);
+  font-size: 7px;
+  letter-spacing: 2px;
+}
+
+.atlas-evolution-half > strong {
+  margin-top: 7px;
+  color: #eee6d5;
+  font: 600 28px/1 var(--font-display);
+}
+
+.atlas-evolution-tower {
+  position: absolute;
+  right: 17%;
+  bottom: 24%;
+  width: 44px;
+  height: 116px;
+  z-index: 2;
+  background: #0c1b1c;
+  clip-path: polygon(50% 0, 66% 22%, 69% 45%, 82% 48%, 82% 100%, 18% 100%, 18% 48%, 31% 45%, 34% 22%);
+  box-shadow: 0 -16px 24px rgba(0,0,0,.2);
+}
+
+.atlas-evolution-after .atlas-evolution-tower {
+  background: #172a23;
+  filter: drop-shadow(0 -8px 16px rgba(213,175,104,.08));
+}
+
+.atlas-evolution-beacon {
+  position: absolute;
+  right: calc(17% + 21px);
+  bottom: calc(24% + 105px);
+  z-index: 4;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #f0cd83;
+  box-shadow: 0 0 8px #f0cd83, 0 0 24px rgba(240,205,131,.4), 0 0 50px rgba(240,205,131,.18);
+  animation: atlas-beacon-pulse 2.8s ease-in-out infinite;
+}
+
+.atlas-evolution-rift {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(transparent, rgba(240,205,131,.55) 22%, rgba(240,205,131,.28) 72%, transparent);
+  box-shadow: 0 0 18px rgba(240,205,131,.08);
+}
+
+.atlas-evolution-rift i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(240,205,131,.35);
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: #0b1716;
+}
+
+.atlas-evolution-road {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.atlas-evolution-road path {
+  fill: none;
+  stroke: rgba(213,175,104,.5);
+  stroke-width: 1.2;
+  stroke-dasharray: 8 8;
+  stroke-dashoffset: 900;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(240,205,131,.2));
+}
+
+.atlas-world-evolution.is-visible .atlas-evolution-road path {
+  animation: atlas-evolution-road-draw 2.8s .45s ease forwards;
+}
+
+/* Quiet field-notes chapter between two larger spectacles. */
+.atlas-difference {
+  min-height: 760px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(213,175,104,.03), transparent 34rem),
+    linear-gradient(180deg, #081711, #07131b 72%);
+}
+
+.atlas-difference-panels {
+  align-items: start;
+}
+
+.atlas-difference-panel:nth-child(2) {
+  margin-top: 54px;
+}
+
+.atlas-difference-panel:nth-child(3) {
+  margin-top: 18px;
+}
+
+/* FINAL CHAPTER: dawn, road, castle and a tiny traveler silhouette. */
+.atlas-final {
+  min-height: 960px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 19%, rgba(240, 180, 93, .12), transparent 20rem),
+    radial-gradient(ellipse at 50% 34%, rgba(119, 157, 171, .08), transparent 34rem),
+    linear-gradient(180deg, #07131b 0%, #0a171b 50%, #0a1713 100%);
+}
+
+.atlas-final::before {
+  background:
+    linear-gradient(180deg, rgba(7,19,27,.05) 0 38%, rgba(8,17,18,.15) 52%, rgba(2,8,11,.48) 100%),
+    radial-gradient(circle at 50% 16%, rgba(238,177,85,.08), transparent 20%);
+}
+
+.atlas-final-mountains {
+  height: 66%;
+  opacity: .82;
+  background:
+    linear-gradient(149deg, transparent 0 15%, #10262a 15.2% 29%, transparent 29.2%),
+    linear-gradient(31deg, transparent 0 27%, #0d2226 27.2% 43%, transparent 43.2%),
+    linear-gradient(154deg, transparent 0 56%, #0a1b21 56.2% 71%, transparent 71.2%),
+    linear-gradient(24deg, transparent 0 72%, #0b1d1f 72.2% 84%, transparent 84.2%);
+}
+
+.atlas-final-road {
+  width: 620px;
+  height: 72%;
+  bottom: -18%;
+  opacity: .72;
+}
+
+.atlas-final-road::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 17%;
+  width: 13px;
+  height: 29px;
+  transform: translateX(-50%);
+  background: #05090a;
+  clip-path: polygon(37% 0, 64% 0, 70% 17%, 66% 40%, 81% 100%, 19% 100%, 35% 40%, 30% 17%);
+  filter: drop-shadow(0 0 8px rgba(0,0,0,.4));
+}
+
+.atlas-final:hover .atlas-final-road i {
+  filter: brightness(1.45);
+  box-shadow: 0 0 24px rgba(240,206,135,.34);
+}
+
+.atlas-final-content {
+  width: min(900px, calc(100% - 40px));
+}
+
+.atlas-final-content > p {
+  font-size: 14px;
+}
+
+.atlas-final-actions .landing-button-primary:hover .landing-button-arrow {
+  transform: translateX(5px);
+}
+
+/* Footer becomes the final atlas plate rather than generic legal leftovers. */
+.atlas-footer {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(213,175,104,.07), transparent 25rem),
+    #050d12;
+  border-top-color: rgba(213,175,104,.18);
+}
+
+.atlas-footer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .18;
+  background: repeating-radial-gradient(ellipse at 70% 50%, transparent 0 36px, rgba(213,175,104,.05) 37px 38px, transparent 39px 60px);
+}
+
+/* --------------------------------------------------------------------------
+   MASTER ANIMATION CURVES
+   -------------------------------------------------------------------------- */
+@keyframes atlas-sky-veins {
+  0%, 3%, 15%, 31%, 47%, 62%, 79%, 100% { opacity: 0; }
+  5%, 11% { opacity: .56; }
+  34%, 40% { opacity: .31; }
+  64%, 70% { opacity: .38; }
+}
+
+@keyframes atlas-cloud-bloom {
+  0%, 3%, 15%, 31%, 47%, 62%, 79%, 100% { opacity: 0; transform: scale(.92); }
+  6% { opacity: .72; transform: scale(1.05); }
+  12% { opacity: .24; transform: scale(1.1); }
+  35%, 64% { opacity: .42; transform: scale(1.03); }
+}
+
+@keyframes atlas-descent-fall {
+  from { opacity: 0; transform: scaleY(.15); }
+  35% { opacity: .8; }
+  to { opacity: 0; transform: scaleY(1); }
+}
+
+@keyframes atlas-route-traveler {
+  0% { left: 1.2%; top: 166px; opacity: 0; }
+  4% { opacity: 1; }
+  28% { left: 34%; top: 150px; }
+  52% { left: 52%; top: 254px; }
+  75% { left: 73%; top: 142px; }
+  96% { opacity: 1; }
+  100% { left: 96%; top: 135px; opacity: 0; }
+}
+
+@keyframes atlas-map-center-pulse {
+  0%, 100% { opacity: .18; transform: scale(.86); }
+  50% { opacity: .48; transform: scale(1.05); }
+}
+
+@keyframes atlas-marker-hover {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes atlas-level-dim {
+  0%, 100% { opacity: 0; }
+  18%, 76% { opacity: 1; }
+}
+
+@keyframes atlas-level-appear {
+  0%, 5% { opacity: 0; transform: translate(-50%, -50%) scale(.78); filter: blur(5px); }
+  22% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); filter: blur(0); }
+  33%, 73% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -53%) scale(1.035); }
+}
+
+@keyframes atlas-level-light {
+  0%, 100% { opacity: 0; transform: scale(.7); }
+  28%, 66% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes atlas-level-particle {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.4); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--px)), calc(-50% + var(--py))) scale(.9); }
+}
+
+@keyframes atlas-contract-enter {
+  from { opacity: 0; filter: blur(3px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+@keyframes atlas-contract-complete-layer {
+  0%, 10% { opacity: 0; }
+  22%, 77% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes atlas-ink-strike {
+  from { transform: scaleX(0) rotate(-3deg); opacity: 0; }
+  20% { opacity: .9; }
+  to { transform: scaleX(1) rotate(-3deg); opacity: .35; }
+}
+
+@keyframes atlas-check-pop {
+  from { opacity: 0; transform: scale(.45) rotate(-12deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes atlas-reward-rise {
+  from { opacity: 0; transform: translateY(8px); letter-spacing: 5px; }
+  to { opacity: 1; transform: translateY(0); letter-spacing: 3px; }
+}
+
+@keyframes atlas-xp-rise {
+  0% { opacity: 0; transform: translateY(12px); }
+  28% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-48px); }
+}
+
+@keyframes atlas-gold-fly {
+  0% { opacity: 0; transform: translate(0, 10px) scale(.8); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(55px, -75px) scale(.55); }
+}
+
+@keyframes atlas-relic-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes atlas-rare-spark {
+  0%, 100% { opacity: .12; transform: scale(.7) rotate(0); }
+  52% { opacity: .72; transform: scale(1.2) rotate(45deg); }
+}
+
+@keyframes atlas-starfield-drift {
+  from { background-position: 0 0; }
+  to { background-position: 310px -260px; }
+}
+
+@keyframes atlas-beacon-pulse {
+  0%, 100% { opacity: .45; transform: scale(.75); }
+  50% { opacity: 1; transform: scale(1.35); }
+}
+
+@keyframes atlas-evolution-road-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE: preserve the journey, remove the expensive theatre first.
+   -------------------------------------------------------------------------- */
+
+/* --------------------------------------------------------------------------
+   Journey-reactive polish: scrolling literally advances the Atlas route, and
+   a few showcase artifacts gain restrained pointer depth on desktop.
+   -------------------------------------------------------------------------- */
+.atlas-home {
+  --atlas-scroll-progress: 0%;
+}
+
+.atlas-journey-spine::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: var(--atlas-scroll-progress);
+  background: linear-gradient(180deg, rgba(240, 205, 131, .18), #d5af68 28%, rgba(138, 170, 210, .58) 72%, rgba(240, 205, 131, .24));
+  box-shadow: 0 0 11px rgba(213, 175, 104, .28), 0 0 24px rgba(138, 170, 210, .08);
+  transition: height .09s linear;
+}
+
+.atlas-journey-tracker {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: var(--atlas-scroll-progress);
+  width: 9px;
+  height: 9px;
+  border: 1px solid rgba(240, 205, 131, .88);
+  background: #071017;
+  transform: translate(-50%, -50%) rotate(45deg);
+  box-shadow: 0 0 0 5px rgba(213, 175, 104, .035), 0 0 18px rgba(240, 205, 131, .34);
+  transition: top .09s linear;
+}
+
+.atlas-journey-tracker::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: #f0cd83;
+  animation: atlas-tracker-breathe 2.8s ease-in-out infinite;
+}
+
+[data-atlas-tilt] {
+  --atlas-tilt-x: 0deg;
+  --atlas-tilt-y: 0deg;
+  --atlas-glow-x: 50%;
+  --atlas-glow-y: 44%;
+}
+
+.atlas-character-card[data-atlas-tilt] {
+  background:
+    radial-gradient(circle at var(--atlas-glow-x) var(--atlas-glow-y), rgba(138, 170, 210, .055), transparent 31%),
+    linear-gradient(145deg, rgba(12, 25, 31, .94), rgba(7, 17, 23, .9));
+}
+
+.atlas-character-card[data-atlas-tilt]:hover {
+  transform: perspective(1000px) rotateX(var(--atlas-tilt-x)) rotateY(var(--atlas-tilt-y)) translateY(-5px);
+}
+
+.atlas-relic[data-atlas-tilt] .atlas-relic-art,
+.atlas-market-item[data-atlas-tilt] .atlas-market-item-art {
+  transform: perspective(800px) rotateX(var(--atlas-tilt-x)) rotateY(var(--atlas-tilt-y));
+  transform-style: preserve-3d;
+  transition: transform .18s ease-out;
+}
+
+.atlas-relic[data-atlas-tilt] .atlas-relic-art::before,
+.atlas-market-item[data-atlas-tilt] .atlas-market-item-art::before {
+  background-position: var(--atlas-glow-x) var(--atlas-glow-y);
+}
+
+.atlas-final-castle span::after,
+.atlas-final-castle i::after,
+.atlas-final-castle b::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  width: 2px;
+  height: 5px;
+  border-radius: 2px 2px 0 0;
+  background: rgba(240, 205, 131, .8);
+  box-shadow: 0 0 7px rgba(240, 205, 131, .6), 7px 9px 0 -1px rgba(240, 205, 131, .38), -7px 13px 0 -1px rgba(240, 205, 131, .25);
+  transform: translateX(-50%);
+  animation: atlas-castle-window 4.9s ease-in-out infinite;
+}
+
+.atlas-final-castle i::after { animation-delay: -1.7s; }
+.atlas-final-castle b::after { animation-delay: -3.1s; }
+
+@keyframes atlas-tracker-breathe {
+  0%, 100% { opacity: .5; transform: scale(.65); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes atlas-castle-window {
+  0%, 15%, 24%, 56%, 100% { opacity: .22; filter: brightness(.8); }
+  18%, 21% { opacity: .92; filter: brightness(1.35); }
+  61%, 72% { opacity: .58; filter: brightness(1.05); }
+}
+
+@media (max-width: 1100px) {
+  .atlas-chapter-progress { display: none; }
+  .atlas-world-map { min-height: 650px; }
+  .atlas-contract-stack { min-height: 720px; }
+  .atlas-quest-contract { width: min(430px, 48vw); }
+  .atlas-contract-1 { left: 2%; top: 25px; }
+  .atlas-contract-2 { left: auto; right: 2%; top: 130px; }
+  .atlas-contract-3 { left: 12%; right: auto; top: 365px; }
+}
+
+@media (max-width: 820px) {
+  .atlas-cursor { display: none; }
+  .atlas-section { min-height: auto; }
+  .atlas-realms,
+  .atlas-character,
+  .atlas-contracts,
+  .atlas-relics,
+  .atlas-market,
+  .atlas-chronicle,
+  .atlas-world-evolution { min-height: auto; }
+
+  .atlas-world-map {
+    min-height: 760px;
+    border-radius: 36px;
+  }
+
+  .atlas-contract-stack {
+    min-height: auto;
+    margin-top: 48px;
+    display: grid;
+    gap: 18px;
+  }
+
+  .atlas-quest-contract,
+  .atlas-contract-1,
+  .atlas-contract-2,
+  .atlas-contract-3 {
+    width: 100%;
+    min-height: 280px;
+    position: relative;
+    inset: auto;
+    transform: none;
+  }
+
+  .atlas-contract-1:hover,
+  .atlas-contract-2:hover,
+  .atlas-contract-3:hover {
+    transform: translateY(-3px);
+  }
+
+  .atlas-evolution-stage {
+    height: 520px;
+  }
+
+  .atlas-evolution-half {
+    inset: 0 0 50% 0;
+  }
+
+  .atlas-evolution-after {
+    inset: 50% 0 0 0;
+  }
+
+  .atlas-evolution-rift {
+    left: 0;
+    right: 0;
+    top: 50%;
+    bottom: auto;
+    width: auto;
+    height: 1px;
+  }
+
+  .atlas-evolution-road {
+    opacity: .55;
+    transform: rotate(18deg) scale(1.1);
+  }
+
+  .atlas-difference-panel:nth-child(2),
+  .atlas-difference-panel:nth-child(3) {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  html { scroll-padding-top: 64px; }
+
+  .public-header.landing-header {
+    min-height: 64px;
+  }
+
+  .landing-world img {
+    object-position: 48% 54%;
+  }
+
+  .landing-cinematic-hero::after {
+    height: 74px;
+  }
+
+  .atlas-section {
+    padding-block: 86px;
+  }
+
+  .atlas-section-inner::before {
+    display: none;
+  }
+
+  .atlas-descent {
+    min-height: 610px;
+    padding-top: 105px;
+  }
+
+  .atlas-descent-caption {
+    font-size: 6px;
+    letter-spacing: 1.7px;
+  }
+
+  .atlas-core {
+    min-height: 770px;
+  }
+
+  .atlas-core.is-visible .atlas-quest-route::after {
+    display: none;
+  }
+
+  .atlas-world-map {
+    min-height: 880px;
+    margin-top: 48px;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(89,115,126,.14), transparent 30%),
+      radial-gradient(ellipse at 50% 72%, rgba(75,111,86,.14), transparent 30%),
+      linear-gradient(180deg, rgba(16,34,35,.82), rgba(6,18,24,.9));
+  }
+
+  .atlas-map-center {
+    width: 72px;
+    height: 72px;
+  }
+
+  .atlas-character-card:hover,
+  .atlas-relic:hover,
+  .atlas-market-item:hover {
+    transform: none;
+  }
+
+  .atlas-level-moment {
+    width: 88vw;
+    height: 260px;
+  }
+
+  .atlas-contracts-ink {
+    display: none;
+  }
+
+  .atlas-quest-contract {
+    padding: 25px 22px 23px;
+  }
+
+  .atlas-quest-contract h3 {
+    font-size: 26px;
+  }
+
+  .atlas-contract-seal {
+    right: 20px;
+  }
+
+  .atlas-world-evolution {
+    padding-bottom: 100px;
+  }
+
+  .atlas-evolution-stage {
+    height: 560px;
+    margin-top: 46px;
+  }
+
+  .atlas-evolution-half {
+    padding: 26px 22px;
+  }
+
+  .atlas-final {
+    min-height: 780px;
+  }
+
+  .atlas-final-road {
+    width: 380px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  .atlas-cursor,
+  .atlas-level-moment,
+  .landing-storm-strikes::before,
+  .landing-storm-strikes::after {
+    display: none !important;
+  }
+
+  .atlas-map-center::before,
+  .atlas-map-center::after,
+  .atlas-journey-tracker::before,
+  .atlas-final-castle span::after,
+  .atlas-final-castle i::after,
+  .atlas-final-castle b::after,
+  .atlas-realm-marker,
+  .relic-featured .atlas-relic-art::before,
+  .atlas-market-item-art::after,
+  .atlas-chronicle::before,
+  .atlas-evolution-beacon {
+    animation: none !important;
+  }
+
+  .atlas-quest-contract {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+
+  .atlas-evolution-road path {
+    stroke-dashoffset: 0 !important;
+    animation: none !important;
+  }
+
+  .atlas-contract-demo {
+    display: none !important;
+  }
+}

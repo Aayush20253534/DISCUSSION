@@ -209,6 +209,20 @@ svg {
   margin-top: 4px;
   color: #c9b0a6;
 }
+.sidebar-signout-primary {
+  margin-top: 12px;
+  border-top-color: #344046;
+  position: relative;
+}
+.sidebar-signout-primary::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: -7px;
+  height: 1px;
+  background: var(--line);
+}
 .sidebar-signout svg {
   color: #d09a7f;
 }
@@ -226,6 +240,9 @@ svg {
   color: #e6a69a;
   font-size: 9px;
   line-height: 1.45;
+}
+.sidebar-signout-error-primary {
+  margin-bottom: 2px;
 }
 .sidebar-bottom {
   margin-top: auto;

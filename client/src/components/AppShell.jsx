@@ -138,6 +138,24 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
               <span>{label}</span>
             </NavLink>
           ))}
+          {user && (
+            <button
+              type="button"
+              className="nav-link sidebar-signout sidebar-signout-primary"
+              onClick={signOut}
+              disabled={signingOut}
+              aria-label={signingOut ? 'Signing out' : 'Sign out'}
+              title={collapsed ? (signingOut ? 'Signing out…' : 'Sign out') : undefined}
+            >
+              <LogOut size={20} strokeWidth={1.6} />
+              <span>{signingOut ? 'Signing out…' : 'Sign out'}</span>
+            </button>
+          )}
+          {signOutError && user && (
+            <p className="sidebar-signout-error sidebar-signout-error-primary" role="alert">
+              {signOutError}
+            </p>
+          )}
         </nav>
         <div className="sidebar-bottom">
           <div className="journey-note">
@@ -167,24 +185,6 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
               <HelpCircle size={19} />
               <span>Field guide</span>
             </button>
-            {user && (
-              <button
-                type="button"
-                className="nav-link sidebar-signout"
-                onClick={signOut}
-                disabled={signingOut}
-                aria-label={signingOut ? 'Signing out' : 'Sign out'}
-                title={collapsed ? (signingOut ? 'Signing out…' : 'Sign out') : undefined}
-              >
-                <LogOut size={19} />
-                <span>{signingOut ? 'Signing out…' : 'Sign out'}</span>
-              </button>
-            )}
-            {signOutError && user && (
-              <p className="sidebar-signout-error" role="alert">
-                {signOutError}
-              </p>
-            )}
           </nav>
           <NavLink
             to="/character"

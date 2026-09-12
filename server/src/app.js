@@ -124,6 +124,15 @@ export function createApp({ config, database, staticDirectory, logger = log }) {
   )
   app.use((error, req, res, _next) => {
     if (error.name?.startsWith('Prisma')) {
+      if (config.NODE_ENV !== 'production') {
+        logger('error', 'database.error', {
+          requestId: req.requestId,
+          name: error.name,
+          code: error.code,
+          message: error.message,
+        })
+      }
+
       error = new AppError(
         503,
         'DATABASE_UNAVAILABLE',

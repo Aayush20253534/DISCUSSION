@@ -113,8 +113,8 @@ export function createAccountRouter({ config, database }) {
     const { session, refresh } = makeSession(randomUUID())
     let user
     try {
-      user = await db.$transaction(async (tx) => {
-        const created = await tx.user.create({
+      const [createdUser] = await db.$transaction([
+        db.user.create({
           data: {
             id: session.userId,
             email: input.email,
@@ -122,10 +122,10 @@ export function createAccountRouter({ config, database }) {
             passwordHash,
           },
           select: publicSelect,
-        })
-        await tx.session.create({ data: session })
-        return created
-      })
+        }),
+        db.session.create({ data: session }),
+      ])
+      user = createdUser
     } catch (error) {
       if (error.code === 'P2002')
         throw new AppError(
@@ -149,11 +149,11 @@ export function createAccountRouter({ config, database }) {
     if (!account || !verified)
       throw new AppError(401, 'INVALID_CREDENTIALS', 'Email or password is incorrect.')
     const { session, refresh } = makeSession(account.id)
-    const user = await db.$transaction(async (tx) => {
-      await tx.session.deleteMany({ where: { userId: account.id, expiresAt: { lte: new Date() } } })
-      await tx.session.create({ data: session })
-      return getUser(account.id, tx)
-    })
+    await db.$transaction([
+      db.session.deleteMany({ where: { userId: account.id, expiresAt: { lte: new Date() } } }),
+      db.session.create({ data: session }),
+    ])
+    const user = await getUser(account.id)
     security.setSession(res, session, refresh)
     res.json({ data: { user } })
   })

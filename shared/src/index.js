@@ -31,7 +31,7 @@ export const timezoneSchema = z
 
 export const worldSchema = z.object({
   name: z.literal(APP_NAME),
-  stage: z.literal('accounts'),
+  stage: z.literal('quests'),
   accountsAvailable: z.boolean(),
   attributes: z.array(
     z.object({ key: attributeSchema, name: z.string(), description: z.string() }),
@@ -73,3 +73,5 @@ export const onboardingSchema = z
     avatarKey: z.enum(AVATARS.map(({ key }) => key)),
   })
   .strict()
+
+export * from './quests.js'

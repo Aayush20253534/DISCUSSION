@@ -1,24 +1,38 @@
-# Life RPG — Part 2: accounts & character onboarding
+# Life RPG — Part 3: the quest journal
 
 A full-stack JavaScript project using React, Express, Node.js, Neon PostgreSQL, Prisma, and Motion for React. Application code uses `.js` and `.jsx` throughout.
 
-Part 2 adds working signup, login, JWT sessions, Argon2id password hashing, logout, protected routes, and character onboarding to the Part 1 Evergreen interface. Accounts and characters are persisted in PostgreSQL. Signed-in pages show your own saved data; the public overview remains an explicitly labeled sample preview.
+Part 3 adds a saved quest journal to the Part 2 JWT/Argon2 account system: create, edit, search, filter, archive, restore, and delete your own quests. Your personal overview shows saved active quests. Accounts, characters, and quests persist in PostgreSQL.
 
-## Upgrade from Part 1
+## Upgrade from Part 2
 
-Run these commands in the **repository root**, where `client/`, `server/`, and the root `package.json` live. Stop the development server first. The patch targets the successfully applied **Part 1 Windows-fix** version (your commit `bd8cb0e`).
+Stop the development server. Run these commands in the **repository root**, where `client/`, `server/`, and the root `package.json` live. This patch targets the completed **Part 2 JWT/Argon2** implementation.
 
 ```powershell
-git apply --ignore-space-change --check .\life-rpg-part-2-jwt-argon2.patch
-git apply --ignore-space-change .\life-rpg-part-2-jwt-argon2.patch
-npm install --workspaces --include-workspace-root --include=dev
+git apply --ignore-space-change --check .\life-rpg-part-3-quest-journal.patch
+```
+
+If the check succeeds:
+
+```powershell
+git apply --ignore-space-change .\life-rpg-part-3-quest-journal.patch
+npm run db:generate
+npm run db:deploy
+npm run verify
+npm run dev
+```
+
+Part 3 adds no npm dependencies. Keep your existing `server/.env`, JWT secret, and Neon connection strings. The patch preserves `.env`, root `.gitignore`, and your lockfile. The additive quest migration preserves existing accounts, sessions, and character progress. **Do not reset your database.**
+
+For a fresh clone with Part 2 dependencies recorded in its lockfile:
+
+```powershell
+npm ci --workspaces --include-workspace-root --include=dev
 npm run setup
 npm run auth:configure
 ```
 
-`auth:configure` creates `server/.env` if missing, generates a private random JWT secret, and preserves existing database settings and a valid existing secret. It never prints the secret. `setup` preserves your existing ignore rules. The patch does not replace `.env`, `.gitignore`, or your existing lockfile; `npm install` updates the root lockfile for the added dependencies. Commit that updated lockfile with Part 2. On a fresh clone with the updated lockfile, use `npm ci`.
-
-If patch checking fails, stop and compare with the Part 1 baseline before applying. Use Node.js 24 LTS and npm 11; the supported Node range is in `package.json`. All setup commands belong at the root, not inside `client`.
+If dependency installation never completed after Part 2, run `npm install --workspaces --include-workspace-root --include=dev` first and commit the updated root lockfile. `auth:configure` creates a private JWT secret if needed while preserving an existing valid secret and database settings. All setup commands belong at the root, not inside `client`.
 
 ## Connect your Neon database
 
@@ -38,13 +52,22 @@ npm run verify
 npm run dev
 ```
 
-Open **http://localhost:5173** and choose **Begin your adventure**. Signup leads to avatar/name/timezone onboarding, then your personal dashboard. New characters start at level 1, zero XP, zero gold, and five attributes with zero XP. Reloading or logging in again restores the saved character.
+Open **http://localhost:5173**. Sign in, or choose **Begin your adventure** to create an account and character. Open **Quest Journal** to save your first quest. Reload to confirm persistence, then try editing, archiving, and restoring it. New characters start at level 1 with zero XP and gold. Part 3 planning actions preserve those values.
 
-The API runs on port 4000. `GET /health` checks the process; `GET /health/ready` checks database connectivity. Part 2 reuses the four tables from Part 1, so no new schema migration is needed. `db:deploy` applies the original migration if it is still pending. Never reset your database to install this patch.
+The API runs on port 4000. `GET /health` checks the process; `GET /health/ready` checks database connectivity. Part 3 adds the `quests` table and supporting enums/indexes. `db:deploy` applies any pending committed migrations, including the new quest migration, without resetting existing tables.
 
 Without database configuration, the public preview works, but account forms return a clear unavailable message. If `DATABASE_URL` is set, a valid `JWT_SECRET` is required at startup.
 
 ## What is implemented
+
+- Owned quest create/read/update/delete endpoints with strict shared validation and existing JWT/session/CSRF checks.
+- A responsive private journal with search, attribute/difficulty/status/schedule filters, sorting, pagination, and real summaries.
+- Optional due dates evaluated in the account timezone, editable notes, difficulty, and estimated minutes.
+- Archive/restore, explicit delete/discard confirmations, recoverable errors, and creation from editable ideas.
+- Database revision checks to prevent stale edits and create request IDs to prevent duplicates when retrying a lost response.
+- Account-scoped React Query caches, cross-tab updates, and saved active quests on the personal overview.
+
+The earlier parts also provide:
 
 - Email normalization, shared Zod validation, field errors, password visibility, loading and retry states.
 - Argon2id hashing with a unique salt per password; no plaintext password storage.
@@ -56,7 +79,7 @@ Without database configuration, the public preview works, but account forms retu
 - Responsive Evergreen visuals, local fonts/artwork, reduced-motion support, and accessible forms.
 - Integration tests using Prisma against disposable PostgreSQL via PGlite. Tests never read or modify your Neon database.
 
-Quest creation/completion is **Part 3**. XP/level rewards, streaks, and shop purchases arrive in later parts. Quest ideas and shop items remain clearly labeled previews. Email verification, password reset, and profile/password editing are not part of this patch.
+**Quest completion, XP/gold rewards, and level progression are Part 4.** Archiving a quest does not complete it or award rewards. Streaks and shop purchases arrive in later parts. Shop items remain previews; journal ideas become real only after you save them. Email verification, password reset, and profile/password editing are not implemented.
 
 ## Commands
 
@@ -80,4 +103,6 @@ Quest creation/completion is **Part 3**. XP/level rewards, streaks, and shop pur
 - **Invalid `JWT_SECRET`:** run `npm run auth:configure`. If an existing value is too short, the script explains how to replace that value while preserving the rest of `.env`.
 - **Database unavailable:** check both Neon URLs, run `npm run db:deploy`, and check `/health/ready`. A successful API health check alone does not mean database tables exist.
 
-For endpoints, authentication design, deployment settings, and implementation boundaries, see [docs/PART_2.md](docs/PART_2.md).
+For journal endpoints, migration details, conflict/retry behavior, and verification, see [docs/PART_3.md](docs/PART_3.md). Authentication design, deployment settings, and existing dependency audit findings remain in [docs/PART_2.md](docs/PART_2.md).
+
+The 34 automated tests run locally against disposable PostgreSQL via PGlite and never use your Neon database. A successful verification run does not verify your live Neon connection; complete the create/reload/edit smoke test after deployment.

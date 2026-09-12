@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import { PGlite } from '@electric-sql/pglite'
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket'
 import { PrismaClient } from '@prisma/client'
@@ -8,12 +8,12 @@ import { PrismaPg } from '@prisma/adapter-pg'
 // Never reads DATABASE_URL or connects to the developer's Neon database.
 export async function testDatabase() {
   const engine = await PGlite.create()
-  await engine.exec(
-    await readFile(
-      new URL('../../prisma/migrations/20260912000100_foundation/migration.sql', import.meta.url),
-      'utf8',
-    ),
-  )
+  const migrations = new URL('../../prisma/migrations/', import.meta.url)
+  for (const entry of (await readdir(migrations, { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .sort((a, b) => a.name.localeCompare(b.name))) {
+    await engine.exec(await readFile(new URL(`${entry.name}/migration.sql`, migrations), 'utf8'))
+  }
   const socket = new PGLiteSocketServer({
     db: engine,
     port: 0,

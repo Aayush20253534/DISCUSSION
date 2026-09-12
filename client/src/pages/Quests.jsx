@@ -1,103 +1,516 @@
-import { useState } from 'react'
-import { BookOpen, Search } from 'lucide-react'
-import { ATTRIBUTES } from '@life-rpg/shared'
-import { PageHeading } from '../components/ui.jsx'
-import QuestList from '../components/QuestList.jsx'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import {
+  Archive,
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  CalendarDays,
+  ChevronDown,
+  Compass,
+  LoaderCircle,
+  Plus,
+  RefreshCw,
+  Search,
+  Sparkles,
+  X,
+} from 'lucide-react'
+import { ATTRIBUTES, QUEST_DIFFICULTIES, questListSchema, questIdSchema } from '@life-rpg/shared'
+import { useAuth } from '../auth/useAuth.js'
+import { AttributeIcon, PageHeading } from '../components/ui.jsx'
+import QuestRow from '../quests/QuestRow.jsx'
+import QuestEditor from '../quests/QuestEditor.jsx'
+import QuestDetails from '../quests/QuestDetails.jsx'
+import { useQuestMutation, useQuests, useQuestSummary, useQuestSync } from '../quests/hooks.js'
 import { sampleQuests } from '../data/preview.js'
+import '../quests.css'
 
+const defaults = {
+  q: '',
+  attribute: 'ALL',
+  difficulty: 'ALL',
+  status: 'ACTIVE',
+  due: 'ALL',
+  sort: 'NEWEST',
+  page: 1,
+  limit: 12,
+}
+function useDebounce(value) {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebounced(value), 300)
+    return () => clearTimeout(timeout)
+  }, [value])
+  return debounced
+}
 export default function Quests() {
-  const [search, setSearch] = useState('')
-  const [attribute, setAttribute] = useState('ALL')
-  const quests = sampleQuests.filter(
-    (quest) =>
-      (attribute === 'ALL' || quest.attribute === attribute) &&
-      quest.title.toLowerCase().includes(search.trim().toLowerCase()),
+  const { user } = useAuth()
+  return <QuestJournal key={user.id} />
+}
+function QuestJournal() {
+  const [params, setParams] = useSearchParams()
+  const raw = Object.fromEntries([...params].filter(([key]) => key in defaults))
+  const parsed = questListSchema.safeParse(raw)
+  const filters = parsed.success ? parsed.data : defaults
+  const debouncedSearch = useDebounce(filters.q)
+  const query = useQuests({ ...filters, q: debouncedSearch })
+  const summary = useQuestSummary()
+  const mutation = useQuestMutation()
+  useQuestSync()
+  const [editor, setEditor] = useState(() => (params.get('new') === '1' ? {} : null))
+  const [detailId, setDetailId] = useState(() =>
+    questIdSchema.safeParse(params.get('quest')).success ? params.get('quest') : null,
+  )
+  const [notice, setNotice] = useState('')
+  const [actionError, setActionError] = useState('')
+  function changeFilters(updates) {
+    const next = { ...filters, ...updates, page: 'page' in updates ? updates.page : 1 }
+    const values = new URLSearchParams()
+    for (const [key, value] of Object.entries(next))
+      if (value !== defaults[key]) values.set(key, String(value))
+    setParams(values, { replace: true })
+  }
+  function closeDetails() {
+    setDetailId(null)
+    if (params.has('quest')) {
+      const next = new URLSearchParams(params)
+      next.delete('quest')
+      setParams(next, { replace: true })
+    }
+  }
+  function closeEditor() {
+    setEditor(null)
+    if (params.has('new')) {
+      const next = new URLSearchParams(params)
+      next.delete('new')
+      setParams(next, { replace: true })
+    }
+  }
+  function saved(_quest, edited) {
+    closeEditor()
+    setNotice(
+      edited ? 'Your quest has been updated.' : 'A new quest has been added to your journal.',
+    )
+    if (!edited) {
+      changeFilters({ ...defaults })
+    }
+  }
+  async function archive(quest) {
+    if (mutation.isPending) return
+    setActionError('')
+    setNotice('')
+    try {
+      await mutation.mutateAsync({
+        action: 'update',
+        id: quest.id,
+        body: {
+          revision: quest.revision,
+          status: quest.status === 'ARCHIVED' ? 'ACTIVE' : 'ARCHIVED',
+        },
+      })
+      setNotice(
+        quest.status === 'ARCHIVED'
+          ? 'Quest restored to your journal.'
+          : 'Quest archived. Find it in Archived whenever you need it.',
+      )
+    } catch (error) {
+      setActionError(error.message)
+    }
+  }
+  const count = (field) => (summary.isError ? '—' : (summary.data?.[field] ?? '…'))
+  const data = query.data
+  const hasFilters = Boolean(
+    filters.q ||
+    filters.attribute !== 'ALL' ||
+    filters.difficulty !== 'ALL' ||
+    filters.due !== 'ALL',
   )
   return (
-    <div className="page">
+    <div className="page quest-journal-page">
       <PageHeading
-        eyebrow="A LITTLE INTENTION GOES A LONG WAY"
+        eyebrow="SMALL INTENTIONS. REAL POSSIBILITIES."
         title={
           <>
             Your quest <em>journal.</em>
           </>
         }
-        description="Find inspiration for the things you want to make time for."
-      />
-      <section className="panel account-panel empty-state">
-        <BookOpen size={30} />
-        <h2>Your journal is ready.</h2>
-        <p>
-          Quest creation and completion arrive in the next chapter. These sample ideas are here to
-          inspire you; they do not change your XP or gold.
+        description="Make a little room for what matters. One clear next step at a time."
+      >
+        <button
+          className="button button-gold new-quest-button"
+          data-quest-focus
+          onClick={() => setEditor({})}
+        >
+          <Plus size={17} />
+          New quest
+        </button>
+      </PageHeading>
+      <div className="journal-summary" aria-label="Your quest counts">
+        {[
+          {
+            key: 'active',
+            label: 'Active quests',
+            icon: BookOpen,
+            updates: { status: 'ACTIVE', due: 'ALL' },
+            caption: 'ROOM TO BEGIN',
+          },
+          {
+            key: 'dueToday',
+            label: 'Due today',
+            icon: CalendarDays,
+            updates: { status: 'ACTIVE', due: 'TODAY' },
+            caption: 'A LITTLE FOCUS',
+          },
+          {
+            key: 'archived',
+            label: 'Archived',
+            icon: Archive,
+            updates: { status: 'ARCHIVED', due: 'ALL' },
+            caption: 'KEPT FOR LATER',
+          },
+        ].map(({ key, label, icon: Icon, updates, caption }) => (
+          <button
+            key={key}
+            className="journal-summary-card"
+            onClick={() => changeFilters({ ...defaults, ...updates })}
+            aria-label={`Show ${label.toLowerCase()}`}
+          >
+            <span className="journal-summary-icon">
+              <Icon size={21} />
+            </span>
+            <span>
+              <strong>{count(key)}</strong>
+              <span>{label}</span>
+            </span>
+            <small>{caption}</small>
+          </button>
+        ))}
+      </div>
+      {summary.isError && (
+        <p className="journal-inline-error">
+          Quest counts are unavailable.{' '}
+          <button onClick={() => summary.refetch()}>Retry counts</button>
         </p>
-      </section>
-      <section className="panel journal-panel">
-        <div className="journal-toolbar">
-          <div>
-            <BookOpen size={20} />
-            <h2>Sample quests</h2>
-            <span className="count-badge">{sampleQuests.length}</span>
+      )}
+      <div className="journal-layout">
+        <section className="panel saved-journal" aria-label="Saved quests">
+          <div className="journal-section-head">
+            <div>
+              <span className="eyebrow">YOUR EVERYDAY ADVENTURE</span>
+              <h2>
+                {filters.status === 'ARCHIVED' ? 'Kept for another day' : 'The next small step'}
+              </h2>
+            </div>
+            <BookOpen size={23} className="green" />
           </div>
-          <label className="search-field">
-            <Search size={17} />
-            <span className="sr-only">Search sample quests</span>
-            <input
-              placeholder="Find a quest…"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              type="search"
-            />
-          </label>
-        </div>
-        <div className="filter-list" role="group" aria-label="Filter by attribute">
-          {[{ key: 'ALL', name: 'All quests' }, ...ATTRIBUTES].map(({ key, name }) => (
+          <div className="journal-status-tabs" role="group" aria-label="Quest status">
             <button
-              className={`filter-chip ${attribute === key ? 'selected' : ''}`}
-              aria-pressed={attribute === key}
-              key={key}
-              onClick={() => setAttribute(key)}
+              className={filters.status === 'ACTIVE' ? 'selected' : ''}
+              aria-pressed={filters.status === 'ACTIVE'}
+              onClick={() => changeFilters({ status: 'ACTIVE' })}
             >
-              {name}
+              Active
             </button>
-          ))}
-        </div>
-        <p className="sr-only" role="status">
-          {quests.length} matching quests
-        </p>
-        {quests.length ? (
-          <QuestList quests={quests} />
-        ) : (
-          <div className="empty-state">
-            <Search size={30} />
-            <h2>A little quiet here.</h2>
-            <p>No sample quests match these filters.</p>
             <button
-              className="button button-outline"
+              className={filters.status === 'ARCHIVED' ? 'selected' : ''}
+              aria-pressed={filters.status === 'ARCHIVED'}
+              onClick={() => changeFilters({ status: 'ARCHIVED' })}
+            >
+              Archived
+            </button>
+            <button
+              className={filters.status === 'ALL' ? 'selected' : ''}
+              aria-pressed={filters.status === 'ALL'}
+              onClick={() => changeFilters({ status: 'ALL' })}
+            >
+              All quests
+            </button>
+          </div>
+          <div className="journal-search-row">
+            <label className="search-field">
+              <Search size={17} />
+              <span className="sr-only">Search your quests</span>
+              <input
+                type="search"
+                value={filters.q}
+                maxLength={120}
+                onChange={(event) => changeFilters({ q: event.target.value })}
+                placeholder="Find a small intention…"
+              />
+            </label>
+            <label className="journal-sort">
+              <span className="sr-only">Sort quests</span>
+              <select
+                value={filters.sort}
+                onChange={(event) => changeFilters({ sort: event.target.value })}
+              >
+                <option value="NEWEST">Newest first</option>
+                <option value="OLDEST">Oldest first</option>
+                <option value="DUE">Due date</option>
+                <option value="TITLE">Title A–Z</option>
+              </select>
+              <ChevronDown size={14} />
+            </label>
+          </div>
+          <div className="journal-attributes" role="group" aria-label="Filter quests by attribute">
+            {[{ key: 'ALL', name: 'All strengths' }, ...ATTRIBUTES].map(({ key, name }) => (
+              <button
+                className={`filter-chip ${key.toLowerCase()} ${filters.attribute === key ? 'selected' : ''}`}
+                key={key}
+                aria-pressed={filters.attribute === key}
+                onClick={() => changeFilters({ attribute: key })}
+              >
+                {key !== 'ALL' && <AttributeIcon attribute={key} size={13} />}
+                {name}
+              </button>
+            ))}
+          </div>
+          <div className="journal-secondary-filters">
+            <label>
+              Difficulty
+              <select
+                value={filters.difficulty}
+                onChange={(event) => changeFilters({ difficulty: event.target.value })}
+              >
+                <option value="ALL">Any difficulty</option>
+                {QUEST_DIFFICULTIES.map(({ key, label }) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Schedule
+              <select
+                value={filters.due}
+                onChange={(event) => changeFilters({ due: event.target.value })}
+              >
+                <option value="ALL">Any date</option>
+                <option value="TODAY">Due today</option>
+                <option value="UPCOMING">Upcoming</option>
+                <option value="OVERDUE">Overdue</option>
+                <option value="UNSCHEDULED">No due date</option>
+              </select>
+            </label>
+            {hasFilters && (
+              <button
+                className="journal-clear"
+                onClick={() => changeFilters({ ...defaults, status: filters.status })}
+              >
+                <X size={13} />
+                Clear filters
+              </button>
+            )}
+          </div>
+          <div className="journal-results-head">
+            <span aria-live="polite">
+              {query.isPending
+                ? 'Opening your journal…'
+                : query.isError
+                  ? 'Unable to load quests'
+                  : `${data.pagination.total} ${data.pagination.total === 1 ? 'quest' : 'quests'}${hasFilters ? ' found' : ''}`}
+            </span>
+            <button
+              className="icon-button"
+              disabled={query.isFetching}
+              aria-label="Refresh quests"
               onClick={() => {
-                setAttribute('ALL')
-                setSearch('')
+                query.refetch()
+                summary.refetch()
+                setActionError('')
               }}
             >
-              Clear filters
+              <RefreshCw size={15} className={query.isFetching ? 'spin' : ''} />
             </button>
           </div>
-        )}
-        <div className="panel-footnote">
-          Select a quest to explore its details. Saving your own quests will open in the next
-          chapter.
-        </div>
-      </section>
-      <div className="editorial-note">
-        <span>01</span>
-        <div>
-          <h2>Start smaller than you think.</h2>
-          <p>
-            Ten minutes of reading. A walk around the block. The best quest is one you can begin
-            today.
-          </p>
-        </div>
+          {actionError && (
+            <div className="journal-action-message">
+              <p className="form-message" role="alert">
+                {actionError}
+              </p>
+              <button
+                className="text-link"
+                onClick={() => {
+                  query.refetch()
+                  setActionError('')
+                }}
+              >
+                Load latest quests
+              </button>
+            </div>
+          )}
+          {notice && (
+            <div className="quest-notice" role="status">
+              <Sparkles size={15} />
+              <p>{notice}</p>
+              <button
+                className="icon-button"
+                aria-label="Dismiss notification"
+                onClick={() => setNotice('')}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+          {query.isPending ? (
+            <div className="journal-loading" role="status">
+              <LoaderCircle className="spin" size={23} />
+              <span>Finding your next step…</span>
+            </div>
+          ) : query.isError ? (
+            <div className="journal-empty journal-error">
+              <Compass size={32} />
+              <h3>Your journal is out of reach.</h3>
+              <p role="alert">{query.error.message}</p>
+              <button className="button button-outline" onClick={() => query.refetch()}>
+                Try again
+              </button>
+            </div>
+          ) : data.quests.length ? (
+            <div className="saved-quest-list">
+              {data.quests.map((quest) => (
+                <QuestRow
+                  key={quest.id}
+                  quest={quest}
+                  today={data.today}
+                  busy={mutation.isPending}
+                  onOpen={(item) => setDetailId(item.id)}
+                  onEdit={(item) => setEditor({ quest: item })}
+                  onArchive={archive}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="journal-empty">
+              <span className="empty-journal-icon">
+                {hasFilters ? <Search size={31} /> : <BookOpen size={31} />}
+              </span>
+              <h3>
+                {hasFilters
+                  ? 'A different path, perhaps?'
+                  : filters.status === 'ARCHIVED'
+                    ? 'Nothing tucked away yet.'
+                    : 'A fresh page. A small beginning.'}
+              </h3>
+              <p>
+                {hasFilters
+                  ? 'No quests match these filters. Try another word or give your search a little more room.'
+                  : filters.status === 'ARCHIVED'
+                    ? 'Archived quests will wait here until you’re ready to return to them.'
+                    : 'Read a few pages. Take a walk. Make something. Start with a quest that feels like you.'}
+              </p>
+              <button
+                className="button button-outline"
+                onClick={() =>
+                  hasFilters
+                    ? changeFilters({ ...defaults, status: filters.status })
+                    : filters.status === 'ARCHIVED'
+                      ? changeFilters({ status: 'ACTIVE' })
+                      : setEditor({})
+                }
+              >
+                {hasFilters
+                  ? 'Clear filters'
+                  : filters.status === 'ARCHIVED'
+                    ? 'Back to active quests'
+                    : 'Create your first quest'}
+                <ArrowRight size={15} />
+              </button>
+            </div>
+          )}
+          {data && !query.isError && data.pagination.pages > 1 && (
+            <nav className="quest-pagination" aria-label="Quest pages">
+              <button
+                className="button button-outline"
+                disabled={query.isFetching || data.pagination.page <= 1}
+                onClick={() => changeFilters({ page: data.pagination.page - 1 })}
+              >
+                <ArrowLeft size={14} />
+                Previous
+              </button>
+              <span>
+                Page {data.pagination.page} of {data.pagination.pages}
+              </span>
+              <button
+                className="button button-outline"
+                disabled={query.isFetching || data.pagination.page >= data.pagination.pages}
+                onClick={() => changeFilters({ page: data.pagination.page + 1 })}
+              >
+                Next
+                <ArrowRight size={14} />
+              </button>
+            </nav>
+          )}
+          <div className="journal-footnote">
+            <CalendarDays size={14} />
+            <span>
+              Dates follow {summary.data?.timezone?.replaceAll('_', ' ') || 'your account timezone'}
+              . Completion & rewards open in the next chapter.
+            </span>
+          </div>
+        </section>
+        <aside className="journal-inspiration" aria-label="Quest inspiration">
+          <section className="panel inspiration-panel">
+            <span className="eyebrow">A SPARK TO GET STARTED</span>
+            <h2>
+              Borrow a little
+              <br /> <em>inspiration.</em>
+            </h2>
+            <p>Make an idea your own. You choose what finds a place in your journal.</p>
+            <div className="inspiration-list">
+              {sampleQuests.map((item) => (
+                <div className={`inspiration-item ${item.attribute.toLowerCase()}`} key={item.id}>
+                  <AttributeIcon attribute={item.attribute} size={22} />
+                  <h3>{item.title}</h3>
+                  <p>{item.detail}</p>
+                  <button
+                    className="text-link"
+                    onClick={() =>
+                      setEditor({
+                        template: {
+                          title: item.title,
+                          description: item.detail,
+                          attribute: item.attribute,
+                          difficulty: item.difficulty.toUpperCase(),
+                          estimatedMinutes: Number.parseInt(item.duration, 10),
+                        },
+                      })
+                    }
+                  >
+                    Use this idea
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+          <div className="journal-quote">
+            <span>✦</span>
+            <p>
+              Start smaller than you think.
+              <br />
+              Begin sooner than you planned.
+            </p>
+            <small>ONE STEP IS ENOUGH FOR TODAY</small>
+          </div>
+        </aside>
       </div>
+      {editor && <QuestEditor {...editor} onClose={closeEditor} onSaved={saved} />}
+      {detailId && (
+        <QuestDetails
+          id={detailId}
+          onClose={closeDetails}
+          onEdit={(quest) => {
+            closeDetails()
+            setEditor({ quest })
+          }}
+          onChanged={(message) => {
+            closeDetails()
+            setNotice(message)
+          }}
+        />
+      )}
     </div>
   )
 }

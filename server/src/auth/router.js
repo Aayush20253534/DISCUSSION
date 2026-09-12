@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { Router } from 'express'
 import { rateLimit } from 'express-rate-limit'
 import { ATTRIBUTES, signupSchema, loginSchema, onboardingSchema } from '@life-rpg/shared'
+import { createAuthentication } from './middleware.js'
 import { AppError, validate } from '../lib/errors.js'
 import {
   createSecurity,
@@ -10,7 +11,6 @@ import {
   hashToken,
   newRefreshToken,
   refreshSessionId,
-  verifyAccess,
 } from './security.js'
 
 // An explicit allowlist prevents password hashes and refresh hashes entering responses.
@@ -36,6 +36,11 @@ export function createAccountRouter({ config, database }) {
   const router = Router()
   const security = createSecurity(config)
   const db = database.prisma
+  const { requireConfigured, sessionFromAccess, requireAuth } = createAuthentication({
+    config,
+    database,
+    security,
+  })
   router.use((req, _res, next) => {
     if (!/^\/(auth|me)(\/|$)/.test(req.path)) return next('router')
     next()
@@ -51,16 +56,7 @@ export function createAccountRouter({ config, database }) {
     }
     next()
   })
-  router.use((_req, _res, next) => {
-    if (!config.JWT_SECRET || !database.configured || !db) {
-      throw new AppError(
-        503,
-        'AUTH_NOT_CONFIGURED',
-        'Accounts are not configured yet. Please try again later.',
-      )
-    }
-    next()
-  })
+  router.use(requireConfigured)
   function limiter(limit, skipSuccessfulRequests = false) {
     return rateLimit({
       windowMs: 15 * 60000,
@@ -71,23 +67,6 @@ export function createAccountRouter({ config, database }) {
       handler: (_req, _res, next) =>
         next(new AppError(429, 'AUTH_RATE_LIMITED', 'Too many attempts. Try again in 15 minutes.')),
     })
-  }
-  async function sessionFromAccess(req) {
-    const payload = verifyAccess(config, req.cookies[security.names.access])
-    if (!payload) return null
-    return db.session.findFirst({
-      where: {
-        id: payload.sid,
-        userId: payload.sub,
-        expiresAt: { gt: new Date() },
-      },
-    })
-  }
-  async function requireAuth(req, _res, next) {
-    const session = await sessionFromAccess(req)
-    if (!session) throw unauthorized()
-    req.auth = { userId: session.userId, sessionId: session.id }
-    next()
   }
   const getUser = (id, transaction = db) =>
     transaction.user.findUnique({ where: { id }, select: publicSelect })

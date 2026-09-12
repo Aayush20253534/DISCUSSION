@@ -1,6 +1,7 @@
-import { ArrowRight, Coins, Compass, Sparkles, BookOpen } from 'lucide-react'
+import { ArrowRight, Coins, Compass, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ATTRIBUTES } from '@life-rpg/shared'
+import DashboardQuests from '../quests/DashboardQuests.jsx'
 import { useAuth } from '../auth/useAuth.js'
 import Landscape from './Landscape.jsx'
 import Portrait from './Portrait.jsx'
@@ -21,11 +22,11 @@ export default function PersonalDashboard() {
         description={`Welcome, ${user.displayName}. Make a little room for the person you want to become.`}
       >
         <span className="chapter-badge">
-          <Compass size={16} /> CHAPTER 02 <span>·</span> YOUR ADVENTURE
+          <Compass size={16} /> CHAPTER 03 <span>·</span> YOUR ADVENTURE
         </span>
       </PageHeading>
       <div className="account-welcome">
-        <Sparkles size={17} /> Your character is saved. A whole adventure lies ahead.
+        <Sparkles size={17} /> Your journal is open. Make a little room for what matters.
       </div>
       <div className="hero-grid">
         <section className="adventure-hero">
@@ -44,13 +45,13 @@ export default function PersonalDashboard() {
               <br />
               Start with a little curiosity, and keep going.
             </p>
-            <Link className="button button-gold" to="/character">
-              Meet your character <ArrowRight size={17} />
+            <Link className="button button-gold" to="/quests?new=1">
+              Create a quest <ArrowRight size={17} />
             </Link>
           </div>
           <div className="hero-coordinate">
             <span>THE EVERGREEN TRAIL</span>
-            <span>02 / ∞</span>
+            <span>03 / ∞</span>
           </div>
         </section>
         <section className="character-card panel">
@@ -69,7 +70,9 @@ export default function PersonalDashboard() {
               <strong>{character.totalXp}</strong> total XP
             </span>
           </div>
-          <p className="field-hint">Your journey begins here. Earning XP opens with quests.</p>
+          <p className="field-hint">
+            Your journey begins here. Quest completion and XP rewards open next.
+          </p>
           <Link className="character-link" to="/settings">
             Your account & preferences <ArrowRight size={16} />
           </Link>
@@ -109,26 +112,7 @@ export default function PersonalDashboard() {
         </div>
       </div>
       <div className="lower-grid">
-        <section className="panel quest-panel">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">MAKE ROOM FOR WHAT MATTERS</span>
-              <h2>A fresh page in your journal</h2>
-            </div>
-            <BookOpen size={22} className="green" />
-          </div>
-          <div className="empty-state">
-            <Compass size={32} />
-            <h2>Your first quest is ahead.</h2>
-            <p>
-              Creating and completing quests opens in the next chapter. For now, explore a few ideas
-              for your everyday adventure.
-            </p>
-            <Link className="button button-outline" to="/quests">
-              Explore quest inspiration <ArrowRight size={16} />
-            </Link>
-          </div>
-        </section>
+        <DashboardQuests />
         <section className="panel attributes-panel">
           <div className="section-heading">
             <div>

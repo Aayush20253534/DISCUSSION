@@ -8,6 +8,7 @@ import { rateLimit } from 'express-rate-limit'
 import { APP_NAME, API_PREFIX, ATTRIBUTES, worldSchema } from '@life-rpg/shared'
 import { log } from './lib/logger.js'
 import { AppError } from './lib/errors.js'
+import { createQuestRouter } from './quests/router.js'
 import { createAccountRouter } from './auth/router.js'
 
 export function createApp({ config, database, staticDirectory, logger = log }) {
@@ -96,13 +97,14 @@ export function createApp({ config, database, staticDirectory, logger = log }) {
     res.json({
       data: worldSchema.parse({
         name: APP_NAME,
-        stage: 'accounts',
+        stage: 'quests',
         accountsAvailable: Boolean(config.JWT_SECRET && database.configured),
         attributes: ATTRIBUTES,
       }),
     })
   })
   app.use(API_PREFIX, createAccountRouter({ config, database }))
+  app.use(`${API_PREFIX}/quests`, createQuestRouter({ config, database }))
   // Unknown API routes must never return the SPA's HTML.
   app.use('/api', (req, res) =>
     res.status(404).json({

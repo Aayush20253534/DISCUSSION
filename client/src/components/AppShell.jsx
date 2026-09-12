@@ -210,9 +210,9 @@ export default function AppShell({ gentleMotion, setGentleMotion }) {
           </li>
         </ol>
         <div className="modal-note">
-          Create an account and choose your character to begin. Quest creation, earned XP, streaks,
-          and purchases will arrive in the next chapters. Preview examples do not change your
-          progress.
+          Create an account and choose your character to begin. Quest completion, earned XP,
+          streaks, and purchases will arrive in the next chapters. Preview examples do not change
+          your progress.
         </div>
         <button className="button button-gold full-width" onClick={() => setGuideOpen(false)}>
           Let’s explore <Compass size={16} />

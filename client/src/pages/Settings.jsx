@@ -141,7 +141,7 @@ export default function Settings() {
             <p>
               {world.isError
                 ? 'You can try connecting again. Your saved account stays in your database.'
-                : 'Your account and character are saved. Quest creation opens in the next chapter.'}
+                : 'Your account and character are saved. Your quest journal is ready for your next small step.'}
             </p>
           </div>
           <button

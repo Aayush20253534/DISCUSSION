@@ -277,3 +277,73 @@ test('Gemini verifier sends inline image data and validates structured output co
   assert.equal(cautious.verdict, 'UNCLEAR')
   assert.match(cautious.concerns[0], /minimum confidence/i)
 })
+
+test('Gemini provider failures log actionable error details without logging secrets or image data', async () => {
+  const entries = []
+  const secretApiKey = 'test-gemini-key-that-must-not-be-logged'
+  const secretImageData = 'private-image-payload-'.repeat(20)
+  const errorConfig = {
+    ...config,
+    GEMINI_API_KEY: secretApiKey,
+  }
+
+  await assert.rejects(
+    () =>
+      verifyQuestEvidence({
+        config: errorConfig,
+        quest: {
+          title: 'Solve graph problems',
+          description: 'Finish five graph problems.',
+          attribute: 'INTELLECT',
+          difficulty: 'HARD',
+          recurrence: 'ONCE',
+          estimatedMinutes: 90,
+          dueDate: null,
+        },
+        image: { mimeType: 'image/webp', data: secretImageData },
+        fetchImpl: async () => ({
+          ok: false,
+          status: 400,
+          statusText: 'Bad Request',
+          headers: {
+            get: (name) =>
+              name.toLowerCase() === 'content-type' ? 'application/json; charset=UTF-8' : null,
+          },
+          json: async () => ({
+            error: {
+              code: 400,
+              message: 'API key not valid. Please pass a valid API key.',
+              status: 'INVALID_ARGUMENT',
+              details: [
+                {
+                  '@type': 'type.googleapis.com/google.rpc.ErrorInfo',
+                  reason: 'API_KEY_INVALID',
+                  domain: 'googleapis.com',
+                  metadata: { service: 'generativelanguage.googleapis.com' },
+                },
+              ],
+            },
+          }),
+        }),
+        logger: (level, event, details) => entries.push({ level, event, ...details }),
+      }),
+    (error) => error?.code === 'AI_UNAVAILABLE' && error?.status === 503,
+  )
+
+  const failure = entries.find((entry) => entry.event === 'ai.quest_verification_provider_failed')
+  assert.ok(failure)
+  assert.equal(failure.provider, 'gemini')
+  assert.equal(failure.model, 'gemini-2.5-flash')
+  assert.equal(failure.status, 400)
+  assert.equal(failure.providerCode, 400)
+  assert.equal(failure.providerStatus, 'INVALID_ARGUMENT')
+  assert.equal(failure.providerReason, 'API_KEY_INVALID')
+  assert.equal(failure.providerDomain, 'googleapis.com')
+  assert.match(failure.message, /API key not valid/i)
+  assert.equal(failure.imageMimeType, 'image/webp')
+  assert.equal(failure.imageBase64Chars, secretImageData.length)
+
+  const serialized = JSON.stringify(entries)
+  assert.equal(serialized.includes(secretApiKey), false)
+  assert.equal(serialized.includes(secretImageData), false)
+})

@@ -127,7 +127,14 @@ export async function verifyQuestEvidence({
   } catch (error) {
     logger('warn', 'ai.quest_verification_provider_failed', {
       provider: 'gemini',
+      model: config.GEMINI_VERIFICATION_MODEL,
       reason: error?.name === 'TimeoutError' ? 'timeout' : 'network',
+      errorName: error?.name,
+      errorCode: error?.code,
+      message: error?.message,
+      requestTimeoutMs: config.AI_REQUEST_TIMEOUT_MS,
+      imageMimeType: image.mimeType,
+      imageBase64Chars: image.data?.length,
     })
     throw new AppError(
       503,
@@ -141,22 +148,58 @@ export async function verifyQuestEvidence({
   let body
   try {
     body = await response.json()
-  } catch {
+  } catch (error) {
+    logger('warn', 'ai.quest_verification_provider_failed', {
+      provider: 'gemini',
+      model: config.GEMINI_VERIFICATION_MODEL,
+      status: response.status,
+      statusText: response.statusText || undefined,
+      contentType: response.headers?.get?.('content-type') || undefined,
+      reason: 'unreadable_response',
+      errorName: error?.name,
+      message: error?.message,
+    })
     throw new AppError(503, 'AI_UNAVAILABLE', 'Gemini returned an unreadable response.')
   }
   if (!response.ok) {
+    const providerError = body?.error
+    const providerDetail = Array.isArray(providerError?.details)
+      ? providerError.details.find((detail) => detail && typeof detail === 'object' && detail.reason)
+      : undefined
+
     logger('warn', 'ai.quest_verification_provider_failed', {
       provider: 'gemini',
+      model: config.GEMINI_VERIFICATION_MODEL,
       status: response.status,
+      statusText: response.statusText || undefined,
+      providerCode: providerError?.code,
+      providerStatus: providerError?.status,
+      providerReason: providerDetail?.reason,
+      providerDomain: providerDetail?.domain,
+      message: providerError?.message,
+      contentType: response.headers?.get?.('content-type') || undefined,
+      imageMimeType: image.mimeType,
+      imageBase64Chars: image.data?.length,
     })
     throw new AppError(503, 'AI_UNAVAILABLE', 'Gemini could not inspect the evidence right now.')
   }
 
-  const text = body?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('')
+  const candidate = body?.candidates?.[0]
+  const text = candidate?.content?.parts?.map((part) => part.text || '').join('')
   let parsed
   try {
     parsed = questVerificationResultSchema.parse(cleanJson(text))
-  } catch {
+  } catch (error) {
+    logger('warn', 'ai.quest_verification_invalid_response', {
+      provider: 'gemini',
+      model: config.GEMINI_VERIFICATION_MODEL,
+      finishReason: candidate?.finishReason,
+      candidateCount: Array.isArray(body?.candidates) ? body.candidates.length : 0,
+      hasText: Boolean(text),
+      textChars: text?.length || 0,
+      errorName: error?.name,
+      message: error?.message,
+    })
     throw new AppError(503, 'AI_INVALID_RESPONSE', 'Gemini returned an invalid verification result.')
   }
   const conservative =

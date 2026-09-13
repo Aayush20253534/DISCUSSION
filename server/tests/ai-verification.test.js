@@ -12,6 +12,7 @@ const origin = 'http://localhost:5173'
 const config = parseEnv({
   NODE_ENV: 'test',
   JWT_SECRET: 'ai-verification-test-secret-'.repeat(4),
+  GROQ_API_KEY: 'test-groq-key',
   GEMINI_API_KEY: 'test-gemini-key',
 })
 let database, app, mailer, verificationResult
@@ -34,8 +35,8 @@ beforeEach(async () => {
     summary: 'The image contains specific evidence matching the quest.',
     evidence: ['Relevant finished work is visible.'],
     concerns: [],
-    provider: 'gemini',
-    model: 'test-gemini',
+    provider: 'groq',
+    model: 'test-groq',
   }
   app = createApp({
     config,
@@ -89,19 +90,25 @@ async function quest(client) {
 
 const image = { mimeType: 'image/webp', data: 'a'.repeat(100) }
 
-test('Gemini image verification has a longer timeout than text-only AI requests', () => {
+test('AI image verification reserves a bounded Groq-first fallback budget', () => {
   assert.equal(config.AI_REQUEST_TIMEOUT_MS, 12000)
+  assert.equal(config.GROQ_VERIFICATION_TIMEOUT_MS, 12000)
   assert.equal(config.GEMINI_VERIFICATION_TIMEOUT_MS, 30000)
-  assert.equal(config.GEMINI_VERIFICATION_FALLBACK_MODEL, 'gemini-2.5-flash')
-  assert.ok(config.GEMINI_VERIFICATION_TIMEOUT_MS > config.AI_REQUEST_TIMEOUT_MS)
+  assert.equal(config.QUEST_VERIFICATION_TIMEOUT_MS, 30000)
+  assert.equal(config.GROQ_VERIFICATION_MODEL, 'qwen/qwen3.8-27b')
+  assert.ok(config.QUEST_VERIFICATION_TIMEOUT_MS > config.GROQ_VERIFICATION_TIMEOUT_MS)
 })
 
-test('Gemini verification status is exposed only from server configuration', async () => {
+test('AI verification status exposes Groq as primary without leaking provider keys', async () => {
   const client = await actor()
   const response = await client.agent.get('/api/v1/ai/quest-verification/status').expect(200)
   assert.equal(response.body.data.available, true)
-  assert.equal(response.body.data.model, 'gemini-2.5-flash-lite')
-  assert.equal(JSON.stringify(response.body).includes('test-gemini-key'), false)
+  assert.equal(response.body.data.provider, 'groq')
+  assert.equal(response.body.data.model, 'qwen/qwen3.8-27b')
+  assert.deepEqual(response.body.data.providers, ['groq', 'gemini'])
+  const serialized = JSON.stringify(response.body)
+  assert.equal(serialized.includes('test-groq-key'), false)
+  assert.equal(serialized.includes('test-gemini-key'), false)
 })
 
 test('verified evidence creates a short-lived completion token and persists an AI verified receipt', async () => {
@@ -199,7 +206,7 @@ test('tampered or mismatched verification tokens never mark a completion as veri
 })
 
 
-test('Gemini verifier sends inline image data and validates structured output conservatively', async () => {
+test('Groq verifier sends base64 vision input with strict structured output and no reasoning', async () => {
   let requestBody
   const result = await verifyQuestEvidence({
     config,
@@ -213,26 +220,24 @@ test('Gemini verifier sends inline image data and validates structured output co
       dueDate: null,
     },
     image,
-    fetchImpl: async (_url, options) => {
+    fetchImpl: async (url, options) => {
+      assert.match(url, /api\.groq\.com\/openai\/v1\/chat\/completions/)
       requestBody = JSON.parse(options.body)
       return {
         ok: true,
         status: 200,
         json: async () => ({
-          candidates: [
+          choices: [
             {
-              content: {
-                parts: [
-                  {
-                    text: JSON.stringify({
-                      verdict: 'VERIFIED',
-                      confidence: 91,
-                      summary: 'Finished graph solutions are clearly visible.',
-                      evidence: ['Five completed graph solutions are visible.'],
-                      concerns: [],
-                    }),
-                  },
-                ],
+              finish_reason: 'stop',
+              message: {
+                content: JSON.stringify({
+                  verdict: 'VERIFIED',
+                  confidence: 91,
+                  summary: 'Finished graph solutions are clearly visible.',
+                  evidence: ['Five completed graph solutions are visible.'],
+                  concerns: [],
+                }),
               },
             },
           ],
@@ -240,12 +245,18 @@ test('Gemini verifier sends inline image data and validates structured output co
       }
     },
   })
+
   assert.equal(result.verdict, 'VERIFIED')
-  assert.equal(requestBody.contents[0].parts[1].inlineData.mimeType, 'image/webp')
-  assert.equal(requestBody.contents[0].parts[1].inlineData.data, image.data)
-  assert.equal(requestBody.generationConfig.responseMimeType, 'application/json')
-  assert.equal(requestBody.generationConfig.maxOutputTokens, 400)
-  assert.equal(requestBody.generationConfig.thinkingConfig.thinkingBudget, 0)
+  assert.equal(result.provider, 'groq')
+  assert.equal(result.model, 'qwen/qwen3.8-27b')
+  assert.equal(requestBody.model, 'qwen/qwen3.8-27b')
+  assert.equal(requestBody.reasoning_effort, 'none')
+  assert.equal(requestBody.max_completion_tokens, 400)
+  assert.equal(requestBody.response_format.type, 'json_schema')
+  assert.equal(requestBody.response_format.json_schema.strict, true)
+  assert.equal(requestBody.response_format.json_schema.schema.additionalProperties, false)
+  const imagePart = requestBody.messages[0].content.find((part) => part.type === 'image_url')
+  assert.equal(imagePart.image_url.url, `data:image/webp;base64,${image.data}`)
 
   const cautious = await verifyQuestEvidence({
     config,
@@ -263,20 +274,17 @@ test('Gemini verifier sends inline image data and validates structured output co
       ok: true,
       status: 200,
       json: async () => ({
-        candidates: [
+        choices: [
           {
-            content: {
-              parts: [
-                {
-                  text: JSON.stringify({
-                    verdict: 'VERIFIED',
-                    confidence: 61,
-                    summary: 'The evidence is somewhat relevant.',
-                    evidence: ['Some graph notes are visible.'],
-                    concerns: [],
-                  }),
-                },
-              ],
+            finish_reason: 'stop',
+            message: {
+              content: JSON.stringify({
+                verdict: 'VERIFIED',
+                confidence: 61,
+                summary: 'The evidence is somewhat relevant.',
+                evidence: ['Some graph notes are visible.'],
+                concerns: [],
+              }),
             },
           },
         ],
@@ -287,9 +295,10 @@ test('Gemini verifier sends inline image data and validates structured output co
   assert.match(cautious.concerns[0], /minimum confidence/i)
 })
 
-test('Gemini verification falls back from transient model overload without exceeding the request flow', async () => {
+test('Groq verification falls back to Gemini when the primary vision provider is unavailable', async () => {
   const entries = []
   const urls = []
+  const bodies = []
   let calls = 0
 
   const result = await verifyQuestEvidence({
@@ -305,8 +314,9 @@ test('Gemini verification falls back from transient model overload without excee
     },
     image,
     sleepImpl: async () => {},
-    fetchImpl: async (url) => {
+    fetchImpl: async (url, options) => {
       urls.push(url)
+      bodies.push(JSON.parse(options.body))
       calls += 1
       if (calls === 1) {
         return {
@@ -316,9 +326,9 @@ test('Gemini verification falls back from transient model overload without excee
           headers: { get: () => 'application/json; charset=UTF-8' },
           json: async () => ({
             error: {
-              code: 503,
-              status: 'UNAVAILABLE',
-              message: 'This model is currently experiencing high demand.',
+              code: 'service_unavailable',
+              type: 'server_error',
+              message: 'Groq vision is temporarily unavailable.',
             },
           }),
         }
@@ -336,7 +346,7 @@ test('Gemini verification falls back from transient model overload without excee
                     text: JSON.stringify({
                       verdict: 'VERIFIED',
                       confidence: 93,
-                      summary: 'The fallback model found relevant completion evidence.',
+                      summary: 'The Gemini fallback found relevant completion evidence.',
                       evidence: ['Completed graph work is visible.'],
                       concerns: [],
                     }),
@@ -352,20 +362,25 @@ test('Gemini verification falls back from transient model overload without excee
   })
 
   assert.equal(calls, 2)
-  assert.match(urls[0], /gemini-2\.5-flash-lite/)
-  assert.match(urls[1], /gemini-2\.5-flash/)
+  assert.match(urls[0], /api\.groq\.com/)
+  assert.match(urls[1], /gemini-2\.5-flash-lite/)
+  assert.equal(bodies[0].model, 'qwen/qwen3.8-27b')
+  assert.equal(bodies[1].generationConfig.thinkingConfig.thinkingBudget, 0)
   assert.equal(result.verdict, 'VERIFIED')
-  assert.equal(result.model, 'gemini-2.5-flash')
+  assert.equal(result.provider, 'gemini')
+  assert.equal(result.model, 'gemini-2.5-flash-lite')
 
   const retry = entries.find((entry) => entry.event === 'ai.quest_verification_provider_retry')
   assert.ok(retry)
+  assert.equal(retry.provider, 'groq')
   assert.equal(retry.status, 503)
-  assert.equal(retry.providerStatus, 'UNAVAILABLE')
-  assert.equal(retry.fallbackModel, 'gemini-2.5-flash')
+  assert.equal(retry.fallbackProvider, 'gemini')
+  assert.equal(retry.fallbackModel, 'gemini-2.5-flash-lite')
 
   const recovered = entries.find((entry) => entry.event === 'ai.quest_verification_fallback_succeeded')
   assert.ok(recovered)
-  assert.equal(recovered.model, 'gemini-2.5-flash')
+  assert.equal(recovered.provider, 'gemini')
+  assert.equal(recovered.primaryProvider, 'groq')
 })
 
 test('Gemini provider failures log actionable error details without logging secrets or image data', async () => {
@@ -374,6 +389,7 @@ test('Gemini provider failures log actionable error details without logging secr
   const secretImageData = 'private-image-payload-'.repeat(20)
   const errorConfig = {
     ...config,
+    GROQ_API_KEY: undefined,
     GEMINI_API_KEY: secretApiKey,
   }
 

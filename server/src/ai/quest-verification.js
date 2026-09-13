@@ -22,10 +22,20 @@ const verificationSchema = {
   required: ['verdict', 'confidence', 'summary', 'evidence', 'concerns'],
 }
 
-class ProviderError extends Error {
-  constructor(message, status) {
+const groqVerificationSchema = {
+  ...verificationSchema,
+  additionalProperties: false,
+}
+
+const transientStatuses = new Set([408, 429, 500, 502, 503, 504])
+
+class ProviderFailure extends Error {
+  constructor(provider, model, message, details = {}) {
     super(message)
-    this.status = status
+    this.name = 'ProviderFailure'
+    this.provider = provider
+    this.model = model
+    Object.assign(this, details)
   }
 }
 
@@ -65,29 +75,297 @@ function userPrompt(quest) {
   })
 }
 
-function cleanJson(text) {
+function cleanJson(text, provider) {
   const trimmed = String(text || '').trim()
-  if (!trimmed) throw new ProviderError('Gemini returned an empty verification response.')
+  if (!trimmed) throw new Error(`${provider} returned an empty verification response.`)
   return JSON.parse(trimmed.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim())
 }
 
+function verificationProviders(config) {
+  const providers = []
+
+  // Prefer Groq's multimodal Qwen path for interactive latency. Gemini remains a
+  // provider-independent fallback when Groq is unavailable, throttled, or times out.
+  if (config.GROQ_API_KEY) {
+    providers.push({ provider: 'groq', model: config.GROQ_VERIFICATION_MODEL })
+    if (config.GEMINI_API_KEY)
+      providers.push({ provider: 'gemini', model: config.GEMINI_VERIFICATION_MODEL })
+    return providers
+  }
+
+  if (config.GEMINI_API_KEY) {
+    providers.push({ provider: 'gemini', model: config.GEMINI_VERIFICATION_MODEL })
+    if (
+      config.GEMINI_VERIFICATION_FALLBACK_MODEL &&
+      config.GEMINI_VERIFICATION_FALLBACK_MODEL !== config.GEMINI_VERIFICATION_MODEL
+    )
+      providers.push({
+        provider: 'gemini',
+        model: config.GEMINI_VERIFICATION_FALLBACK_MODEL,
+      })
+  }
+
+  return providers
+}
+
 export function questVerificationAvailability(config) {
+  const providers = verificationProviders(config)
+  const primary = providers[0]
   return {
-    available: Boolean(config.GEMINI_API_KEY),
-    model: config.GEMINI_VERIFICATION_MODEL,
+    available: providers.length > 0,
+    provider: primary?.provider || null,
+    model: primary?.model || null,
+    providers: [...new Set(providers.map((entry) => entry.provider))],
   }
 }
 
-const transientStatuses = new Set([408, 429, 500, 502, 503, 504])
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-function verificationModels(config) {
-  const models = [config.GEMINI_VERIFICATION_MODEL]
-  const fallback = config.GEMINI_VERIFICATION_FALLBACK_MODEL
-  if (fallback && fallback !== models[0]) models.push(fallback)
-  return models
+function attemptTimeout(config, provider, remainingMs) {
+  if (provider === 'groq') return Math.min(config.GROQ_VERIFICATION_TIMEOUT_MS, remainingMs)
+  return Math.min(config.GEMINI_VERIFICATION_TIMEOUT_MS, 16000, remainingMs)
 }
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+function providerRequest({ provider, model, config, quest, image }) {
+  if (provider === 'groq') {
+    const instructions = `${systemPrompt()}\n\nQuest evidence request:\n${userPrompt(quest)}`
+    return {
+      url: 'https://api.groq.com/openai/v1/chat/completions',
+      options: {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${config.GROQ_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          temperature: 0.1,
+          reasoning_effort: 'none',
+          max_completion_tokens: 400,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: instructions },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:${image.mimeType};base64,${image.data}`,
+                  },
+                },
+              ],
+            },
+          ],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              name: 'life_rpg_quest_verification',
+              strict: true,
+              schema: groqVerificationSchema,
+            },
+          },
+        }),
+      },
+    }
+  }
+
+  return {
+    url: `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+    options: {
+      method: 'POST',
+      headers: {
+        'x-goog-api-key': config.GEMINI_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt() }] },
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: userPrompt(quest) },
+              { inlineData: { mimeType: image.mimeType, data: image.data } },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 400,
+          thinkingConfig: { thinkingBudget: 0 },
+          responseMimeType: 'application/json',
+          responseSchema: verificationSchema,
+        },
+      }),
+    },
+  }
+}
+
+function providerText(provider, body) {
+  if (provider === 'groq') return body?.choices?.[0]?.message?.content
+  return body?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('')
+}
+
+function providerResponseMetadata(provider, body) {
+  if (provider === 'groq') {
+    return {
+      finishReason: body?.choices?.[0]?.finish_reason,
+      candidateCount: Array.isArray(body?.choices) ? body.choices.length : 0,
+    }
+  }
+  return {
+    finishReason: body?.candidates?.[0]?.finishReason,
+    candidateCount: Array.isArray(body?.candidates) ? body.candidates.length : 0,
+  }
+}
+
+function providerErrorDetails(provider, body) {
+  const error = body?.error
+  if (provider === 'gemini') {
+    const detail = Array.isArray(error?.details)
+      ? error.details.find((entry) => entry && typeof entry === 'object' && entry.reason)
+      : undefined
+    return {
+      providerCode: error?.code,
+      providerStatus: error?.status,
+      providerReason: detail?.reason,
+      providerDomain: detail?.domain,
+      message: error?.message,
+    }
+  }
+
+  return {
+    providerCode: error?.code,
+    providerStatus: error?.type || error?.status,
+    providerReason: error?.code,
+    message: error?.message || body?.message,
+  }
+}
+
+async function callVerificationProvider({
+  provider,
+  model,
+  config,
+  quest,
+  image,
+  timeoutMs,
+  fetchImpl,
+}) {
+  const request = providerRequest({ provider, model, config, quest, image })
+  let response
+  try {
+    response = await fetchImpl(request.url, {
+      ...request.options,
+      signal: AbortSignal.timeout(timeoutMs),
+    })
+  } catch (error) {
+    const timedOut = error?.name === 'TimeoutError' || error?.name === 'AbortError'
+    throw new ProviderFailure(
+      provider,
+      model,
+      timedOut ? 'The provider request timed out.' : 'The provider network request failed.',
+      {
+        reason: timedOut ? 'timeout' : 'network',
+        errorName: error?.name,
+        errorCode: error?.code,
+        originalMessage: error?.message,
+        attemptTimeoutMs: timeoutMs,
+      },
+    )
+  }
+
+  let body
+  try {
+    body = await response.json()
+  } catch (error) {
+    throw new ProviderFailure(provider, model, 'The provider returned an unreadable response.', {
+      reason: 'unreadable_response',
+      status: response.status,
+      statusText: response.statusText || undefined,
+      contentType: response.headers?.get?.('content-type') || undefined,
+      errorName: error?.name,
+      originalMessage: error?.message,
+    })
+  }
+
+  if (!response.ok) {
+    const details = providerErrorDetails(provider, body)
+    throw new ProviderFailure(provider, model, details.message || 'The provider request failed.', {
+      reason: 'provider_error',
+      status: response.status,
+      statusText: response.statusText || undefined,
+      contentType: response.headers?.get?.('content-type') || undefined,
+      ...details,
+    })
+  }
+
+  const text = providerText(provider, body)
+  const metadata = providerResponseMetadata(provider, body)
+  let parsed
+  try {
+    parsed = questVerificationResultSchema.parse(cleanJson(text, provider))
+  } catch (error) {
+    throw new ProviderFailure(provider, model, 'The provider returned an invalid verification result.', {
+      reason: 'invalid_response',
+      finishReason: metadata.finishReason,
+      candidateCount: metadata.candidateCount,
+      hasText: Boolean(text),
+      textChars: text?.length || 0,
+      errorName: error?.name,
+      originalMessage: error?.message,
+    })
+  }
+
+  const conservative =
+    parsed.verdict === 'VERIFIED' && (parsed.confidence < 75 || parsed.evidence.length === 0)
+      ? {
+          ...parsed,
+          verdict: 'UNCLEAR',
+          concerns: [
+            ...parsed.concerns,
+            'The evidence did not meet the minimum confidence required for a verified completion.',
+          ].slice(0, 4),
+        }
+      : parsed
+
+  return {
+    ...conservative,
+    provider,
+    model,
+  }
+}
+
+function shouldFallback(error, hasNextProvider) {
+  if (!hasNextProvider) return false
+  if (error.provider === 'groq') return true
+  if (['timeout', 'network', 'unreadable_response', 'invalid_response'].includes(error.reason)) return true
+  return transientStatuses.has(error.status)
+}
+
+function logFailure(logger, event, error, image, extra = {}) {
+  logger('warn', event, {
+    provider: error.provider,
+    model: error.model,
+    reason: error.reason,
+    status: error.status,
+    statusText: error.statusText,
+    providerCode: error.providerCode,
+    providerStatus: error.providerStatus,
+    providerReason: error.providerReason,
+    providerDomain: error.providerDomain,
+    contentType: error.contentType,
+    errorName: error.errorName,
+    errorCode: error.errorCode,
+    message: error.originalMessage || error.message,
+    attemptTimeoutMs: error.attemptTimeoutMs,
+    finishReason: error.finishReason,
+    candidateCount: error.candidateCount,
+    hasText: error.hasText,
+    textChars: error.textChars,
+    imageMimeType: image.mimeType,
+    imageBase64Chars: image.data?.length,
+    ...extra,
+  })
+}
 
 export async function verifyQuestEvidence({
   config,
@@ -97,223 +375,91 @@ export async function verifyQuestEvidence({
   logger = () => {},
   sleepImpl = sleep,
 }) {
-  if (!config.GEMINI_API_KEY)
+  const providers = verificationProviders(config)
+  if (!providers.length)
     throw new AppError(
       503,
-      'GEMINI_NOT_CONFIGURED',
-      'Gemini Quest Verification needs GEMINI_API_KEY on the server.',
+      'AI_NOT_CONFIGURED',
+      'Quest Verification needs a Groq or Gemini API key on the server.',
     )
 
-  const requestBody = JSON.stringify({
-    systemInstruction: { parts: [{ text: systemPrompt() }] },
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          { text: userPrompt(quest) },
-          { inlineData: { mimeType: image.mimeType, data: image.data } },
-        ],
-      },
-    ],
-    generationConfig: {
-      temperature: 0.1,
-      // Verification is a small classification response. Flash 2.5 models
-      // otherwise spend time on internal thinking that is unnecessary here.
-      maxOutputTokens: 400,
-      thinkingConfig: { thinkingBudget: 0 },
-      responseMimeType: 'application/json',
-      responseSchema: verificationSchema,
-    },
-  })
-
-  const models = verificationModels(config)
-  const deadline = Date.now() + config.GEMINI_VERIFICATION_TIMEOUT_MS
+  const deadline = Date.now() + config.QUEST_VERIFICATION_TIMEOUT_MS
   let finalFailure
 
-  for (let index = 0; index < models.length; index += 1) {
-    const model = models[index]
+  for (let index = 0; index < providers.length; index += 1) {
+    const current = providers[index]
     const remainingMs = deadline - Date.now()
     if (remainingMs < 1000) break
 
-    // Keep the complete primary+fallback flow inside GEMINI_VERIFICATION_TIMEOUT_MS.
-    // One overloaded model therefore cannot consume the entire user-facing request budget.
-    const attemptTimeoutMs = Math.min(15000, remainingMs)
-    let response
+    const timeoutMs = attemptTimeout(config, current.provider, remainingMs)
     try {
-      response = await fetchImpl(
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-        {
-          method: 'POST',
-          headers: {
-            'x-goog-api-key': config.GEMINI_API_KEY,
-            'Content-Type': 'application/json',
-          },
-          body: requestBody,
-          signal: AbortSignal.timeout(attemptTimeoutMs),
-        },
-      )
-    } catch (error) {
-      const timedOut = error?.name === 'TimeoutError' || error?.name === 'AbortError'
-      finalFailure = {
-        kind: timedOut ? 'timeout' : 'network',
-        model,
-        error,
-        attemptTimeoutMs,
-      }
+      const result = await callVerificationProvider({
+        ...current,
+        config,
+        quest,
+        image,
+        timeoutMs,
+        fetchImpl,
+      })
 
-      const canFallback = index < models.length - 1 && deadline - Date.now() > 1500
+      if (index > 0) {
+        logger('info', 'ai.quest_verification_fallback_succeeded', {
+          provider: result.provider,
+          model: result.model,
+          primaryProvider: providers[0].provider,
+          primaryModel: providers[0].model,
+        })
+      }
+      return result
+    } catch (error) {
+      const failure =
+        error instanceof ProviderFailure
+          ? error
+          : new ProviderFailure(current.provider, current.model, 'Unexpected provider failure.', {
+              reason: 'unexpected',
+              errorName: error?.name,
+              originalMessage: error?.message,
+              attemptTimeoutMs: timeoutMs,
+            })
+      finalFailure = failure
+
+      const next = providers[index + 1]
+      const canFallback = shouldFallback(failure, Boolean(next)) && deadline - Date.now() > 1500
       if (canFallback) {
-        const delayMs = Math.min(700 + Math.floor(Math.random() * 400), deadline - Date.now() - 1000)
-        logger('warn', 'ai.quest_verification_provider_retry', {
-          provider: 'gemini',
-          model,
-          fallbackModel: models[index + 1],
-          reason: finalFailure.kind,
-          message: error?.message,
-          attemptTimeoutMs,
+        const delayMs = Math.min(350 + Math.floor(Math.random() * 300), deadline - Date.now() - 1000)
+        logFailure(logger, 'ai.quest_verification_provider_retry', failure, image, {
+          fallbackProvider: next.provider,
+          fallbackModel: next.model,
           delayMs,
         })
         if (delayMs > 0) await sleepImpl(delayMs)
         continue
       }
 
-      logger('warn', 'ai.quest_verification_provider_failed', {
-        provider: 'gemini',
-        model,
-        reason: finalFailure.kind,
-        errorName: error?.name,
-        errorCode: error?.code,
-        message: error?.message,
-        requestTimeoutMs: config.GEMINI_VERIFICATION_TIMEOUT_MS,
-        attemptTimeoutMs,
-        imageMimeType: image.mimeType,
-        imageBase64Chars: image.data?.length,
+      logFailure(logger, 'ai.quest_verification_provider_failed', failure, image, {
+        requestTimeoutMs: config.QUEST_VERIFICATION_TIMEOUT_MS,
       })
       throw new AppError(
         503,
-        'AI_UNAVAILABLE',
-        timedOut
-          ? 'Gemini took too long to inspect the evidence. Try again.'
-          : 'Gemini could not inspect the evidence right now. Try again.',
+        failure.reason === 'invalid_response' ? 'AI_INVALID_RESPONSE' : 'AI_UNAVAILABLE',
+        failure.reason === 'timeout'
+          ? 'AI evidence verification took too long. Try again.'
+          : 'AI evidence verification is temporarily unavailable. Try again.',
       )
-    }
-
-    let body
-    try {
-      body = await response.json()
-    } catch (error) {
-      logger('warn', 'ai.quest_verification_provider_failed', {
-        provider: 'gemini',
-        model,
-        status: response.status,
-        statusText: response.statusText || undefined,
-        contentType: response.headers?.get?.('content-type') || undefined,
-        reason: 'unreadable_response',
-        errorName: error?.name,
-        message: error?.message,
-      })
-      throw new AppError(503, 'AI_UNAVAILABLE', 'Gemini returned an unreadable response.')
-    }
-
-    if (!response.ok) {
-      const providerError = body?.error
-      const providerDetail = Array.isArray(providerError?.details)
-        ? providerError.details.find((detail) => detail && typeof detail === 'object' && detail.reason)
-        : undefined
-      const transient = transientStatuses.has(response.status)
-      const canFallback = transient && index < models.length - 1 && deadline - Date.now() > 1500
-
-      if (canFallback) {
-        const delayMs = Math.min(700 + Math.floor(Math.random() * 400), deadline - Date.now() - 1000)
-        logger('warn', 'ai.quest_verification_provider_retry', {
-          provider: 'gemini',
-          model,
-          fallbackModel: models[index + 1],
-          status: response.status,
-          statusText: response.statusText || undefined,
-          providerCode: providerError?.code,
-          providerStatus: providerError?.status,
-          providerReason: providerDetail?.reason,
-          message: providerError?.message,
-          delayMs,
-        })
-        if (delayMs > 0) await sleepImpl(delayMs)
-        continue
-      }
-
-      logger('warn', 'ai.quest_verification_provider_failed', {
-        provider: 'gemini',
-        model,
-        status: response.status,
-        statusText: response.statusText || undefined,
-        providerCode: providerError?.code,
-        providerStatus: providerError?.status,
-        providerReason: providerDetail?.reason,
-        providerDomain: providerDetail?.domain,
-        message: providerError?.message,
-        contentType: response.headers?.get?.('content-type') || undefined,
-        imageMimeType: image.mimeType,
-        imageBase64Chars: image.data?.length,
-      })
-      throw new AppError(503, 'AI_UNAVAILABLE', 'Gemini could not inspect the evidence right now.')
-    }
-
-    const candidate = body?.candidates?.[0]
-    const text = candidate?.content?.parts?.map((part) => part.text || '').join('')
-    let parsed
-    try {
-      parsed = questVerificationResultSchema.parse(cleanJson(text))
-    } catch (error) {
-      logger('warn', 'ai.quest_verification_invalid_response', {
-        provider: 'gemini',
-        model,
-        finishReason: candidate?.finishReason,
-        candidateCount: Array.isArray(body?.candidates) ? body.candidates.length : 0,
-        hasText: Boolean(text),
-        textChars: text?.length || 0,
-        errorName: error?.name,
-        message: error?.message,
-      })
-      throw new AppError(503, 'AI_INVALID_RESPONSE', 'Gemini returned an invalid verification result.')
-    }
-
-    const conservative =
-      parsed.verdict === 'VERIFIED' && (parsed.confidence < 75 || parsed.evidence.length === 0)
-        ? {
-            ...parsed,
-            verdict: 'UNCLEAR',
-            concerns: [
-              ...parsed.concerns,
-              'The evidence did not meet the minimum confidence required for a verified completion.',
-            ].slice(0, 4),
-          }
-        : parsed
-
-    if (index > 0) {
-      logger('info', 'ai.quest_verification_fallback_succeeded', {
-        provider: 'gemini',
-        model,
-        primaryModel: models[0],
-      })
-    }
-
-    return {
-      ...conservative,
-      provider: 'gemini',
-      model,
     }
   }
 
-  logger('warn', 'ai.quest_verification_provider_failed', {
-    provider: 'gemini',
-    model: finalFailure?.model || models.at(-1),
-    reason: finalFailure?.kind || 'timeout_budget_exhausted',
-    message: finalFailure?.error?.message,
-    requestTimeoutMs: config.GEMINI_VERIFICATION_TIMEOUT_MS,
-    imageMimeType: image.mimeType,
-    imageBase64Chars: image.data?.length,
-  })
-  throw new AppError(503, 'AI_UNAVAILABLE', 'Gemini could not inspect the evidence right now. Try again.')
+  if (finalFailure) {
+    logFailure(logger, 'ai.quest_verification_provider_failed', finalFailure, image, {
+      reason: finalFailure.reason || 'timeout_budget_exhausted',
+      requestTimeoutMs: config.QUEST_VERIFICATION_TIMEOUT_MS,
+    })
+  }
+  throw new AppError(
+    503,
+    'AI_UNAVAILABLE',
+    'AI evidence verification is temporarily unavailable. Try again.',
+  )
 }
 
 export function createQuestVerificationToken(config, { userId, questId, revision }) {
@@ -347,7 +493,7 @@ export function verifyQuestVerificationToken(config, token, expected) {
     throw new AppError(
       409,
       'QUEST_VERIFICATION_EXPIRED',
-      'The Gemini verification expired. Verify the evidence again before recording it as verified.',
+      'The AI verification expired. Verify the evidence again before recording it as verified.',
     )
   }
   if (
@@ -359,7 +505,7 @@ export function verifyQuestVerificationToken(config, token, expected) {
     throw new AppError(
       409,
       'QUEST_VERIFICATION_MISMATCH',
-      'The Gemini verification no longer matches this quest version.',
+      'The AI verification no longer matches this quest version.',
     )
   return true
 }

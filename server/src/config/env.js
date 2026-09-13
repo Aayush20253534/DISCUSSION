@@ -101,6 +101,7 @@ const schema = z
       z.string().min(1).optional(),
     ),
     GROQ_QUEST_MODEL: z.string().trim().min(1).max(120).default('openai/gpt-oss-20b'),
+    GROQ_VERIFICATION_MODEL: z.string().trim().min(1).max(120).default('qwen/qwen3.8-27b'),
     GEMINI_QUEST_MODEL: z.string().trim().min(1).max(120).default('gemini-2.5-flash-lite'),
     GEMINI_VERIFICATION_MODEL: z.string().trim().min(1).max(120).default('gemini-2.5-flash-lite'),
     GEMINI_VERIFICATION_FALLBACK_MODEL: z
@@ -109,9 +110,12 @@ const schema = z
       .min(1)
       .max(120)
       .default('gemini-2.5-flash'),
-    // Image verification includes upload + multimodal inference and is routinely slower
-    // than text-only quest generation, so keep it on a separate budget.
+    // Keep the primary Groq vision attempt short enough to preserve time for a provider fallback.
+    GROQ_VERIFICATION_TIMEOUT_MS: z.coerce.number().int().min(3000).max(20000).default(12000),
+    // Gemini remains the fallback path and may need a larger per-request budget.
     GEMINI_VERIFICATION_TIMEOUT_MS: z.coerce.number().int().min(5000).max(60000).default(30000),
+    // Hard cap for the complete Groq -> Gemini verification flow.
+    QUEST_VERIFICATION_TIMEOUT_MS: z.coerce.number().int().min(10000).max(60000).default(30000),
     AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(3000).max(30000).default(12000),
     UPSTASH_REDIS_REST_URL: z.preprocess(
       (value) => (value === '' ? undefined : value),

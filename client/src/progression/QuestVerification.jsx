@@ -126,8 +126,7 @@ export default function QuestVerification({ quest, disabled = false, onVerified 
         `/api/v1/ai/quest-verification/${quest.id}`,
         { revision: quest.revision, image },
         'POST',
-        // Keep the browser budget above the server's Gemini verification budget so
-        // the client does not abort just as the backend is returning a result.
+        // Keep the browser budget above the complete Groq -> Gemini server fallback flow.
         { timeoutMs: 40000 },
       )
       setResult(data)
@@ -141,23 +140,23 @@ export default function QuestVerification({ quest, disabled = false, onVerified 
 
   if (status.isSuccess && !status.data.available)
     return (
-      <section className="quest-verification quest-verification-unavailable" aria-label="Gemini quest verification">
+      <section className="quest-verification quest-verification-unavailable" aria-label="AI quest verification">
         <div className="quest-verification-heading">
           <span className="quest-verification-icon"><Camera size={17} /></span>
           <div>
-            <strong>Gemini evidence check</strong>
-            <p>Add `GEMINI_API_KEY` on the server to enable optional visual proof.</p>
+            <strong>AI evidence check</strong>
+            <p>Add `GROQ_API_KEY` or `GEMINI_API_KEY` on the server to enable optional visual proof.</p>
           </div>
         </div>
       </section>
     )
 
   return (
-    <section className="quest-verification" aria-label="Gemini quest verification">
+    <section className="quest-verification" aria-label="AI quest verification">
       <div className="quest-verification-heading">
         <span className="quest-verification-icon"><Sparkles size={17} /></span>
         <div>
-          <strong>Verify with Gemini</strong>
+          <strong>Verify with AI</strong>
           <p>Optional. Add a photo or screenshot that shows what you completed.</p>
         </div>
         <span className="quest-verification-optional">OPTIONAL</span>
@@ -205,7 +204,7 @@ export default function QuestVerification({ quest, disabled = false, onVerified 
           onClick={verify}
         >
           {verifying ? <LoaderCircle className="spin" size={16} /> : <Camera size={16} />}
-          {verifying ? 'Gemini is inspecting…' : 'Check evidence with Gemini'}
+          {verifying ? 'AI is inspecting…' : 'Check evidence with AI'}
         </button>
       )}
 

@@ -9,6 +9,7 @@ import {
   Pencil,
   RotateCcw,
   Repeat2,
+  ShieldCheck,
 } from 'lucide-react'
 import { QUEST_DIFFICULTIES, formatQuestDate } from '@life-rpg/shared'
 import { AttributeIcon, AttributeTag } from '../components/ui.jsx'
@@ -71,6 +72,11 @@ export default function QuestRow({
                 <CheckCheck size={13} />
                 Done today
               </span>
+              {quest.completion.aiVerified && (
+                <span className="quest-ai-verified">
+                  <ShieldCheck size={13} /> Gemini verified
+                </span>
+              )}
               <span>+{quest.completion.xpAwarded} XP</span>
               <span>
                 <Coins size={13} />+{quest.completion.goldAwarded} gold
@@ -86,6 +92,11 @@ export default function QuestRow({
                 <CheckCheck size={13} />
                 Completed · {formatQuestDate(quest.completion.completedDate)}
               </span>
+              {quest.completion.aiVerified && (
+                <span className="quest-ai-verified">
+                  <ShieldCheck size={13} /> Gemini verified
+                </span>
+              )}
               <span>+{quest.completion.xpAwarded} XP</span>
               <span>
                 <Coins size={13} />+{quest.completion.goldAwarded} gold

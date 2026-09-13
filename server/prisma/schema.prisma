@@ -157,6 +157,7 @@ model QuestCompletion {
   xpAwarded            Int             @map("xp_awarded")
   goldAwarded          Int             @map("gold_awarded")
   attributeXpAwarded   Int             @map("attribute_xp_awarded")
+  aiVerified           Boolean         @default(false) @map("ai_verified")
   rulesVersion         Int             @map("rules_version")
   completedAt          DateTime        @map("completed_at") @db.Timestamptz(3)
   completedDate        DateTime        @map("completed_date") @db.Date

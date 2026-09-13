@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
@@ -9,6 +9,7 @@ import {
   Coins,
   LoaderCircle,
   RefreshCw,
+  ShieldCheck,
   Sparkles,
   X,
 } from 'lucide-react'
@@ -18,6 +19,7 @@ import { apiGet } from '../lib/api.js'
 import { useQuestMutation } from '../quests/hooks.js'
 import ProgressMeter from './ProgressMeter.jsx'
 import RewardPreview from './RewardPreview.jsx'
+import QuestVerification from './QuestVerification.jsx'
 import { useInteractionFeedback } from '../interactions/interaction-context.js'
 import './progression.css'
 
@@ -27,6 +29,9 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
   const [result, setResult] = useState(null)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [verificationToken, setVerificationToken] = useState(null)
+  const [verificationResult, setVerificationResult] = useState(null)
+  const [verificationSession, setVerificationSession] = useState(0)
   const mutation = useQuestMutation()
   const { moving, notify } = useInteractionFeedback()
   const busy = loading || mutation.isPending
@@ -38,6 +43,10 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
   const attribute = ATTRIBUTES.find(
     (item) => item.key === (receipt?.attribute || current.attribute),
   )
+  const handleVerification = useCallback((token, verification) => {
+    setVerificationToken(token)
+    setVerificationResult(verification)
+  }, [])
   async function submit() {
     if (busy || conflict || missing || current.status === 'ARCHIVED' || !current.eligibleToday) return
     setMessage('')
@@ -45,7 +54,10 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
       const data = await mutation.mutateAsync({
         action: 'complete',
         id: current.id,
-        body: { revision: current.revision },
+        body: {
+          revision: current.revision,
+          ...(verificationToken && { verificationToken }),
+        },
       })
       setResult(data)
       if (data.newlyCompleted) {
@@ -66,6 +78,11 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
         contentRef.current?.querySelector('[data-completion-result]')?.focus()
       })
     } catch (error) {
+      if (['QUEST_VERIFICATION_EXPIRED', 'QUEST_VERIFICATION_MISMATCH'].includes(error.code)) {
+        setVerificationToken(null)
+        setVerificationResult(null)
+        setVerificationSession((value) => value + 1)
+      }
       setMessage(error.message)
     }
   }
@@ -74,6 +91,9 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
     try {
       const data = await apiGet(`/api/v1/quests/${current.id}`)
       setCurrent(data.quest)
+      setVerificationToken(null)
+      setVerificationResult(null)
+      setVerificationSession((value) => value + 1)
       mutation.reset()
       setMessage(
         data.quest.status === 'ARCHIVED'
@@ -182,6 +202,12 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
                     : 'This quest was completed earlier. Its rewards were credited once; no extra rewards were added.'}
               </Dialog.Description>
               <p className="completion-quest-title">{receipt.title}</p>
+              {receipt.aiVerified && (
+                <div className="completion-ai-verified">
+                  <ShieldCheck size={16} />
+                  Evidence verified by Gemini
+                </div>
+              )}
               <div className="earned-rewards" aria-label="Recorded rewards">
                 {[
                   { icon: <Sparkles size={20} />, value: `+${receipt.xpAwarded}`, label: 'Experience' },
@@ -237,6 +263,12 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
                 {current.description && <p>{current.description}</p>}
                 <RewardPreview difficulty={current.difficulty} attribute={current.attribute} />
               </div>
+              <QuestVerification
+                key={`${current.id}:${current.revision}:${verificationSession}`}
+                quest={current}
+                disabled={busy || conflict || missing || current.status === 'ARCHIVED' || !current.eligibleToday}
+                onVerified={handleVerification}
+              />
               <p className="completion-note">
                 {daily
                   ? `Rewards are credited once per scheduled day in ${current.scheduleTimezone?.replaceAll('_', ' ') || 'the quest schedule timezone'}. Changing account timezone later cannot reopen the same scheduled day.`
@@ -287,9 +319,13 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
                         ? 'Retry completion'
                         : current.status === 'COMPLETED' || current.completedToday
                           ? 'Already recorded'
-                          : daily
-                            ? 'Record today'
-                            : 'Mark complete'}
+                          : verificationResult?.verdict === 'VERIFIED'
+                            ? daily
+                              ? 'Record verified day'
+                              : 'Record verified quest'
+                            : daily
+                              ? 'Record today'
+                              : 'Mark complete'}
                     </>
                   )}
                 </button>

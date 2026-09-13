@@ -12,6 +12,7 @@ import {
 import { createAuthentication } from '../auth/middleware.js'
 import { createSecurity } from '../auth/security.js'
 import { AppError, validate } from '../lib/errors.js'
+import { verifyQuestVerificationToken } from '../ai/quest-verification.js'
 
 import { questSelect as select, serializeQuest as serialize } from './presentation.js'
 import { completeQuest } from '../progression/complete.js'
@@ -204,12 +205,18 @@ export function createQuestRouter({ config, database, clock = () => new Date() }
   })
   router.post('/:id/complete', security.requireCsrf, async (req, res) => {
     const questId = validate(questIdSchema, req.params.id)
-    const { revision } = validate(questCompleteSchema, req.body)
+    const { revision, verificationToken } = validate(questCompleteSchema, req.body)
+    const aiVerified = verifyQuestVerificationToken(config, verificationToken, {
+      userId: req.auth.userId,
+      questId,
+      revision,
+    })
     const data = await completeQuest(db, {
       userId: req.auth.userId,
       questId,
       revision,
       timezone: req.questTimezone,
+      aiVerified,
       now: req.questNow,
     })
     res.status(data.newlyCompleted ? 201 : 200).json({ data })

@@ -13,6 +13,7 @@ import {
   RefreshCw,
   RotateCcw,
   Repeat2,
+  ShieldCheck,
   Trash2,
   X,
 } from 'lucide-react'
@@ -205,6 +206,11 @@ export default function QuestDetails({ id, onClose, onEdit, onChanged, onComplet
                         +{recorded.xpAwarded} XP · +{recorded.goldAwarded} gold · +
                         {recorded.attributeXpAwarded} attribute XP
                       </p>
+                      {recorded.aiVerified && (
+                        <p className="quest-ai-verified">
+                          <ShieldCheck size={14} /> Evidence verified by Gemini
+                        </p>
+                      )}
                       <small>
                         {quest.recurrence === 'DAILY'
                           ? quest.completedToday

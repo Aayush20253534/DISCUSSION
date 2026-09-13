@@ -51,6 +51,20 @@ export function useQuestMasterStatus() {
   return query
 }
 
+
+export function useQuestVerificationStatus() {
+  const { user } = useAuth()
+  const query = useQuery({
+    queryKey: ['ai', user?.id, 'quest-verification-status'],
+    queryFn: ({ signal }) => apiGet('/api/v1/ai/quest-verification/status', signal),
+    enabled: Boolean(user?.character),
+    staleTime: 300000,
+    retry: false,
+  })
+  useAccountError(query.error)
+  return query
+}
+
 export function useQuestSync() {
   const { user } = useAuth()
   const client = useQueryClient()

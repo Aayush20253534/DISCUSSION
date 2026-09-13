@@ -101,6 +101,7 @@ const schema = z
     ),
     GROQ_QUEST_MODEL: z.string().trim().min(1).max(120).default('openai/gpt-oss-20b'),
     GEMINI_QUEST_MODEL: z.string().trim().min(1).max(120).default('gemini-2.5-flash-lite'),
+    GEMINI_VERIFICATION_MODEL: z.string().trim().min(1).max(120).default('gemini-2.5-flash'),
     AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(3000).max(30000).default(12000),
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
   })

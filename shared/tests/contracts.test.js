@@ -42,3 +42,30 @@ test('account settings contracts keep profile fields bounded and require a genui
     false,
   )
 })
+
+test('AI quest verification contracts bound image input and verdict output', async () => {
+  const { questVerificationRequestSchema, questVerificationResultSchema } = await import('../src/index.js')
+  const image = { mimeType: 'image/webp', data: 'a'.repeat(100) }
+  assert.equal(
+    questVerificationRequestSchema.parse({ revision: 2, image }).image.mimeType,
+    'image/webp',
+  )
+  assert.equal(
+    questVerificationRequestSchema.safeParse({ revision: 2, image: { ...image, mimeType: 'image/svg+xml' } }).success,
+    false,
+  )
+  assert.equal(
+    questVerificationRequestSchema.safeParse({ revision: 2, image: { ...image, data: 'not base64' } }).success,
+    false,
+  )
+  assert.equal(
+    questVerificationResultSchema.parse({
+      verdict: 'VERIFIED',
+      confidence: 94,
+      summary: 'The screenshot shows the finished work.',
+      evidence: ['Visible finished output'],
+      concerns: [],
+    }).verdict,
+    'VERIFIED',
+  )
+})

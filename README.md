@@ -44,6 +44,8 @@ A Hard quest awards enough XP for a new character to cross the first level thres
 - Secure signup, login, logout, refresh-token rotation and multi-session management.
 - Character onboarding with display name, avatar and IANA timezone.
 - Owned quest CRUD with one-time and daily recurrence, filtering, sorting and bounded pagination.
+- AI Quest Master turns a goal into editable, structured questlines through Groq/Gemini while rewards stay server-authoritative.
+- Optional Gemini Quest Verification checks resized image evidence before completion and permanently marks verified completion receipts without storing the evidence image.
 - Server-authoritative Easy/Medium/Hard rewards: `25/60/120 XP`, `5/12/24 Gold`, and matching attribute XP.
 - Nonlinear cumulative character and attribute leveling.
 - Transactional quest completion with duplicate/replay protection and historical reward snapshots.
@@ -139,10 +141,11 @@ GROQ_API_KEY=
 GEMINI_API_KEY=
 GROQ_QUEST_MODEL=openai/gpt-oss-20b
 GEMINI_QUEST_MODEL=gemini-2.5-flash-lite
+GEMINI_VERIFICATION_MODEL=gemini-2.5-flash
 AI_REQUEST_TIMEOUT_MS=12000
 ```
 
-`DATABASE_URL` is used by the running application. `DIRECT_URL` is used by the migration wrapper. `JWT_SECRET` must remain private and is required whenever database-backed authentication is enabled. Signup email verification uses Mailjet Send API v3.1; `MAILJET_FROM_EMAIL` must be a verified Mailjet sender. AI Quest Master is enabled when at least one of `GROQ_API_KEY` or `GEMINI_API_KEY` is set. In `auto` mode the server tries Groq first and falls back to Gemini; AI may suggest quest details, but XP, gold, levels and progression remain server-authoritative.
+`DATABASE_URL` is used by the running application. `DIRECT_URL` is used by the migration wrapper. `JWT_SECRET` must remain private and is required whenever database-backed authentication is enabled. Signup email verification uses Mailjet Send API v3.1; `MAILJET_FROM_EMAIL` must be a verified Mailjet sender. AI Quest Master is enabled when at least one of `GROQ_API_KEY` or `GEMINI_API_KEY` is set. In `auto` mode the server tries Groq first and falls back to Gemini. Gemini Quest Verification uses `GEMINI_API_KEY` and `GEMINI_VERIFICATION_MODEL`; evidence images are resized in the browser, inspected transiently, and are not stored by Life RPG. AI may suggest or verify activity, but XP, gold, levels and progression remain server-authoritative.
 
 The browser normally needs no environment variables because production uses same-origin API requests. `client/.env.example` exists only for the optional `VITE_API_BASE_URL` override.
 
@@ -158,6 +161,7 @@ Important progression guarantees include:
 - one-time quests cannot reward twice;
 - daily quests cannot reward twice for one scheduled day;
 - completion rewards, XP, attributes, gold and history are one transaction;
+- Gemini evidence checks mint short-lived quest/revision-bound verification tokens; only a valid token can persist `aiVerified=true`;
 - purchases lock the wallet and grant ownership atomically;
 - deleting a journal entry does not erase immutable completion history;
 - primary state lives in PostgreSQL, not localStorage.

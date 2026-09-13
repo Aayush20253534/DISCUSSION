@@ -21,6 +21,7 @@ export const completionSelect = {
   xpAwarded: true,
   goldAwarded: true,
   attributeXpAwarded: true,
+  aiVerified: true,
   rulesVersion: true,
   completedAt: true,
   completedDate: true,

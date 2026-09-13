@@ -19,7 +19,7 @@ const dateValue = (value) => new Date(`${value}T00:00:00.000Z`)
 
 export async function completeQuest(
   db,
-  { userId, questId, revision, timezone, now = new Date() },
+  { userId, questId, revision, timezone, aiVerified = false, now = new Date() },
 ) {
   return db.$transaction(
     async (tx) => {
@@ -168,6 +168,7 @@ export async function completeQuest(
           xpAwarded: reward.xp,
           goldAwarded: reward.gold,
           attributeXpAwarded: reward.attributeXp,
+          aiVerified,
           rulesVersion: REWARD_RULES_VERSION,
           completedAt,
           timezone,

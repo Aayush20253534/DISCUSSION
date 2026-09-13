@@ -45,3 +45,36 @@ export const questMasterPlanSchema = z
     quests: z.array(questMasterDraftSchema).min(3).max(8),
   })
   .strict()
+
+export const QUEST_VERIFICATION_MIME_TYPES = Object.freeze([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+])
+
+export const questVerificationRequestSchema = z
+  .object({
+    revision: z.number().int().min(1).max(2147483646),
+    image: z
+      .object({
+        mimeType: z.enum(QUEST_VERIFICATION_MIME_TYPES),
+        data: z
+          .string()
+          .min(100, 'Choose a valid evidence image.')
+          .max(3_750_000, 'Evidence image is too large.')
+          .regex(/^[A-Za-z0-9+/]+={0,2}$/, 'Choose a valid evidence image.')
+          .refine((value) => value.length % 4 === 0, 'Choose a valid evidence image.'),
+      })
+      .strict(),
+  })
+  .strict()
+
+export const questVerificationResultSchema = z
+  .object({
+    verdict: z.enum(['VERIFIED', 'UNCLEAR', 'REJECTED']),
+    confidence: z.number().int().min(0).max(100),
+    summary: z.string().trim().min(1).max(320),
+    evidence: z.array(z.string().trim().min(1).max(180)).max(4),
+    concerns: z.array(z.string().trim().min(1).max(180)).max(4),
+  })
+  .strict()

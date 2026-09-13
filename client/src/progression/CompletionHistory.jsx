@@ -8,6 +8,7 @@ import {
   History,
   LoaderCircle,
   Repeat2,
+  ShieldCheck,
   Sparkles,
 } from 'lucide-react'
 import { ATTRIBUTES, formatCompletionDate, formatQuestDate } from '@life-rpg/shared'
@@ -91,6 +92,12 @@ export default function CompletionHistory() {
                     <span className="history-level">
                       <Sparkles size={11} />
                       Level {receipt.levelAfter}
+                    </span>
+                  )}
+                  {receipt.aiVerified && (
+                    <span className="history-ai-verified">
+                      <ShieldCheck size={11} />
+                      Gemini verified
                     </span>
                   )}
                 </div>

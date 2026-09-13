@@ -2661,3 +2661,995 @@
     animation: none !important;
   }
 }
+/* --------------------------------------------------------------------------
+   Quest journal polish pass
+   Keeps the existing Quest.png world, but recentres the journal and gives the
+   New Quest contract + AI Quest Master the same premium fantasy language.
+   -------------------------------------------------------------------------- */
+
+/* The old layout deliberately left a huge right gutter for background art.
+   That made the actual journal feel shoved to one side on common laptops. */
+.quest-world .quest-journal-page {
+  width: min(100%, 1280px);
+  max-width: 1280px;
+  margin-inline: auto;
+  padding: 38px clamp(24px, 3vw, 44px) 58px;
+}
+
+.quest-world .quest-journal-page .page-heading {
+  width: 100%;
+}
+
+.quest-world .quest-journal-page .page-heading-copy {
+  max-width: 680px;
+}
+
+.quest-world .quest-heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.quest-world .quest-master-trigger,
+.quest-world .new-quest-button {
+  min-height: 46px;
+  border-radius: 7px;
+  white-space: nowrap;
+}
+
+.quest-world .quest-master-trigger {
+  padding-inline: 16px;
+  border-color: rgba(213, 175, 104, 0.34);
+  background: linear-gradient(180deg, rgba(13, 29, 34, 0.9), rgba(7, 20, 25, 0.88));
+  color: #e6d6b3;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.quest-world .quest-master-trigger:hover:not(:disabled) {
+  border-color: rgba(230, 196, 118, 0.7);
+  background: linear-gradient(180deg, rgba(25, 39, 39, 0.94), rgba(10, 25, 29, 0.92));
+  color: #f3d892;
+}
+
+.quest-world .quest-master-trigger:disabled {
+  opacity: 0.5;
+}
+
+.quest-world .new-quest-button {
+  min-width: 136px;
+  padding-inline: 18px;
+}
+
+.quest-world .journal-summary {
+  width: 100%;
+}
+
+.quest-world .journal-summary-card {
+  min-width: 0;
+}
+
+.quest-world .journal-layout {
+  width: 100%;
+  grid-template-columns: minmax(0, 2.05fr) minmax(260px, 0.78fr);
+  gap: 20px;
+}
+
+.quest-world .saved-journal,
+.quest-world .journal-inspiration {
+  min-width: 0;
+}
+
+.quest-world .saved-journal {
+  border-radius: 10px;
+}
+
+.quest-world .journal-section-head,
+.quest-world .journal-search-row,
+.quest-world .journal-control-row,
+.quest-world .journal-results-head,
+.quest-world .saved-quest-list,
+.quest-world .journal-status-tabs {
+  box-sizing: border-box;
+}
+
+/* ----------------------------- New Quest card ----------------------------- */
+.quest-editor {
+  width: min(1000px, calc(100vw - 40px));
+  max-width: 1000px;
+  max-height: min(90dvh, 860px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 30px 32px 28px;
+  border: 1px solid rgba(224, 187, 108, 0.42);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 88% 7%, rgba(214, 174, 94, 0.08), transparent 28%),
+    linear-gradient(145deg, rgba(5, 17, 23, 0.995), rgba(8, 24, 29, 0.985));
+  box-shadow:
+    0 34px 110px rgba(0, 0, 0, 0.68),
+    inset 0 1px rgba(255, 255, 255, 0.025);
+  scrollbar-color: rgba(207, 173, 104, 0.42) transparent;
+}
+
+.quest-editor::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  border: 1px solid rgba(224, 187, 108, 0.07);
+  border-radius: 8px;
+}
+
+.quest-editor > .eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #d8b76f;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 2.8px;
+}
+
+.quest-editor .dialog-title {
+  max-width: 720px;
+  margin: 8px 42px 8px 0;
+  color: #f1e8d7;
+  font: 500 clamp(31px, 3vw, 42px)/1.03 var(--font-display);
+  letter-spacing: -0.45px;
+}
+
+.quest-editor .dialog-description {
+  max-width: 720px;
+  margin: 0 0 22px;
+  color: #aebfbc;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.quest-editor .dialog-close {
+  z-index: 4;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(150, 171, 163, 0.2);
+  background: rgba(7, 20, 25, 0.72);
+}
+
+.quest-contract-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(290px, 0.72fr);
+  column-gap: 24px;
+  row-gap: 18px;
+  align-items: start;
+}
+
+.quest-contract-form > .quest-form-fields {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.quest-editor .quest-form-fields {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.quest-editor .form-field {
+  min-width: 0;
+}
+
+.quest-editor .form-field > label,
+.quest-editor .quest-attribute-picker > legend,
+.quest-editor .quest-recurrence-picker > legend {
+  color: #d9dfd7;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.25px;
+}
+
+.quest-editor .form-field > label span {
+  color: #839692;
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.quest-editor .quest-form textarea,
+.quest-editor .quest-form .form-field input,
+.quest-editor .quest-form .form-field select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(113, 150, 139, 0.36);
+  border-radius: 7px;
+  background: rgba(6, 20, 25, 0.86);
+  color: #e7ece6;
+  box-shadow: inset 0 1px 10px rgba(0, 0, 0, 0.12);
+}
+
+.quest-editor .quest-form .form-field input,
+.quest-editor .quest-form .form-field select {
+  min-height: 42px;
+  padding-inline: 12px;
+}
+
+.quest-editor .quest-form textarea {
+  min-height: 84px;
+  max-height: 160px;
+  padding: 11px 12px;
+  resize: vertical;
+}
+
+.quest-editor .quest-form textarea:focus,
+.quest-editor .quest-form .form-field input:focus,
+.quest-editor .quest-form .form-field select:focus {
+  outline: none;
+  border-color: rgba(226, 191, 115, 0.76);
+  box-shadow: 0 0 0 2px rgba(213, 175, 104, 0.08);
+}
+
+.quest-editor .field-hint,
+.quest-editor .field-error {
+  margin-top: 5px;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.quest-editor .quest-attribute-picker > div {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.quest-editor .quest-attribute-picker label {
+  min-width: 0;
+  min-height: 66px;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 4px;
+  border: 1px solid rgba(113, 150, 139, 0.28);
+  border-radius: 7px;
+  background: rgba(10, 27, 30, 0.76);
+  color: #bac8c1;
+  transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+}
+
+.quest-editor .quest-attribute-picker label:hover {
+  transform: translateY(-1px);
+  border-color: rgba(184, 168, 116, 0.45);
+}
+
+.quest-editor .quest-attribute-picker label.chosen {
+  border-color: rgba(226, 191, 115, 0.72);
+  background: linear-gradient(180deg, rgba(76, 65, 40, 0.58), rgba(40, 43, 33, 0.62));
+  color: #f0d99f;
+  box-shadow: inset 0 0 0 1px rgba(213, 175, 104, 0.16);
+}
+
+.quest-editor .quest-attribute-picker label span {
+  overflow: hidden;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quest-editor .quest-recurrence-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quest-editor .quest-recurrence-options label {
+  min-height: 58px;
+  padding: 11px 12px;
+  border: 1px solid rgba(113, 150, 139, 0.28);
+  border-radius: 7px;
+  background: rgba(10, 27, 30, 0.76);
+}
+
+.quest-editor .quest-recurrence-options label.chosen {
+  border-color: rgba(226, 191, 115, 0.72);
+  background: linear-gradient(180deg, rgba(76, 65, 40, 0.52), rgba(40, 43, 33, 0.58));
+}
+
+.quest-editor .quest-recurrence-options strong {
+  color: #e6e8df;
+  font-size: 10px;
+}
+
+.quest-editor .quest-recurrence-options small {
+  color: #93a7a2;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.quest-editor .quest-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.quest-editor .quest-date-field {
+  grid-column: 1 / -1;
+}
+
+.quest-contract-preview {
+  position: sticky;
+  top: 0;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 22px 20px 18px;
+  border: 1px solid rgba(215, 180, 105, 0.34);
+  border-radius: 9px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(213, 175, 104, 0.1), transparent 34%),
+    linear-gradient(165deg, rgba(13, 31, 32, 0.92), rgba(6, 19, 24, 0.92));
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24), inset 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.quest-contract-preview::before,
+.quest-contract-preview::after {
+  content: '';
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  border-color: rgba(228, 194, 119, 0.5);
+  border-style: solid;
+}
+
+.quest-contract-preview::before {
+  top: 7px;
+  left: 7px;
+  border-width: 1px 0 0 1px;
+}
+
+.quest-contract-preview::after {
+  right: 7px;
+  bottom: 7px;
+  border-width: 0 1px 1px 0;
+}
+
+.quest-contract-seal {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 15px;
+  border: 1px solid rgba(221, 186, 109, 0.5);
+  border-radius: 50%;
+  color: #e0bd72;
+  background: radial-gradient(circle, rgba(213, 175, 104, 0.12), transparent 68%);
+  box-shadow: 0 0 30px rgba(213, 175, 104, 0.05);
+}
+
+.quest-contract-preview > .eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  text-align: center;
+  color: #bca56f;
+  font-size: 7px;
+  letter-spacing: 2.1px;
+}
+
+.quest-contract-preview h3 {
+  margin: 0;
+  color: #f0e8d8;
+  font: 500 27px/1.05 var(--font-display);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.quest-contract-preview > p:not(.quest-contract-due) {
+  margin: 10px 0 17px;
+  color: #9fafaa;
+  font-size: 9px;
+  line-height: 1.65;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.quest-contract-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.quest-contract-facts > span {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 2px 7px;
+  padding: 9px;
+  border: 1px solid rgba(127, 155, 145, 0.19);
+  border-radius: 6px;
+  background: rgba(4, 17, 21, 0.43);
+}
+
+.quest-contract-facts > span svg {
+  grid-row: 1 / 3;
+  color: #d0b36f;
+}
+
+.quest-contract-facts strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #dfe6de;
+  font-size: 9px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quest-contract-facts small {
+  color: #748985;
+  font-size: 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.quest-contract-due {
+  margin: 9px 0 0;
+  color: #d9bf83;
+  font-size: 8px;
+  text-align: center;
+}
+
+.quest-contract-preview .quest-form-rewards {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(212, 177, 103, 0.2);
+}
+
+.quest-contract-preview .quest-form-rewards > span:first-child {
+  display: block;
+  margin-bottom: 8px;
+  color: #8fa09b;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.25px;
+  text-align: center;
+}
+
+.quest-contract-form > .form-message,
+.quest-contract-form > .button,
+.quest-contract-form > .field-hint,
+.quest-contract-form > .quest-form-footer {
+  grid-column: 1 / -1;
+}
+
+.quest-editor .quest-form-footer {
+  margin-top: 2px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(133, 159, 148, 0.18);
+}
+
+.quest-editor .quest-form-footer > span {
+  color: #819591;
+  font-size: 9px;
+}
+
+/* ----------------------------- AI Quest Master ---------------------------- */
+.quest-master-dialog {
+  width: min(900px, calc(100vw - 40px));
+  max-width: 900px;
+  max-height: min(90dvh, 840px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 30px 32px 28px;
+  border: 1px solid rgba(215, 180, 105, 0.4);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 84% 4%, rgba(156, 193, 255, 0.07), transparent 24%),
+    radial-gradient(circle at 12% 8%, rgba(213, 175, 104, 0.07), transparent 26%),
+    linear-gradient(145deg, rgba(5, 17, 23, 0.995), rgba(7, 23, 29, 0.985));
+  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.68), inset 0 1px rgba(255, 255, 255, 0.025);
+  scrollbar-color: rgba(207, 173, 104, 0.42) transparent;
+}
+
+.quest-master-dialog::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  border: 1px solid rgba(224, 187, 108, 0.065);
+  border-radius: 8px;
+}
+
+.quest-master-dialog > .eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #d8b76f;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 2.8px;
+}
+
+.quest-master-dialog .dialog-title {
+  max-width: 760px;
+  margin: 8px 42px 8px 0;
+  color: #f1e8d7;
+  font: 500 clamp(31px, 3vw, 42px)/1.04 var(--font-display);
+  letter-spacing: -0.45px;
+}
+
+.quest-master-dialog .dialog-description {
+  max-width: 760px;
+  margin: 0 0 22px;
+  color: #aebfbc;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.quest-master-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 17px;
+}
+
+.quest-master-callout {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 13px 15px;
+  border: 1px solid rgba(124, 158, 148, 0.22);
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(12, 31, 34, 0.88), rgba(7, 23, 29, 0.72));
+}
+
+.quest-master-sigil {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(222, 186, 109, 0.5);
+  border-radius: 50%;
+  color: #e3c274;
+  background: radial-gradient(circle, rgba(213, 175, 104, 0.11), transparent 70%);
+}
+
+.quest-master-callout strong {
+  color: #e8e5da;
+  font-size: 10px;
+  letter-spacing: 0.2px;
+}
+
+.quest-master-callout p {
+  margin: 3px 0 0;
+  color: #8fa29d;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.quest-master-goal label,
+.quest-master-options > label,
+.quest-master-tune > label {
+  color: #d6ded8;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.quest-master-goal textarea {
+  width: 100%;
+  min-height: 122px;
+  max-height: 220px;
+  margin-top: 7px;
+  padding: 13px 14px;
+  resize: vertical;
+  border: 1px solid rgba(113, 150, 139, 0.36);
+  border-radius: 8px;
+  outline: none;
+  background: rgba(6, 20, 25, 0.86);
+  color: #e7ece6;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.quest-master-goal textarea:focus {
+  border-color: rgba(226, 191, 115, 0.76);
+  box-shadow: 0 0 0 2px rgba(213, 175, 104, 0.08);
+}
+
+.quest-master-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quest-master-options > label {
+  display: grid;
+  gap: 7px;
+}
+
+.quest-master-options select,
+.quest-master-tune input,
+.quest-master-tune select,
+.quest-master-tune textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 1px solid rgba(113, 150, 139, 0.32);
+  border-radius: 7px;
+  outline: none;
+  background: rgba(7, 22, 27, 0.9);
+  color: #dde5df;
+  font: inherit;
+  font-size: 10px;
+  color-scheme: dark;
+}
+
+.quest-master-options select:focus,
+.quest-master-tune input:focus,
+.quest-master-tune select:focus,
+.quest-master-tune textarea:focus {
+  border-color: rgba(226, 191, 115, 0.72);
+  box-shadow: 0 0 0 2px rgba(213, 175, 104, 0.07);
+}
+
+.quest-master-generate {
+  min-height: 46px;
+  justify-self: start;
+  padding-inline: 20px;
+}
+
+.quest-master-privacy {
+  margin: -5px 0 0;
+  color: #738783;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.quest-master-plan {
+  display: grid;
+  gap: 14px;
+}
+
+.quest-master-planbar,
+.quest-master-selectbar {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 1px solid rgba(123, 154, 145, 0.2);
+  border-radius: 7px;
+  background: rgba(7, 22, 27, 0.64);
+  color: #a7b9b4;
+  font-size: 9px;
+}
+
+.quest-master-planbar > span,
+.quest-master-selectbar > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.quest-master-planbar svg {
+  color: #d9b970;
+}
+
+.quest-master-selectbar input {
+  accent-color: #d4b36a;
+}
+
+.quest-master-drafts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quest-master-draft {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid rgba(113, 149, 139, 0.22);
+  border-radius: 8px;
+  background: linear-gradient(150deg, rgba(8, 25, 29, 0.86), rgba(5, 18, 23, 0.78));
+  transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+}
+
+.quest-master-draft.selected {
+  border-color: rgba(213, 175, 104, 0.5);
+  background: linear-gradient(150deg, rgba(24, 35, 31, 0.92), rgba(8, 23, 27, 0.86));
+}
+
+.quest-master-draft.saved {
+  border-color: rgba(111, 165, 123, 0.42);
+  opacity: 0.74;
+}
+
+.quest-master-draft:hover:not(.saved) {
+  transform: translateY(-1px);
+  border-color: rgba(213, 175, 104, 0.54);
+}
+
+.quest-master-draft-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+}
+
+.quest-master-check {
+  position: relative;
+  cursor: pointer;
+}
+
+.quest-master-check input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.quest-master-check > span {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(129, 158, 149, 0.35);
+  border-radius: 50%;
+  color: #aabbb6;
+  background: rgba(4, 16, 20, 0.55);
+  font-size: 9px;
+}
+
+.quest-master-draft.selected .quest-master-check > span {
+  border-color: rgba(220, 184, 108, 0.66);
+  color: #f0cf84;
+  background: rgba(89, 69, 35, 0.45);
+}
+
+.quest-master-check:has(input:focus-visible) > span {
+  outline: 2px solid #ead19e;
+  outline-offset: 2px;
+}
+
+.quest-master-draft-copy {
+  min-width: 0;
+}
+
+.quest-master-draft-copy strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: #e8e9df;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.quest-master-draft-copy p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  margin: 4px 0 0;
+  color: #8fa19d;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.quest-master-draft .icon-button {
+  width: 30px;
+  height: 30px;
+}
+
+.quest-master-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.quest-master-meta > span:not(.attribute-tag) {
+  padding: 5px 7px;
+  border: 1px solid rgba(119, 148, 140, 0.18);
+  border-radius: 999px;
+  color: #91a49f;
+  background: rgba(5, 18, 22, 0.42);
+  font-size: 7px;
+}
+
+.quest-master-meta .attribute-tag {
+  min-height: 24px;
+  padding-inline: 7px;
+  font-size: 7px;
+}
+
+.quest-master-rationale {
+  margin: 10px 0 0;
+  padding-top: 9px;
+  border-top: 1px solid rgba(120, 151, 142, 0.12);
+  color: #839793;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.quest-master-tune {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(212, 177, 103, 0.18);
+}
+
+.quest-master-tune > label {
+  display: grid;
+  gap: 6px;
+}
+
+.quest-master-tune .quest-master-wide {
+  grid-column: 1 / -1;
+}
+
+.quest-master-tune textarea {
+  min-height: 64px;
+  resize: vertical;
+}
+
+.quest-master-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(133, 159, 148, 0.18);
+}
+
+.quest-master-actions .button {
+  min-height: 42px;
+}
+
+/* ------------------------------- Responsive ------------------------------ */
+@media (max-width: 1180px) and (min-width: 901px) {
+  .quest-world .quest-journal-page {
+    width: min(100%, 1120px);
+    padding-inline: 32px;
+  }
+
+  .quest-world .journal-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .quest-world .journal-inspiration {
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .quest-world .quest-journal-page {
+    width: 100%;
+    padding: 28px 18px 112px;
+  }
+
+  .quest-world .quest-heading-actions {
+    justify-content: flex-start;
+  }
+
+  .quest-editor,
+  .quest-master-dialog {
+    width: min(94vw, 760px);
+    max-height: calc(100dvh - 28px);
+    padding: 26px 24px 24px;
+  }
+
+  .quest-contract-form {
+    grid-template-columns: 1fr;
+  }
+
+  .quest-contract-form > .quest-form-fields,
+  .quest-contract-preview {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .quest-contract-preview {
+    position: relative;
+    top: auto;
+  }
+
+  .quest-master-drafts {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .quest-world .quest-journal-page .page-heading-actions,
+  .quest-world .quest-heading-actions {
+    width: 100%;
+  }
+
+  .quest-world .quest-heading-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .quest-world .quest-master-trigger,
+  .quest-world .new-quest-button {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .quest-editor,
+  .quest-master-dialog {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 20px);
+    padding: 23px 18px 20px;
+    border-radius: 10px;
+  }
+
+  .quest-editor .dialog-title,
+  .quest-master-dialog .dialog-title {
+    margin-right: 34px;
+    font-size: 30px;
+  }
+
+  .quest-editor .quest-attribute-picker > div {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .quest-editor .quest-recurrence-options,
+  .quest-editor .quest-form-grid,
+  .quest-master-options,
+  .quest-master-tune {
+    grid-template-columns: 1fr;
+  }
+
+  .quest-editor .quest-date-field,
+  .quest-master-tune .quest-master-wide {
+    grid-column: 1;
+  }
+
+  .quest-contract-facts {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .quest-editor .quest-form-footer,
+  .quest-master-actions,
+  .quest-master-planbar,
+  .quest-master-selectbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .quest-editor .quest-form-footer > div,
+  .quest-master-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .quest-editor .quest-form-footer .button,
+  .quest-master-actions .button,
+  .quest-master-generate {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 430px) {
+  .quest-world .quest-heading-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .quest-contract-facts {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quest-editor .quest-attribute-picker label,
+  .quest-master-draft {
+    transition: none;
+  }
+}

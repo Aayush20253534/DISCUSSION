@@ -172,6 +172,7 @@ export default function QuestMaster({ open, onOpenChange, onSaved }) {
       open={open}
       onOpenChange={(next) => !busy && onOpenChange(next)}
       className="quest-master-dialog"
+      eyebrow="THE QUEST MASTER"
       returnFocusSelector="[data-quest-master-trigger]"
       title={plan ? plan.campaignTitle : 'Let the Quest Master chart the path.'}
       description={

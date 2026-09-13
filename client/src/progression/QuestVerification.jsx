@@ -126,7 +126,9 @@ export default function QuestVerification({ quest, disabled = false, onVerified 
         `/api/v1/ai/quest-verification/${quest.id}`,
         { revision: quest.revision, image },
         'POST',
-        { timeoutMs: 30000 },
+        // Keep the browser budget above the server's Gemini verification budget so
+        // the client does not abort just as the backend is returning a result.
+        { timeoutMs: 40000 },
       )
       setResult(data)
       onVerified(data.verificationToken || null, data)

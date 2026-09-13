@@ -89,6 +89,12 @@ async function quest(client) {
 
 const image = { mimeType: 'image/webp', data: 'a'.repeat(100) }
 
+test('Gemini image verification has a longer timeout than text-only AI requests', () => {
+  assert.equal(config.AI_REQUEST_TIMEOUT_MS, 12000)
+  assert.equal(config.GEMINI_VERIFICATION_TIMEOUT_MS, 30000)
+  assert.ok(config.GEMINI_VERIFICATION_TIMEOUT_MS > config.AI_REQUEST_TIMEOUT_MS)
+})
+
 test('Gemini verification status is exposed only from server configuration', async () => {
   const client = await actor()
   const response = await client.agent.get('/api/v1/ai/quest-verification/status').expect(200)

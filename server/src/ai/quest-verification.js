@@ -120,7 +120,7 @@ export async function verifyQuestEvidence({
             responseSchema: verificationSchema,
           },
         }),
-        signal: AbortSignal.timeout(config.AI_REQUEST_TIMEOUT_MS),
+        signal: AbortSignal.timeout(config.GEMINI_VERIFICATION_TIMEOUT_MS),
       },
     )
   } catch (error) {
@@ -131,7 +131,7 @@ export async function verifyQuestEvidence({
       errorName: error?.name,
       errorCode: error?.code,
       message: error?.message,
-      requestTimeoutMs: config.AI_REQUEST_TIMEOUT_MS,
+      requestTimeoutMs: config.GEMINI_VERIFICATION_TIMEOUT_MS,
       imageMimeType: image.mimeType,
       imageBase64Chars: image.data?.length,
     })

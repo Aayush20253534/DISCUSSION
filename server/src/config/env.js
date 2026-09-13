@@ -103,6 +103,9 @@ const schema = z
     GROQ_QUEST_MODEL: z.string().trim().min(1).max(120).default('openai/gpt-oss-20b'),
     GEMINI_QUEST_MODEL: z.string().trim().min(1).max(120).default('gemini-2.5-flash-lite'),
     GEMINI_VERIFICATION_MODEL: z.string().trim().min(1).max(120).default('gemini-2.5-flash'),
+    // Image verification includes upload + multimodal inference and is routinely slower
+    // than text-only quest generation, so keep it on a separate budget.
+    GEMINI_VERIFICATION_TIMEOUT_MS: z.coerce.number().int().min(5000).max(60000).default(30000),
     AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(3000).max(30000).default(12000),
     UPSTASH_REDIS_REST_URL: z.preprocess(
       (value) => (value === '' ? undefined : value),

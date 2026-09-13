@@ -11,7 +11,8 @@
     "db:migrate": "node scripts/migrate.js dev",
     "db:deploy": "node scripts/migrate.js deploy",
     "db:studio": "prisma studio",
-    "test:production": "node scripts/production-smoke.js"
+    "test:production": "node scripts/production-smoke.js",
+    "email:check": "node scripts/check-email.js"
   },
   "dependencies": {
     "@life-rpg/shared": "*",

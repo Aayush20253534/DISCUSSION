@@ -102,11 +102,11 @@ function publicSession(session, currentSessionId) {
   }
 }
 
-export function createAccountRouter({ config, database, mailer }) {
+export function createAccountRouter({ config, database, mailer, logger }) {
   const router = Router()
   const security = createSecurity(config)
   const db = database.prisma
-  const email = mailer || createMailjetMailer(config)
+  const email = mailer || createMailjetMailer(config, { logger })
   const verificationCodeHash = (address, code) =>
     createHmac('sha256', config.JWT_SECRET)
       .update(`email-verification:${address}:${code}`)
@@ -221,6 +221,7 @@ export function createAccountRouter({ config, database, mailer }) {
         displayName: input.displayName,
         otp,
         expiresInMinutes: config.EMAIL_OTP_MINUTES,
+        requestId: req.requestId,
       })
     } catch (error) {
       if (verification)
@@ -341,6 +342,7 @@ export function createAccountRouter({ config, database, mailer }) {
         displayName: verification.displayName,
         otp,
         expiresInMinutes: config.EMAIL_OTP_MINUTES,
+        requestId: req.requestId,
       })
     } catch (error) {
       await db.emailVerification

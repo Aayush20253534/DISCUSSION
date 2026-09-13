@@ -31,7 +31,8 @@
     "setup": "node scripts/setup.js && npm run db:generate",
     "auth:configure": "node scripts/configure-auth.js",
     "test:production": "npm run test:production -w server",
-    "quality:audit": "node scripts/quality-audit.mjs"
+    "quality:audit": "node scripts/quality-audit.mjs",
+    "email:check": "npm run email:check -w server"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

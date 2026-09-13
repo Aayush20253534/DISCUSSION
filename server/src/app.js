@@ -145,7 +145,7 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
       }),
     })
   })
-  app.use(API_PREFIX, createAccountRouter({ config, database, mailer }))
+  app.use(API_PREFIX, createAccountRouter({ config, database, mailer, logger }))
   app.use(`${API_PREFIX}/quests`, createQuestRouter({ config, database, clock }))
   app.use(`${API_PREFIX}/activity`, createActivityRouter({ config, database, clock }))
   app.use(`${API_PREFIX}/progress`, createProgressionRouter({ config, database }))

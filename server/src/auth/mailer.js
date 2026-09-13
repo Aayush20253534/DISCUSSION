@@ -20,10 +20,75 @@ function configured(config) {
   )
 }
 
-export function createMailjetMailer(config) {
+function firstMailjetError(result) {
+  const failedMessage = result?.Messages?.find((message) => message?.Status !== 'success')
+  const nested = failedMessage?.Errors?.[0]
+  const error = nested || result
+  if (!error || typeof error !== 'object') return null
+
   return {
-    async sendEmailVerification({ email, displayName, otp, expiresInMinutes }) {
+    statusCode: Number(error.StatusCode) || undefined,
+    code: typeof error.ErrorCode === 'string' ? error.ErrorCode : undefined,
+    identifier:
+      typeof error.ErrorIdentifier === 'string' ? error.ErrorIdentifier.slice(0, 100) : undefined,
+    message: typeof error.ErrorMessage === 'string' ? error.ErrorMessage.slice(0, 300) : undefined,
+    relatedTo: Array.isArray(error.ErrorRelatedTo)
+      ? error.ErrorRelatedTo.filter((value) => typeof value === 'string').slice(0, 8)
+      : undefined,
+  }
+}
+
+function deliveryError(httpStatus, providerError) {
+  const status = providerError?.statusCode || httpStatus
+  const code = providerError?.code
+
+  if (status === 401) {
+    return new AppError(
+      503,
+      'EMAIL_UNAVAILABLE',
+      'Email verification is temporarily unavailable. The mail service rejected its credentials.',
+    )
+  }
+  if (status === 403 && code === 'send-0008') {
+    return new AppError(
+      503,
+      'EMAIL_UNAVAILABLE',
+      'Email verification is temporarily unavailable. The configured sender is not authorized.',
+    )
+  }
+  if (status === 403) {
+    return new AppError(
+      503,
+      'EMAIL_UNAVAILABLE',
+      'Email verification is temporarily unavailable. The mail service rejected this sender.',
+    )
+  }
+  if (status === 429) {
+    return new AppError(
+      503,
+      'EMAIL_UNAVAILABLE',
+      'Email verification is temporarily busy. Please try again shortly.',
+    )
+  }
+  return new AppError(
+    503,
+    'EMAIL_UNAVAILABLE',
+    'Verification email could not be sent. Please try again.',
+  )
+}
+
+export function createMailjetMailer(config, { logger = () => {} } = {}) {
+  return {
+    async sendEmailVerification({ email, displayName, otp, expiresInMinutes, requestId }) {
       if (!configured(config)) {
+        logger('error', 'email.configuration_missing', {
+          requestId,
+          provider: 'mailjet',
+          hasApiKey: Boolean(config.MAILJET_API_KEY),
+          hasSecretKey: Boolean(config.MAILJET_SECRET_KEY),
+          hasFromEmail: Boolean(config.MAILJET_FROM_EMAIL),
+          hasFromName: Boolean(config.MAILJET_FROM_NAME),
+        })
         throw new AppError(
           503,
           'EMAIL_NOT_CONFIGURED',
@@ -58,7 +123,15 @@ export function createMailjetMailer(config) {
           }),
         })
       } catch (error) {
-        if (error?.name === 'AbortError') {
+        const timedOut = error?.name === 'AbortError'
+        logger('error', 'email.delivery_failed', {
+          requestId,
+          provider: 'mailjet',
+          failure: timedOut ? 'timeout' : 'network',
+          errorName: error?.name,
+          errorCode: error?.code,
+        })
+        if (timedOut) {
           throw new AppError(
             503,
             'EMAIL_TIMEOUT',
@@ -80,13 +153,20 @@ export function createMailjetMailer(config) {
       } catch {
         result = null
       }
-      const rejectedMessage = result?.Messages?.some((message) => message.Status !== 'success')
+      const providerError = firstMailjetError(result)
+      const rejectedMessage = result?.Messages?.some((message) => message?.Status !== 'success')
       if (!response.ok || rejectedMessage) {
-        throw new AppError(
-          503,
-          'EMAIL_UNAVAILABLE',
-          'Verification email could not be sent. Please try again.',
-        )
+        logger('error', 'email.provider_rejected', {
+          requestId,
+          provider: 'mailjet',
+          httpStatus: response.status,
+          providerStatus: providerError?.statusCode,
+          providerCode: providerError?.code,
+          providerIdentifier: providerError?.identifier,
+          providerMessage: providerError?.message,
+          relatedTo: providerError?.relatedTo,
+        })
+        throw deliveryError(response.status, providerError)
       }
     },
   }

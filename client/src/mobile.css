@@ -1121,7 +1121,6 @@
 
   #root .login-portal-card,
   #root .signup-portal-card,
-  #root .otp-portal-card,
   #root .password-recovery-card {
     position: relative;
     top: auto;
@@ -1159,8 +1158,7 @@
   #root .login-account-form .form-field input,
   #root .login-account-form .form-field select,
   #root .login-account-form textarea,
-  #root .recovery-form input,
-  #root .otp-digit {
+  #root .recovery-form input {
     font-size: 16px;
   }
 
@@ -1173,17 +1171,6 @@
     min-height: 46px;
   }
 
-  #root .otp-input-row {
-    gap: 5px;
-  }
-
-  #root .otp-digit {
-    height: 45px;
-  }
-
-  #root .otp-actions {
-    flex-wrap: wrap;
-  }
 
   #root .auth-page:not(.login-auth-page) {
     display: block;
@@ -1451,7 +1438,6 @@
 
   #root .login-portal-card,
   #root .signup-portal-card,
-  #root .otp-portal-card,
   #root .password-recovery-card {
     width: 100%;
     margin-top: 48px;
@@ -1464,14 +1450,6 @@
     white-space: normal;
   }
 
-  #root .otp-input-row {
-    gap: 4px;
-  }
-
-  #root .otp-digit {
-    height: 42px;
-    font-size: 18px;
-  }
 
   #root .avatar-options {
     grid-template-columns: minmax(0, 1fr);
@@ -1541,7 +1519,6 @@
 
   #root .login-portal-card,
   #root .signup-portal-card,
-  #root .otp-portal-card,
   #root .password-recovery-card {
     margin-top: 38px;
   }

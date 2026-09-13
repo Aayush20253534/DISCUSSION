@@ -72,8 +72,6 @@ const schema = z
     ),
     ACCESS_TOKEN_MINUTES: z.coerce.number().int().min(1).max(30).default(15),
     SESSION_DAYS: z.coerce.number().int().min(1).max(30).default(7),
-    EMAIL_OTP_MINUTES: z.coerce.number().int().min(3).max(30).default(10),
-    EMAIL_OTP_RESEND_SECONDS: z.coerce.number().int().min(15).max(300).default(60),
     PASSWORD_RESET_MINUTES: z.coerce.number().int().min(10).max(120).default(30),
     MAILJET_API_KEY: z.preprocess(
       (value) => (value === '' ? undefined : value),

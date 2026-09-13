@@ -6,7 +6,7 @@ import argon2 from 'argon2'
 import { createApp } from '../src/app.js'
 import { parseEnv } from '../src/config/env.js'
 import { testDatabase } from './helpers/database.js'
-import { completeEmailVerification, createTestMailer } from './helpers/email.js'
+import { createTestMailer } from './helpers/email.js'
 
 const prefix = '/api/v1'
 const origin = 'http://localhost:5173'
@@ -26,7 +26,6 @@ after(async () => {
   await database?.close()
 })
 beforeEach(async () => {
-  await database.prisma.emailVerification.deleteMany()
   await database.prisma.user.deleteMany()
   mailer = createTestMailer()
   app = createApp({ config, database, logger: () => {}, mailer })
@@ -45,8 +44,7 @@ function mutate(client, method, path, body = {}) {
 }
 async function signup(input = account) {
   const client = await browser()
-  const started = await mutate(client, 'post', '/auth/signup', input).expect(202)
-  const response = await completeEmailVerification(client, mutate, started, mailer)
+  const response = await mutate(client, 'post', '/auth/signup', input).expect(201)
   return { ...client, user: response.body.data.user }
 }
 async function onboarded() {

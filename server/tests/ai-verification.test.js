@@ -6,7 +6,7 @@ import { createApp } from '../src/app.js'
 import { verifyQuestEvidence } from '../src/ai/quest-verification.js'
 import { parseEnv } from '../src/config/env.js'
 import { testDatabase } from './helpers/database.js'
-import { completeEmailVerification, createTestMailer } from './helpers/email.js'
+import { createTestMailer } from './helpers/email.js'
 
 const origin = 'http://localhost:5173'
 const config = parseEnv({
@@ -26,7 +26,6 @@ after(async () => {
 })
 
 beforeEach(async () => {
-  await database.prisma.emailVerification.deleteMany()
   await database.prisma.user.deleteMany()
   mailer = createTestMailer()
   verificationResult = {
@@ -66,8 +65,8 @@ async function actor(name = 'hero') {
     email: `${name}@example.test`,
     displayName: name,
     password: 'An excellent adventure awaits',
-  }).expect(202)
-  client.user = (await completeEmailVerification(client, mutate, started, mailer)).body.data.user
+  }).expect(201)
+  client.user = started.body.data.user
   await mutate(client, 'put', '/me/onboarding', {
     displayName: name,
     avatarKey: 'wanderer',

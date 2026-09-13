@@ -6,7 +6,7 @@ import { MAX_STORED_POINTS, todayInTimezone } from '@atlasborn/shared'
 import { createApp } from '../src/app.js'
 import { parseEnv } from '../src/config/env.js'
 import { testDatabase } from './helpers/database.js'
-import { completeEmailVerification, createTestMailer } from './helpers/email.js'
+import { createTestMailer } from './helpers/email.js'
 
 const origin = 'http://localhost:5173'
 const config = parseEnv({ NODE_ENV: 'test', JWT_SECRET: 'progression-test-secret-'.repeat(4) })
@@ -18,7 +18,6 @@ after(async () => {
   await database?.close()
 })
 beforeEach(async () => {
-  await database.prisma.emailVerification.deleteMany()
   await database.prisma.user.deleteMany()
   mailer = createTestMailer()
   app = createApp({ config, database, logger: () => {}, mailer })
@@ -36,8 +35,8 @@ async function actor(name = 'hero', onboard = true) {
     email: `${name}@example.test`,
     displayName: name,
     password: 'An excellent adventure awaits',
-  }).expect(202)
-  client.user = (await completeEmailVerification(client, mutate, started, mailer)).body.data.user
+  }).expect(201)
+  client.user = started.body.data.user
   if (onboard)
     await mutate(client, 'put', '/me/onboarding', {
       displayName: name,

@@ -5,7 +5,7 @@ import request from 'supertest'
 import { createApp } from '../src/app.js'
 import { parseEnv } from '../src/config/env.js'
 import { testDatabase } from './helpers/database.js'
-import { completeEmailVerification, createTestMailer } from './helpers/email.js'
+import { createTestMailer } from './helpers/email.js'
 
 const origin = 'http://localhost:5173'
 const config = parseEnv({ NODE_ENV: 'test', JWT_SECRET: 'journey-test-secret-'.repeat(5) })
@@ -19,7 +19,6 @@ after(async () => {
   await database?.close()
 })
 beforeEach(async () => {
-  await database.prisma.emailVerification.deleteMany()
   await database.prisma.user.deleteMany()
   mailer = createTestMailer()
   app = createApp({ config, database, logger: () => {}, mailer })
@@ -44,8 +43,8 @@ async function signup(name) {
     email: actor.email,
     displayName: name,
     password,
-  }).expect(202)
-  actor.user = (await completeEmailVerification(actor, mutate, started, mailer)).body.data.user
+  }).expect(201)
+  actor.user = started.body.data.user
   await mutate(actor, 'put', '/me/onboarding', {
     displayName: name,
     avatarKey: 'wanderer',

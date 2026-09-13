@@ -91,7 +91,7 @@ The live Neon smoke test and true multi-connection database contention are not r
 
 ## Next phase
 
-Marketplace purchases and inventory/equipment remain to be implemented. They will consume saved gold with server-side balance checks and persistent owned items. Marketplace items currently remain previews. Password reset, email verification and profile editing are also outside this patch.
+Marketplace purchases and inventory/equipment remain to be implemented. They will consume saved gold with server-side balance checks and persistent owned items. Marketplace items currently remain previews. Password reset and profile editing are also outside this historical patch.
 
 Suggested commit:
 

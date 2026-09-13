@@ -17,9 +17,7 @@ Successful responses use `{ "data": ... }`. Errors use `{ "error": { "code", "me
 | ------ | ------------------------- | --------------------------------------------------------------------------------------- |
 | GET    | `/api/v1/world`           | Public stage, account configuration flag, attributes; no user data                      |
 | GET    | `/api/v1/auth/csrf`       | Issues or reuses signed CSRF token                                                      |
-| POST   | `/api/v1/auth/signup`     | `{ email, password, displayName }`; stores pending signup and sends a 6-digit email OTP |
-| POST   | `/api/v1/auth/verify-email` | `{ verificationId, otp }`; verifies email, then creates the user/session                |
-| POST   | `/api/v1/auth/resend-verification` | `{ verificationId }`; rotates and re-sends the pending OTP after cooldown       |
+| POST   | `/api/v1/auth/signup`     | `{ email, password, displayName }`; creates the user and session immediately            |
 | POST   | `/api/v1/auth/login`      | `{ email, password }`; verifies password, creates session, returns public user          |
 | GET    | `/api/v1/auth/me`         | Current public user and character; `{ user: null }` for a browser with no auth cookies  |
 | POST   | `/api/v1/auth/refresh`    | `{}`; rotates refresh token and sets new access JWT                                     |
@@ -38,8 +36,7 @@ Every mutation requires JSON, a configured Origin, and the signed CSRF token. Id
 - Refresh: 256-bit random opaque secret prefixed by session UUID. PostgreSQL stores its SHA-256 hash. Rotation uses a conditional database update, so only one request can redeem a token. Old refresh values are rejected; a losing concurrent update does not clear the winning browser's cookies.
 - Sessions: seven-day absolute lifetime by default. Refresh does not extend that deadline. Expired rows cannot authorize requests and are pruned on that user's next login. A scheduled global cleanup can be added when operating at scale.
 - Cookies: HTTP-only, SameSite=Lax, path `/`, no Domain. Production adds Secure and the `__Host-` prefix. CSRF uses a signed double-submit token plus exact Origin and JSON checks, including on login and signup.
-- Email verification: pending signups store only an HMAC of the six-digit OTP. Codes expire after 10 minutes by default, resend has a 60-second cooldown, and five incorrect OTPs invalidate the pending signup.
-- Rate limits: 120 API requests/minute/IP, five signup attempts/15 minutes/IP, bounded OTP verify/resend routes, ten failed login attempts/15 minutes/IP, and 60 refreshes/15 minutes/IP. Stores are in memory per process; use a shared store and additional account/edge abuse controls for a multi-instance public deployment.
+- Rate limits: 120 API requests/minute/IP, five signup attempts/15 minutes/IP, ten failed login attempts/15 minutes/IP, and 60 refreshes/15 minutes/IP. Stores are in memory per process; use a shared store and additional account/edge abuse controls for a multi-instance public deployment.
 - Secrets: generate at least 64 random characters with `npm run auth:configure`. No fallback signing key exists. The script preserves `.env` settings and never logs secrets. If rotating the key to revoke every existing login, also delete/revoke database sessions; a valid stored refresh token can otherwise establish a JWT under the new key.
 
 References: [node-argon2](https://github.com/ranisalt/node-argon2), [node-jsonwebtoken](https://github.com/auth0/node-jsonwebtoken), [OWASP password storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
@@ -60,7 +57,7 @@ Build with development dependencies installed: `npm run verify`. Set `NODE_ENV=p
 
 Serve the built frontend and `/api` from the same HTTPS origin through Express or a reverse proxy. Keep `VITE_API_BASE_URL` blank for this setup. The cookie settings deliberately do not support a frontend and API on unrelated sites; proxy `/api` under the website origin instead. Development uses Vite's proxy. If hosting behind a trusted proxy, configure `TRUST_PROXY_HOPS` for the actual topology so IP rate limits receive the correct address.
 
-Email ownership is verified before account creation through Mailjet OTP delivery. Forgotten-password recovery is still not implemented. Configure a verified Mailjet sender before treating signup as production-ready.
+Signup creates the account immediately after validation and password hashing. Mailjet is only required for password recovery, which sends a one-time reset link without affecting normal registration.
 
 ## Dependency audit
 

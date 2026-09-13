@@ -54,14 +54,7 @@ export default function AuthProvider({ children }) {
     retry: query.refetch,
     async signup(body) {
       await client.cancelQueries({ queryKey: key })
-      return authAction('signup', body)
-    },
-    async verifyEmail(body) {
-      await client.cancelQueries({ queryKey: key })
-      return accept(await authAction('verify-email', body))
-    },
-    async resendVerification(body) {
-      return authAction('resend-verification', body)
+      return accept(await authAction('signup', body))
     },
     async login(body) {
       await client.cancelQueries({ queryKey: key })

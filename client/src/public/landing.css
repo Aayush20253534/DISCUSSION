@@ -6436,3 +6436,599 @@ html {
     mix-blend-mode: normal;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Mobile landing polish — final cascade guard
+   The landing page has several historical responsive passes. These scoped
+   rules intentionally live last so the mobile composition cannot fall back to
+   desktop route widths after later desktop refinements are loaded.
+   -------------------------------------------------------------------------- */
+@media (max-width: 720px) {
+  #root .public-site-landing {
+    --mobile-page-gutter: clamp(14px, 4.5vw, 20px);
+    --mobile-card-radius: 18px;
+  }
+
+  #root .public-site-landing .public-header.landing-header,
+  #root .public-site-landing .public-header.landing-header.is-scrolled,
+  #root .public-site-landing .public-header.landing-header.menu-open {
+    min-height: 66px;
+    padding-inline: var(--mobile-page-gutter);
+  }
+
+  #root .public-site-landing .landing-header .public-brand {
+    min-width: 0;
+    gap: 10px;
+  }
+
+  #root .public-site-landing .landing-header .public-brand-compass {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+  }
+
+  #root .public-site-landing .landing-header .public-brand > span:last-child {
+    min-width: 0;
+    font-size: clamp(15px, 4.6vw, 18px);
+    letter-spacing: 1.45px;
+    white-space: nowrap;
+  }
+
+  #root .public-site-landing .landing-header .public-menu-button {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border-color: rgba(213, 175, 104, .34);
+    background: rgba(7, 17, 23, .5);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .012);
+  }
+
+  /* Hero: keep the cinematic negative space, but constrain the copy and CTAs
+     to a deliberate mobile column instead of letting generic mobile.css make
+     the buttons touch both viewport edges. */
+  #root .public-site-landing .landing-cinematic-hero {
+    min-height: 100svh;
+    padding-inline: var(--mobile-page-gutter);
+  }
+
+  #root .public-site-landing .landing-copy-shell {
+    left: 50%;
+    right: auto;
+    top: clamp(190px, 31svh, 250px);
+    width: min(100%, 410px);
+    max-width: calc(100vw - (var(--mobile-page-gutter) * 2));
+    transform: translate3d(-50%, var(--hero-scroll-y), 0);
+    padding-inline: 2px;
+  }
+
+  #root .public-site-landing .landing-copy-shell::before {
+    inset: -38px -16px -36px;
+    background: radial-gradient(
+      ellipse at 50% 45%,
+      rgba(4, 10, 14, .68),
+      rgba(4, 10, 14, .34) 54%,
+      transparent 78%
+    );
+  }
+
+  #root .public-site-landing .landing-eyebrow {
+    max-width: 100%;
+    gap: 8px;
+    font-size: 6.5px;
+    letter-spacing: 1.85px;
+    white-space: nowrap;
+  }
+
+  #root .public-site-landing .landing-copy-shell h1 {
+    max-width: 390px;
+    margin-inline: auto;
+    font-size: clamp(2.55rem, 12vw, 3.4rem);
+    line-height: .94;
+    letter-spacing: -1.25px;
+    text-wrap: balance;
+  }
+
+  #root .public-site-landing .landing-copy-shell h1 > span,
+  #root .public-site-landing .landing-copy-shell h1 > strong,
+  #root .public-site-landing .landing-copy-shell h1 > strong > span {
+    white-space: normal;
+  }
+
+  #root .public-site-landing .landing-description {
+    width: min(100%, 340px);
+    max-width: 340px;
+    margin-top: 18px;
+    font-size: 11.5px;
+    line-height: 1.62;
+  }
+
+  #root .public-site-landing .landing-actions {
+    width: min(100%, 336px);
+    max-width: calc(100vw - (var(--mobile-page-gutter) * 2));
+    margin: 21px auto 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  #root .public-site-landing .landing-actions > *,
+  #root .public-site-landing .landing-actions .landing-button {
+    width: 100%;
+    min-height: 50px;
+    padding-inline: 18px;
+    border-radius: 4px;
+  }
+
+  #root .public-site-landing .landing-scroll-cue {
+    left: 50%;
+    right: auto;
+    bottom: max(15px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100vw - 32px);
+  }
+
+  /* Section rhythm. */
+  #root .public-site-landing .atlas-section {
+    padding-block: 72px;
+  }
+
+  #root .public-site-landing .atlas-section-inner,
+  #root .public-site-landing .atlas-narrow {
+    width: min(100%, 560px);
+    max-width: 100%;
+    margin-inline: auto;
+    padding-inline: var(--mobile-page-gutter);
+  }
+
+  #root .public-site-landing .atlas-section-heading,
+  #root .public-site-landing .atlas-heading-wide,
+  #root .public-site-landing .atlas-heading-centered {
+    width: 100%;
+    max-width: 520px;
+    margin-inline: auto;
+  }
+
+  #root .public-site-landing .atlas-section h2,
+  #root .public-site-landing .atlas-final h2 {
+    font-size: clamp(2.25rem, 10.2vw, 3.15rem);
+    line-height: .98;
+    letter-spacing: -1px;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: balance;
+  }
+
+  #root .public-site-landing .atlas-section-heading > p,
+  #root .public-site-landing .atlas-narrow > p {
+    max-width: 440px;
+    font-size: 12px;
+    line-height: 1.68;
+  }
+
+  /* How it works: force a true mobile card stack. A later desktop refinement
+     restored width:30.5% on .atlas-quest-step, which is what produced the
+     one-word-per-line screenshot on phones. */
+  #root .public-site-landing .atlas-core {
+    min-height: auto;
+    padding-top: 74px;
+    padding-bottom: 78px;
+  }
+
+  #root .public-site-landing .atlas-core .atlas-section-heading {
+    text-align: left;
+  }
+
+  #root .public-site-landing .atlas-quest-route {
+    min-height: 0;
+    width: 100%;
+    margin-top: 34px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  #root .public-site-landing .atlas-quest-route::before,
+  #root .public-site-landing .atlas-quest-route::after,
+  #root .public-site-landing .atlas-quest-route-line {
+    display: none;
+  }
+
+  #root .public-site-landing .atlas-quest-step,
+  #root .public-site-landing .atlas-quest-step-1,
+  #root .public-site-landing .atlas-quest-step-2,
+  #root .public-site-landing .atlas-quest-step-3 {
+    position: relative;
+    inset: auto;
+    left: auto;
+    right: auto;
+    top: auto;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 18px 16px 18px 14px;
+    display: grid;
+    grid-template-columns: 50px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+    border: 1px solid rgba(213, 175, 104, .18);
+    border-radius: var(--mobile-card-radius);
+    background:
+      radial-gradient(circle at 10% 20%, rgba(213, 175, 104, .055), transparent 36%),
+      linear-gradient(145deg, rgba(10, 28, 35, .9), rgba(6, 19, 26, .82));
+    box-shadow: 0 16px 34px rgba(0, 0, 0, .18), inset 0 1px rgba(255, 255, 255, .018);
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  #root .public-site-landing .atlas-step-number {
+    top: 10px;
+    left: auto;
+    right: 13px;
+    font-size: 7px;
+    letter-spacing: 1.6px;
+    opacity: .72;
+  }
+
+  #root .public-site-landing .atlas-quest-crest {
+    width: 50px;
+    height: 50px;
+    box-shadow: 0 0 0 6px rgba(213, 175, 104, .02);
+  }
+
+  #root .public-site-landing .atlas-quest-crest::before,
+  #root .public-site-landing .atlas-quest-crest::after {
+    width: 58px;
+  }
+
+  #root .public-site-landing .atlas-quest-step > div {
+    min-width: 0;
+    padding: 1px 20px 0 0;
+    background: none;
+  }
+
+  #root .public-site-landing .atlas-quest-step h3 {
+    margin: 0;
+    max-width: 100%;
+    font-size: clamp(25px, 7.8vw, 31px);
+    line-height: 1.02;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: balance;
+  }
+
+  #root .public-site-landing .atlas-quest-step p {
+    max-width: none;
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  #root .public-site-landing .atlas-quest-step small {
+    margin-top: 10px;
+    font-size: 6.5px;
+    line-height: 1.55;
+    letter-spacing: 1.25px;
+  }
+
+  /* Atlas realms: on mobile, each realm becomes its own readable waypoint
+     instead of placing all five rows inside one giant clipped map card. */
+  #root .public-site-landing .atlas-realms {
+    min-height: auto;
+    padding-top: 72px;
+    padding-bottom: 78px;
+  }
+
+  #root .public-site-landing .atlas-world-map {
+    position: relative;
+    min-height: 0;
+    width: 100%;
+    margin-top: 34px;
+    padding: 102px 10px 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    overflow: visible;
+    border: 1px solid rgba(213, 175, 104, .14);
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at 50% 2%, rgba(213, 175, 104, .08), transparent 22%),
+      radial-gradient(ellipse at 50% 55%, rgba(73, 108, 92, .09), transparent 56%),
+      linear-gradient(180deg, rgba(9, 27, 33, .9), rgba(5, 17, 23, .88));
+    box-shadow: 0 22px 54px rgba(0, 0, 0, .22), inset 0 1px rgba(255, 255, 255, .015);
+  }
+
+  #root .public-site-landing .atlas-map-center {
+    left: 50%;
+    top: 18px;
+    width: 58px;
+    height: 58px;
+    transform: translateX(-50%);
+    box-shadow: 0 0 0 7px rgba(213, 175, 104, .018), 0 0 28px rgba(213, 175, 104, .08);
+  }
+
+  #root .public-site-landing .atlas-map-center::before {
+    inset: -10px;
+  }
+
+  #root .public-site-landing .atlas-map-center::after {
+    inset: 10px;
+  }
+
+  #root .public-site-landing .atlas-map-center span {
+    bottom: -22px;
+    font-size: 5.5px;
+    letter-spacing: 1.55px;
+  }
+
+  #root .public-site-landing .atlas-map-orbit,
+  #root .public-site-landing .atlas-map-routes,
+  #root .public-site-landing .atlas-map-coordinate,
+  #root .public-site-landing .atlas-map-fog,
+  #root .public-site-landing .atlas-citadel-aura,
+  #root .public-site-landing .atlas-citadel-fortress {
+    display: none;
+  }
+
+  #root .public-site-landing .atlas-realm,
+  #root .public-site-landing .realm-center,
+  #root .public-site-landing .realm-north-west,
+  #root .public-site-landing .realm-north-east,
+  #root .public-site-landing .realm-south-west,
+  #root .public-site-landing .realm-south-east {
+    position: relative;
+    inset: auto;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 16px 14px;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+    text-align: left;
+    border: 1px solid rgba(213, 175, 104, .1);
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(10, 29, 34, .72), rgba(6, 18, 24, .58));
+    box-shadow: none;
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  #root .public-site-landing .atlas-realm::before,
+  #root .public-site-landing .realm-center::before {
+    display: none;
+  }
+
+  #root .public-site-landing .atlas-realm-marker,
+  #root .public-site-landing .realm-center .atlas-realm-marker {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 40px;
+    height: 40px;
+    margin: 1px 0 0;
+    animation: none;
+  }
+
+  #root .public-site-landing .atlas-realm-copy,
+  #root .public-site-landing .realm-center .atlas-realm-copy {
+    min-width: 0;
+    min-height: 0;
+    padding: 0 34px 0 0;
+    border: 0;
+    clip-path: none;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    transform: none;
+  }
+
+  #root .public-site-landing .atlas-realm-copy::before,
+  #root .public-site-landing .atlas-realm-copy::after,
+  #root .public-site-landing .realm-center .atlas-realm-copy::before,
+  #root .public-site-landing .realm-center .atlas-realm-copy::after {
+    display: none;
+  }
+
+  #root .public-site-landing .atlas-realm-copy small,
+  #root .public-site-landing .realm-center .atlas-realm-copy small {
+    display: block;
+    font-size: 6.5px;
+    line-height: 1.2;
+    letter-spacing: 1.75px;
+  }
+
+  #root .public-site-landing .atlas-realm-copy h3,
+  #root .public-site-landing .realm-center .atlas-realm-copy h3 {
+    margin-top: 5px;
+    font-size: clamp(25px, 7.6vw, 30px);
+    line-height: 1;
+    letter-spacing: -.35px;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  #root .public-site-landing .atlas-realm-copy p,
+  #root .public-site-landing .realm-center .atlas-realm-copy p {
+    max-height: none;
+    max-width: none;
+    margin: 8px 0 0;
+    overflow: visible;
+    opacity: .84;
+    font-size: 11.5px;
+    line-height: 1.58;
+  }
+
+  #root .public-site-landing .atlas-realm-icon,
+  #root .public-site-landing .realm-center .atlas-realm-icon {
+    right: 2px;
+    top: 17px;
+  }
+
+  #root .public-site-landing .atlas-citadel-oath {
+    display: block;
+    margin-top: 9px;
+    font-size: 5.8px;
+    line-height: 1.4;
+    letter-spacing: 1.45px;
+  }
+
+  /* Touch devices should not shift cards on focus/hover emulation. */
+  #root .public-site-landing .atlas-realm:hover .atlas-realm-copy,
+  #root .public-site-landing .atlas-realm:focus-visible .atlas-realm-copy,
+  #root .public-site-landing .atlas-quest-step:hover .atlas-quest-crest {
+    transform: none;
+  }
+}
+
+@media (max-width: 430px) {
+  #root .public-site-landing {
+    --mobile-page-gutter: 14px;
+  }
+
+  #root .public-site-landing .landing-copy-shell {
+    top: clamp(182px, 29svh, 224px);
+  }
+
+  #root .public-site-landing .landing-copy-shell h1 {
+    font-size: clamp(2.35rem, 11.8vw, 3rem);
+  }
+
+  #root .public-site-landing .landing-description {
+    font-size: 11px;
+  }
+
+  #root .public-site-landing .landing-actions {
+    width: min(100%, 320px);
+  }
+
+  #root .public-site-landing .atlas-section {
+    padding-block: 64px;
+  }
+
+  #root .public-site-landing .atlas-section h2,
+  #root .public-site-landing .atlas-final h2 {
+    font-size: clamp(2.1rem, 10.5vw, 2.8rem);
+  }
+
+  #root .public-site-landing .atlas-quest-step {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px 13px 16px 12px;
+  }
+
+  #root .public-site-landing .atlas-quest-crest {
+    width: 44px;
+    height: 44px;
+  }
+
+  #root .public-site-landing .atlas-quest-crest::before,
+  #root .public-site-landing .atlas-quest-crest::after {
+    width: 50px;
+  }
+
+  #root .public-site-landing .atlas-quest-step h3 {
+    font-size: clamp(24px, 7.4vw, 28px);
+  }
+
+  #root .public-site-landing .atlas-quest-step p {
+    font-size: 11.5px;
+  }
+
+  #root .public-site-landing .atlas-world-map {
+    padding: 96px 8px 8px;
+    border-radius: 20px;
+  }
+
+  #root .public-site-landing .atlas-realm,
+  #root .public-site-landing .realm-center {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 11px;
+    padding: 14px 12px;
+  }
+
+  #root .public-site-landing .atlas-realm-marker,
+  #root .public-site-landing .realm-center .atlas-realm-marker {
+    width: 36px;
+    height: 36px;
+  }
+
+  #root .public-site-landing .atlas-realm-copy,
+  #root .public-site-landing .realm-center .atlas-realm-copy {
+    padding-right: 28px;
+  }
+
+  #root .public-site-landing .atlas-realm-copy h3,
+  #root .public-site-landing .realm-center .atlas-realm-copy h3 {
+    font-size: clamp(23px, 7.2vw, 27px);
+  }
+
+  #root .public-site-landing .atlas-realm-copy p,
+  #root .public-site-landing .realm-center .atlas-realm-copy p {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 360px) {
+  #root .public-site-landing .landing-header .public-brand > span:last-child {
+    font-size: 14px;
+    letter-spacing: 1.1px;
+  }
+
+  #root .public-site-landing .landing-eyebrow {
+    font-size: 6px;
+    letter-spacing: 1.45px;
+  }
+
+  #root .public-site-landing .atlas-quest-step {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  #root .public-site-landing .atlas-quest-crest {
+    width: 40px;
+    height: 40px;
+  }
+
+  #root .public-site-landing .atlas-quest-crest svg {
+    width: 21px;
+    height: 21px;
+  }
+}
+
+@media (max-width: 720px) and (max-height: 700px) {
+  #root .public-site-landing .landing-copy-shell {
+    top: 24svh;
+  }
+
+  #root .public-site-landing .landing-copy-shell h1 {
+    font-size: clamp(2.25rem, 10.8vw, 2.85rem);
+  }
+
+  #root .public-site-landing .landing-description {
+    margin-top: 13px;
+    line-height: 1.5;
+  }
+
+  #root .public-site-landing .landing-actions {
+    margin-top: 15px;
+  }
+
+  #root .public-site-landing .landing-actions .landing-button {
+    min-height: 45px;
+  }
+
+  #root .public-site-landing .landing-scroll-cue {
+    display: none;
+  }
+}

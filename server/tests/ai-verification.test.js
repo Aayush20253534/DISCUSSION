@@ -92,6 +92,7 @@ const image = { mimeType: 'image/webp', data: 'a'.repeat(100) }
 test('Gemini image verification has a longer timeout than text-only AI requests', () => {
   assert.equal(config.AI_REQUEST_TIMEOUT_MS, 12000)
   assert.equal(config.GEMINI_VERIFICATION_TIMEOUT_MS, 30000)
+  assert.equal(config.GEMINI_VERIFICATION_FALLBACK_MODEL, 'gemini-2.5-flash')
   assert.ok(config.GEMINI_VERIFICATION_TIMEOUT_MS > config.AI_REQUEST_TIMEOUT_MS)
 })
 
@@ -286,6 +287,87 @@ test('Gemini verifier sends inline image data and validates structured output co
   assert.match(cautious.concerns[0], /minimum confidence/i)
 })
 
+test('Gemini verification falls back from transient model overload without exceeding the request flow', async () => {
+  const entries = []
+  const urls = []
+  let calls = 0
+
+  const result = await verifyQuestEvidence({
+    config,
+    quest: {
+      title: 'Solve graph problems',
+      description: 'Finish five graph problems.',
+      attribute: 'INTELLECT',
+      difficulty: 'HARD',
+      recurrence: 'ONCE',
+      estimatedMinutes: 90,
+      dueDate: null,
+    },
+    image,
+    sleepImpl: async () => {},
+    fetchImpl: async (url) => {
+      urls.push(url)
+      calls += 1
+      if (calls === 1) {
+        return {
+          ok: false,
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: { get: () => 'application/json; charset=UTF-8' },
+          json: async () => ({
+            error: {
+              code: 503,
+              status: 'UNAVAILABLE',
+              message: 'This model is currently experiencing high demand.',
+            },
+          }),
+        }
+      }
+      return {
+        ok: true,
+        status: 200,
+        headers: { get: () => 'application/json; charset=UTF-8' },
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      verdict: 'VERIFIED',
+                      confidence: 93,
+                      summary: 'The fallback model found relevant completion evidence.',
+                      evidence: ['Completed graph work is visible.'],
+                      concerns: [],
+                    }),
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      }
+    },
+    logger: (level, event, details) => entries.push({ level, event, ...details }),
+  })
+
+  assert.equal(calls, 2)
+  assert.match(urls[0], /gemini-2\.5-flash-lite/)
+  assert.match(urls[1], /gemini-2\.5-flash/)
+  assert.equal(result.verdict, 'VERIFIED')
+  assert.equal(result.model, 'gemini-2.5-flash')
+
+  const retry = entries.find((entry) => entry.event === 'ai.quest_verification_provider_retry')
+  assert.ok(retry)
+  assert.equal(retry.status, 503)
+  assert.equal(retry.providerStatus, 'UNAVAILABLE')
+  assert.equal(retry.fallbackModel, 'gemini-2.5-flash')
+
+  const recovered = entries.find((entry) => entry.event === 'ai.quest_verification_fallback_succeeded')
+  assert.ok(recovered)
+  assert.equal(recovered.model, 'gemini-2.5-flash')
+})
+
 test('Gemini provider failures log actionable error details without logging secrets or image data', async () => {
   const entries = []
   const secretApiKey = 'test-gemini-key-that-must-not-be-logged'
@@ -341,7 +423,7 @@ test('Gemini provider failures log actionable error details without logging secr
   const failure = entries.find((entry) => entry.event === 'ai.quest_verification_provider_failed')
   assert.ok(failure)
   assert.equal(failure.provider, 'gemini')
-  assert.equal(failure.model, 'gemini-2.5-flash')
+  assert.equal(failure.model, 'gemini-2.5-flash-lite')
   assert.equal(failure.status, 400)
   assert.equal(failure.providerCode, 400)
   assert.equal(failure.providerStatus, 'INVALID_ARGUMENT')

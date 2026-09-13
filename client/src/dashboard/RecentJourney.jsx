@@ -1,6 +1,6 @@
 import { ArrowRight, CheckCheck, Coins, History, Repeat2, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { ATTRIBUTES, formatCompletionDate, formatQuestDate } from '@life-rpg/shared'
+import { ATTRIBUTES, formatCompletionDate, formatQuestDate } from '@atlasborn/shared'
 import { AttributeIcon } from '../components/ui.jsx'
 
 export default function RecentJourney({ completions }) {

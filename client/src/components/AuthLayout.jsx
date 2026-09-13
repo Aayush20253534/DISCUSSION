@@ -20,8 +20,8 @@ export default function AuthLayout({
   const metaTitle = [title, titleAccent].filter(Boolean).join(' ')
 
   usePageMeta({
-    title: `${metaTitle} · Life RPG`,
-    description: 'Secure Life RPG account access.',
+    title: `${metaTitle} · AtlasBorn`,
+    description: 'Secure AtlasBorn account access.',
     noindex: true,
   })
 
@@ -31,12 +31,12 @@ export default function AuthLayout({
       <main className={`auth-page login-auth-page ${signupPortal ? 'signup-auth-page' : ''}`}>
         <div className="login-page-vignette" aria-hidden="true" />
 
-        <Link className="login-brand" to="/" aria-label="Life RPG home">
+        <Link className="login-brand" to="/" aria-label="AtlasBorn home">
           <span className="login-brand-mark" aria-hidden="true">
             <Compass size={35} strokeWidth={1.35} />
           </span>
           <span className="login-brand-copy">
-            <strong>LIFE RPG</strong>
+            <strong>ATLASBORN</strong>
             <small>THE ADVENTURER&apos;S ATLAS</small>
           </span>
         </Link>
@@ -67,7 +67,7 @@ export default function AuthLayout({
           initial={animate ? { opacity: 0 } : false}
           animate={{ opacity: 1 }}
           transition={{ duration: animate ? 0.32 : 0, ease: 'easeOut' }}
-          aria-label={signupPortal ? 'Create a Life RPG account' : 'Sign in to Life RPG'}
+          aria-label={signupPortal ? 'Create a AtlasBorn account' : 'Sign in to AtlasBorn'}
         >
           <div className="login-card-medallion" aria-hidden="true">
             <Compass size={42} strokeWidth={1.1} />

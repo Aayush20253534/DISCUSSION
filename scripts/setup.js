@@ -23,7 +23,7 @@ const missing = required.filter((rule) => !existing.has(rule))
 if (missing.length) {
   const newline = original.includes('\r\n') ? '\r\n' : '\n'
   const separator = original && !original.endsWith('\n') ? newline : ''
-  appendFileSync(ignorePath, separator + newline + '# Life RPG foundation' + newline + missing.join(newline) + newline)
+  appendFileSync(ignorePath, separator + newline + '# AtlasBorn foundation' + newline + missing.join(newline) + newline)
   console.log('Added missing foundation ignore rules; existing rules were preserved.')
 } else {
   console.log('Foundation ignore rules are already present.')

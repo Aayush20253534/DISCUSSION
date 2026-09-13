@@ -4,8 +4,8 @@ import { usePageMeta } from '../lib/meta.js'
 
 export default function NotFound() {
   usePageMeta({
-    title: 'Page not found · Life RPG',
-    description: 'This part of the Life RPG map could not be found.',
+    title: 'Page not found · AtlasBorn',
+    description: 'This part of the AtlasBorn map could not be found.',
     noindex: true,
   })
   return (

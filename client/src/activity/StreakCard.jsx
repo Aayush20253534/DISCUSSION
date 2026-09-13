@@ -1,6 +1,6 @@
 import { ArrowRight, Check, Flame } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { formatActivityDate } from '@life-rpg/shared'
+import { formatActivityDate } from '@atlasborn/shared'
 import { useActivity } from './hooks.js'
 import './activity.css'
 

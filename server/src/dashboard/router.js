@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { characterProgress, shiftCalendarDate, todayInTimezone } from '@life-rpg/shared'
+import { characterProgress, shiftCalendarDate, todayInTimezone } from '@atlasborn/shared'
 import { createAuthentication } from '../auth/middleware.js'
 import { AppError } from '../lib/errors.js'
 import { setCacheStatus } from '../lib/cache.js'

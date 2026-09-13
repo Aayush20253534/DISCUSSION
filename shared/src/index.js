@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const APP_NAME = 'Life RPG'
+export const APP_NAME = 'AtlasBorn'
 export const API_PREFIX = '/api/v1'
 export const ATTRIBUTES = Object.freeze([
   { key: 'INTELLECT', name: 'Intellect', description: 'Learn something. See a little further.' },

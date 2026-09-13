@@ -1,4 +1,4 @@
-import { todayInTimezone } from '@life-rpg/shared'
+import { todayInTimezone } from '@atlasborn/shared'
 import {
   completionSelect,
   serializeCompletion,

@@ -80,8 +80,8 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
             ? 'Preferences'
             : 'Lost in the woods')
       applyPageMeta({
-        title: `${title} · Life RPG`,
-        description: 'Private Life RPG account area.',
+        title: `${title} · AtlasBorn`,
+        description: 'Private AtlasBorn account area.',
         path: pathname,
         noindex: true,
       })
@@ -173,7 +173,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
         <footer className="app-footer">
           <span>Life is the adventure. You are the hero.</span>
           <span>
-            LIFE RPG <span className="footer-star">✦</span> A LITTLE BETTER, EVERY DAY
+            ATLASBORN <span className="footer-star">✦</span> A LITTLE BETTER, EVERY DAY
           </span>
         </footer>
       </div>

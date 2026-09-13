@@ -15,9 +15,9 @@ if (!existsSync(path.join(dist, 'index.html'))) {
 
 const config = parseEnv({
   NODE_ENV: 'production',
-  DATABASE_URL: 'postgresql://smoke:smoke@localhost/life_rpg',
-  CLIENT_ORIGIN: 'https://life-rpg.example',
-  PUBLIC_APP_URL: 'https://life-rpg.example',
+  DATABASE_URL: 'postgresql://smoke:smoke@localhost/atlasborn',
+  CLIENT_ORIGIN: 'https://atlasborn.example',
+  PUBLIC_APP_URL: 'https://atlasborn.example',
   JWT_SECRET: 'production-smoke-secret-'.repeat(4),
 })
 const database = {
@@ -63,7 +63,7 @@ try {
   assert.match(homeHtml, /<link\b[^>]*\brel="canonical"[^>]*\bhref="https?:\/\/[^"]+"[^>]*>/i)
   assert.match(homeHtml, /<meta[^>]+property="og:url"[^>]+content="https?:\/\/[^"]+"/i)
   assert.match(homeHtml, /<meta[^>]+property="og:image"[^>]+content="https?:\/\/[^"]+"/i)
-  assert.doesNotMatch(homeHtml, /life-rpg\.invalid/i)
+  assert.doesNotMatch(homeHtml, /atlasborn\.invalid/i)
   assert.doesNotMatch(homeHtml, /\/src\/main\.jsx/i)
 
   const legacyHow = await get('/how-it-works', { headers: { Accept: 'text/html' } })

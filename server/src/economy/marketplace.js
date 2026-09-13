@@ -1,4 +1,4 @@
-import { levelProgress, shiftCalendarDate } from '@life-rpg/shared'
+import { levelProgress, shiftCalendarDate } from '@atlasborn/shared'
 
 const REQUIREMENTS = Object.freeze({
   'frame-ember': [{ kind: 'LEVEL', target: 2 }, { kind: 'QUESTS', target: 5 }],

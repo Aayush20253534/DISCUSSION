@@ -8,7 +8,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { formatActivityDate } from '@life-rpg/shared'
+import { formatActivityDate } from '@atlasborn/shared'
 import { useAuth } from '../auth/useAuth.js'
 import { equippedItem } from '../economy/equipment.js'
 import { useDashboard } from '../dashboard/hooks.js'

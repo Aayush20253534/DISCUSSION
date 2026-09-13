@@ -15,7 +15,7 @@ import {
   Volume2,
   Waves,
 } from 'lucide-react'
-import { profileSettingsSchema, changePasswordSchema } from '@life-rpg/shared'
+import { profileSettingsSchema, changePasswordSchema } from '@atlasborn/shared'
 import { useAuth } from '../auth/useAuth.js'
 import FormField from '../components/FormField.jsx'
 import { PageHeading } from '../components/ui.jsx'

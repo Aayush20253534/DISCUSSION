@@ -73,7 +73,7 @@ async function checkRepository(repositoryUrl) {
   const response = await fetch(url, {
     redirect: 'follow',
     signal: AbortSignal.timeout(20_000),
-    headers: { 'user-agent': 'life-rpg-submission-check/1.0' },
+    headers: { 'user-agent': 'atlasborn-submission-check/1.0' },
   })
   assert.equal(response.status, 200, 'Repository must be publicly reachable without authentication.')
 }
@@ -91,14 +91,14 @@ async function checkVideo({ videoUrl, videoSeconds, videoSizeMb }) {
     method: 'HEAD',
     redirect: 'follow',
     signal: AbortSignal.timeout(20_000),
-    headers: { 'user-agent': 'life-rpg-submission-check/1.0' },
+    headers: { 'user-agent': 'atlasborn-submission-check/1.0' },
   })
   if (!response.ok || response.status === 405) {
     response = await fetch(url, {
       method: 'GET',
       redirect: 'follow',
       signal: AbortSignal.timeout(20_000),
-      headers: { Range: 'bytes=0-0', 'user-agent': 'life-rpg-submission-check/1.0' },
+      headers: { Range: 'bytes=0-0', 'user-agent': 'atlasborn-submission-check/1.0' },
     })
   }
   assert.ok(response.ok, 'Walkthrough URL must be publicly reachable without authentication.')

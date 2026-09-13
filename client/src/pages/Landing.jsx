@@ -185,7 +185,7 @@ export default function Landing() {
   const [questComplete, setQuestComplete] = useState(false)
 
   usePageMeta({
-    title: 'Life RPG · The Adventurer’s Atlas',
+    title: 'AtlasBorn · The Adventurer’s Atlas',
     description:
       'Turn goals into quests, build your attributes, earn XP, collect rewards, and turn everyday progress into your own adventure.',
     path: '/',
@@ -533,7 +533,7 @@ export default function Landing() {
           className={`landing-loader ${loaderPhase === 'leaving' ? 'is-leaving' : ''}`}
           role="status"
           aria-live="polite"
-          aria-label="Loading Life RPG"
+          aria-label="Loading AtlasBorn"
         >
           <div className="landing-loader-clouds" aria-hidden="true" />
           <div className="landing-loader-rain" aria-hidden="true" />
@@ -573,7 +573,7 @@ export default function Landing() {
             <span className="landing-loader-compass" aria-hidden="true">
               <Compass size={34} strokeWidth={1.15} />
             </span>
-            <strong>LIFE RPG</strong>
+            <strong>ATLASBORN</strong>
             <small>THE ADVENTURER'S ATLAS</small>
             <span className="landing-loader-rule" aria-hidden="true" />
             <span className="landing-loader-status">ENTERING THE ATLAS</span>
@@ -688,7 +688,7 @@ export default function Landing() {
             <p className="landing-quote">“Small steps become legendary journeys.”</p>
           </div>
 
-          <div className="landing-progression" aria-label="Life RPG progression systems">
+          <div className="landing-progression" aria-label="AtlasBorn progression systems">
             {progression.map(({ icon: Icon, title, copy }) => (
               <div className="landing-progression-item" key={title}>
                 <Icon size={17} strokeWidth={1.45} aria-hidden="true" />
@@ -939,9 +939,9 @@ export default function Landing() {
           <section id="about" className="atlas-section atlas-difference atlas-reveal" aria-labelledby="atlas-difference-title">
             <div className="atlas-section-inner">
               <header className="atlas-section-heading atlas-heading-centered">
-                <span className="atlas-eyebrow">WHY LIFE RPG FEELS DIFFERENT</span>
+                <span className="atlas-eyebrow">WHY ATLASBORN FEELS DIFFERENT</span>
                 <h2 id="atlas-difference-title">Because real growth deserves to feel rewarding.</h2>
-                <p>Most tools track what you did. Life RPG helps you feel what it means.</p>
+                <p>Most tools track what you did. AtlasBorn helps you feel what it means.</p>
               </header>
 
               <div className="atlas-difference-panels">

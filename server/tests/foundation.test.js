@@ -6,7 +6,7 @@ import path from 'node:path'
 import request from 'supertest'
 import { createApp } from '../src/app.js'
 import { parseEnv } from '../src/config/env.js'
-import { worldSchema } from '@life-rpg/shared'
+import { worldSchema } from '@atlasborn/shared'
 
 const config = parseEnv({ NODE_ENV: 'test' })
 const logger = () => {}
@@ -42,13 +42,13 @@ test('Render production defaults use the public service URL without weakening lo
   const render = parseEnv({
     NODE_ENV: 'production',
     RENDER: 'true',
-    RENDER_EXTERNAL_URL: 'https://life-rpg.onrender.com',
+    RENDER_EXTERNAL_URL: 'https://atlasborn.onrender.com',
     DATABASE_URL: 'postgresql://user:secret@localhost/db',
     JWT_SECRET: 'render-production-secret-'.repeat(4),
   })
-  assert.deepEqual(render.CLIENT_ORIGIN, ['https://life-rpg.onrender.com'])
-  assert.equal(render.API_ORIGIN, 'https://life-rpg.onrender.com')
-  assert.equal(render.PUBLIC_APP_URL, 'https://life-rpg.onrender.com')
+  assert.deepEqual(render.CLIENT_ORIGIN, ['https://atlasborn.onrender.com'])
+  assert.equal(render.API_ORIGIN, 'https://atlasborn.onrender.com')
+  assert.equal(render.PUBLIC_APP_URL, 'https://atlasborn.onrender.com')
   assert.equal(render.TRUST_PROXY_HOPS, 1)
 
   // Render sits behind its own proxy. A stale/legacy dashboard value of 0 must not disable
@@ -56,7 +56,7 @@ test('Render production defaults use the public service URL without weakening lo
   const renderWithStaleProxySetting = parseEnv({
     NODE_ENV: 'production',
     RENDER: 'true',
-    RENDER_EXTERNAL_URL: 'https://life-rpg.onrender.com',
+    RENDER_EXTERNAL_URL: 'https://atlasborn.onrender.com',
     TRUST_PROXY_HOPS: '0',
     DATABASE_URL: 'postgresql://user:secret@localhost/db',
     JWT_SECRET: 'render-production-secret-'.repeat(4),
@@ -66,14 +66,14 @@ test('Render production defaults use the public service URL without weakening lo
   const customDomain = parseEnv({
     NODE_ENV: 'production',
     RENDER: 'true',
-    RENDER_EXTERNAL_URL: 'https://life-rpg.onrender.com',
+    RENDER_EXTERNAL_URL: 'https://atlasborn.onrender.com',
     CLIENT_ORIGIN: 'https://life.example',
     PUBLIC_APP_URL: 'https://life.example',
     DATABASE_URL: 'postgresql://user:secret@localhost/db',
     JWT_SECRET: 'render-production-secret-'.repeat(4),
   })
   assert.deepEqual(customDomain.CLIENT_ORIGIN, ['https://life.example'])
-  assert.equal(customDomain.API_ORIGIN, 'https://life-rpg.onrender.com')
+  assert.equal(customDomain.API_ORIGIN, 'https://atlasborn.onrender.com')
   assert.equal(customDomain.PUBLIC_APP_URL, 'https://life.example')
 
   assert.throws(
@@ -81,7 +81,7 @@ test('Render production defaults use the public service URL without weakening lo
       parseEnv({
         NODE_ENV: 'production',
         RENDER: 'true',
-        RENDER_EXTERNAL_URL: 'http://life-rpg.onrender.com',
+        RENDER_EXTERNAL_URL: 'http://atlasborn.onrender.com',
         DATABASE_URL: 'postgresql://user:secret@localhost/db',
         JWT_SECRET: 'render-production-secret-'.repeat(4),
       }),
@@ -167,9 +167,9 @@ test('malformed and oversized JSON produce consistent errors', async () => {
 })
 
 test('production serves nested SPA links but does not disguise missing API routes or assets', async () => {
-  const dir = await mkdtemp(path.join(tmpdir(), 'life-rpg-spa-'))
+  const dir = await mkdtemp(path.join(tmpdir(), 'atlasborn-spa-'))
   try {
-    await writeFile(path.join(dir, 'index.html'), '<!doctype html><title>Life RPG</title>')
+    await writeFile(path.join(dir, 'index.html'), '<!doctype html><title>AtlasBorn</title>')
     const app = createApp({
       config,
       database: { ping: async () => true },
@@ -177,7 +177,7 @@ test('production serves nested SPA links but does not disguise missing API route
       logger,
     })
     const page = await request(app).get('/character').set('Accept', 'text/html').expect(200)
-    assert.match(page.text, /Life RPG/)
+    assert.match(page.text, /AtlasBorn/)
     assert.match(page.headers['x-robots-tag'], /noindex/)
     const legacyHow = await request(app).get('/how-it-works').set('Accept', 'text/html').expect(302)
     assert.equal(legacyHow.headers.location, '/#how-it-works')

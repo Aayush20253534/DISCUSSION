@@ -5,7 +5,7 @@ const SEND_URL = 'https://api.mailjet.com/v3.1/send'
 const apiKey = process.env.MAILJET_API_KEY || process.env.MJ_APIKEY_PUBLIC
 const secretKey = process.env.MAILJET_SECRET_KEY || process.env.MJ_APIKEY_PRIVATE
 const fromEmail = process.env.MAILJET_FROM_EMAIL
-const fromName = process.env.MAILJET_FROM_NAME || 'Life RPG'
+const fromName = process.env.MAILJET_FROM_NAME || 'AtlasBorn'
 
 function fail(message) {
   console.error(`[email:check] ${message}`)
@@ -28,9 +28,9 @@ if (!apiKey || !secretKey || !fromEmail) {
           {
             From: { Email: fromEmail, Name: fromName },
             To: [{ Email: fromEmail, Name: fromName }],
-            Subject: 'Life RPG email configuration check',
-            TextPart: 'Mailjet sandbox validation for Life RPG.',
-            CustomID: 'life-rpg-email-config-check',
+            Subject: 'AtlasBorn email configuration check',
+            TextPart: 'Mailjet sandbox validation for AtlasBorn.',
+            CustomID: 'atlasborn-email-config-check',
           },
         ],
       }),

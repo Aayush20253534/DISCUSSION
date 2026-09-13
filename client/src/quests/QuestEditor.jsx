@@ -9,7 +9,7 @@ import {
   formatQuestDate,
   questCreateSchema,
   questUpdateSchema,
-} from '@life-rpg/shared'
+} from '@atlasborn/shared'
 import { AttributeIcon } from '../components/ui.jsx'
 import { useInteractionFeedback } from '../interactions/interaction-context.js'
 import { apiGet } from '../lib/api.js'

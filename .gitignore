@@ -3,7 +3,7 @@ notes.txt
 *.patch
 node_modules
 
-# Life RPG foundation
+# AtlasBorn foundation
 node_modules/
 dist/
 coverage/

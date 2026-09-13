@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ArrowRight, Check, LoaderCircle } from 'lucide-react'
-import { AVATARS, onboardingSchema } from '@life-rpg/shared'
+import { AVATARS, onboardingSchema } from '@atlasborn/shared'
 import AuthLayout from '../components/AuthLayout.jsx'
 import FormField from '../components/FormField.jsx'
 import Portrait from '../components/Portrait.jsx'

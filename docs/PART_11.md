@@ -1,6 +1,6 @@
 # Part 11 — robustness, accessibility, and production testing
 
-Part 11 turns the feature-complete Life RPG core into a release candidate that can survive the failure modes most likely to appear during judging: retries, stale tabs, network loss, route crashes, production asset changes, cross-account requests, database persistence, keyboard use, and direct-link deployment behavior.
+Part 11 turns the feature-complete AtlasBorn core into a release candidate that can survive the failure modes most likely to appear during judging: retries, stale tabs, network loss, route crashes, production asset changes, cross-account requests, database persistence, keyboard use, and direct-link deployment behavior.
 
 The guiding rule is that reliability must preserve the server-authoritative systems built in Parts 1–10. The client may improve feedback and recovery, but it never invents progression, retries writes silently, or falls back to local persistence.
 

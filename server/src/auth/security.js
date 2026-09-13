@@ -3,8 +3,8 @@ import argon2 from 'argon2'
 import jwt from 'jsonwebtoken'
 import { AppError } from '../lib/errors.js'
 
-const ISSUER = 'life-rpg-api'
-const AUDIENCE = 'life-rpg-web'
+const ISSUER = 'atlasborn-api'
+const AUDIENCE = 'atlasborn-web'
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const options = { type: argon2.argon2id, memoryCost: 65536, timeCost: 3, parallelism: 1 }
 // A hash of random, discarded bytes. Unknown emails still perform a real Argon2 verification.

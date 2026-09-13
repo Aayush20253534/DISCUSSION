@@ -11,7 +11,7 @@ import {
   ShieldCheck,
   UserRound,
 } from 'lucide-react'
-import { signupSchema, loginSchema } from '@life-rpg/shared'
+import { signupSchema, loginSchema } from '@atlasborn/shared'
 import AuthLayout from '../components/AuthLayout.jsx'
 import FormField from '../components/FormField.jsx'
 import { useAuth } from '../auth/useAuth.js'

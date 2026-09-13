@@ -5,8 +5,8 @@
 This patch targets the complete Part 4 JavaScript implementation. Run from the repository root after stopping the development server:
 
 ```powershell
-git apply --ignore-space-change --check .\life-rpg-part-5-activity.patch
-git apply --ignore-space-change .\life-rpg-part-5-activity.patch
+git apply --ignore-space-change --check .\atlasborn-part-5-activity.patch
+git apply --ignore-space-change .\atlasborn-part-5-activity.patch
 npm run db:generate
 npm run db:deploy
 npm run verify

@@ -17,7 +17,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import { QUEST_DIFFICULTIES, formatQuestDate, formatCompletionDate } from '@life-rpg/shared'
+import { QUEST_DIFFICULTIES, formatQuestDate, formatCompletionDate } from '@atlasborn/shared'
 import { useAuth } from '../auth/useAuth.js'
 import { AttributeTag } from '../components/ui.jsx'
 import { useInteractionFeedback } from '../interactions/interaction-context.js'

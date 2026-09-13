@@ -1,6 +1,6 @@
 # Part 12 — Deployment and submission package
 
-Part 12 is the release-engineering layer around the completed Life RPG product.
+Part 12 is the release-engineering layer around the completed AtlasBorn product.
 
 ## Implemented
 

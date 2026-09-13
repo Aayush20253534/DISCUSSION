@@ -23,7 +23,7 @@ export default function AuthProvider({ children }) {
   })
   useEffect(() => {
     if (!('BroadcastChannel' in window)) return
-    const current = new BroadcastChannel('life-rpg-account')
+    const current = new BroadcastChannel('atlasborn-account')
     channel.current = current
     current.onmessage = async ({ data }) => {
       if (data !== 'changed') return

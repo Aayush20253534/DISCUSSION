@@ -12,7 +12,7 @@ import {
   onboardingSchema,
   profileSettingsSchema,
   changePasswordSchema,
-} from '@life-rpg/shared'
+} from '@atlasborn/shared'
 import { createAuthentication } from './middleware.js'
 import { AppError, validate } from '../lib/errors.js'
 import { setCacheStatus } from '../lib/cache.js'
@@ -405,7 +405,7 @@ export function createAccountRouter({ config, database, mailer, logger, cache })
     res.status(202).json({
       data: {
         accepted: true,
-        message: 'If that email belongs to a Life RPG account, a recovery link is on its way.',
+        message: 'If that email belongs to a AtlasBorn account, a recovery link is on its way.',
       },
     })
   })

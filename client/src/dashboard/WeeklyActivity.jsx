@@ -1,6 +1,6 @@
 import { ArrowRight, CalendarDays, Check, Coins, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { formatActivityDate } from '@life-rpg/shared'
+import { formatActivityDate } from '@atlasborn/shared'
 
 export default function WeeklyActivity({ week, totals, today }) {
   const peak = Math.max(1, ...week.map((day) => day.count))

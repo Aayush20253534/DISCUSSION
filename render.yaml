@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: life-rpg
+    name: atlasborn
     runtime: node
     plan: free
     region: ohio
@@ -37,7 +37,7 @@ services:
       - key: MAILJET_FROM_EMAIL
         sync: false
       - key: MAILJET_FROM_NAME
-        value: Life RPG
+        value: AtlasBorn
       - key: GROQ_API_KEY
         sync: false
       - key: GEMINI_API_KEY

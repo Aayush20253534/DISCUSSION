@@ -1,5 +1,5 @@
 import { CheckCheck, Coins, Compass, Map, Sparkles } from 'lucide-react'
-import { ATTRIBUTES, characterProgress, levelProgress } from '@life-rpg/shared'
+import { ATTRIBUTES, characterProgress, levelProgress } from '@atlasborn/shared'
 import Portrait from '../components/Portrait.jsx'
 import { AttributeIcon } from '../components/ui.jsx'
 import { useAuth } from '../auth/useAuth.js'

@@ -5,7 +5,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
 import { rateLimit } from 'express-rate-limit'
-import { APP_NAME, API_PREFIX, ATTRIBUTES, worldSchema } from '@life-rpg/shared'
+import { APP_NAME, API_PREFIX, ATTRIBUTES, worldSchema } from '@atlasborn/shared'
 import { log } from './lib/logger.js'
 import { createRedisCache } from './lib/cache.js'
 import { AppError } from './lib/errors.js'
@@ -107,7 +107,7 @@ export function createApp({
   })
 
   app.get('/health', (_req, res) => {
-    res.set('Cache-Control', 'no-store').json({ data: { status: 'ok', service: 'life-rpg-api' } })
+    res.set('Cache-Control', 'no-store').json({ data: { status: 'ok', service: 'atlasborn-api' } })
   })
   app.get('/health/ready', async (req, res) => {
     res.set('Cache-Control', 'no-store')

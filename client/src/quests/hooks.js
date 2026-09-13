@@ -70,7 +70,7 @@ export function useQuestSync() {
   const client = useQueryClient()
   useEffect(() => {
     if (!user || !('BroadcastChannel' in window)) return
-    const channel = new BroadcastChannel('life-rpg-quests')
+    const channel = new BroadcastChannel('atlasborn-quests')
     channel.onmessage = ({ data }) => {
       if (data?.userId !== user.id) return
       void client.invalidateQueries({ queryKey: ['quests', user.id] })
@@ -114,7 +114,7 @@ export function useQuestMutation() {
         if (economyChanged)
           void client.invalidateQueries({ queryKey: ['economy', accountId] })
         if ('BroadcastChannel' in window) {
-          const channel = new BroadcastChannel('life-rpg-quests')
+          const channel = new BroadcastChannel('atlasborn-quests')
           channel.postMessage({ userId: accountId, progressChanged, economyChanged })
           channel.close()
         }

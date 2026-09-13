@@ -14,7 +14,7 @@ import {
   formatQuestDate,
   questCreateSchema,
   questMasterRequestSchema,
-} from '@life-rpg/shared'
+} from '@atlasborn/shared'
 import { AttributeIcon, Modal } from '../components/ui.jsx'
 import { apiSend } from '../lib/api.js'
 import { useQuestMutation } from './hooks.js'

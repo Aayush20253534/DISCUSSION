@@ -11,7 +11,7 @@ import {
   X,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { ATTRIBUTES } from '@life-rpg/shared'
+import { ATTRIBUTES } from '@atlasborn/shared'
 
 import { useInteractionFeedback } from '../interactions/interaction-context.js'
 

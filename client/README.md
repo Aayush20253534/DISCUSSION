@@ -1,4 +1,4 @@
-# Life RPG client
+# AtlasBorn client
 
 React + Vite + JavaScript. Run all installation and development commands from the repository root; see [the project README](../README.md).
 

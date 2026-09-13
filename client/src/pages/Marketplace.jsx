@@ -14,7 +14,7 @@ import {
   Store,
   WandSparkles,
 } from 'lucide-react'
-import { SHOP_ITEM_TYPES } from '@life-rpg/shared'
+import { SHOP_ITEM_TYPES } from '@atlasborn/shared'
 import { Link } from 'react-router-dom'
 import { Modal } from '../components/ui.jsx'
 import EconomyNotice from '../economy/EconomyNotice.jsx'

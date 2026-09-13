@@ -1,4 +1,4 @@
-const CACHE_PREFIX = 'life-rpg:data-cache:v2'
+const CACHE_PREFIX = 'atlasborn:data-cache:v2'
 const MIN_HASH_TTL_SECONDS = 600
 const CIRCUIT_BREAKER_MS = 20_000
 

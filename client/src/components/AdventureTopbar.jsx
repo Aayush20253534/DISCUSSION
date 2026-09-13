@@ -73,7 +73,7 @@ export default function AdventureTopbar({
         </span>
         <button
           className="icon-button guide-button"
-          aria-label="How Life RPG works"
+          aria-label="How AtlasBorn works"
           onClick={onOpenGuide}
         >
           <HelpCircle size={19} />

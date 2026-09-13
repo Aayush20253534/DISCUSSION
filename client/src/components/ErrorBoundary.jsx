@@ -3,7 +3,7 @@ import { Component } from 'react'
 function reportClientError(error, info) {
   // Keep production reporting deliberately local until a telemetry provider is configured.
   // Never serialize application state, cookies, form values, or API responses here.
-  console.error('life-rpg.render_error', {
+  console.error('atlasborn.render_error', {
     name: error?.name || 'Error',
     message: error?.message || 'Unknown render failure',
     componentStack: info?.componentStack || undefined,

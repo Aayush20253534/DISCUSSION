@@ -1,4 +1,4 @@
-/* Life RPG dashboard world -------------------------------------------------- */
+/* AtlasBorn dashboard world -------------------------------------------------- */
 .dashboard-world {
   --sidebar-width: clamp(190px, 15.8vw, 260px);
   --dashboard-topbar-height: clamp(56px, 3.8vw, 64px);

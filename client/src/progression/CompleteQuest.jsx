@@ -13,7 +13,7 @@ import {
   Sparkles,
   X,
 } from 'lucide-react'
-import { ATTRIBUTES } from '@life-rpg/shared'
+import { ATTRIBUTES } from '@atlasborn/shared'
 import { AttributeIcon, AttributeTag } from '../components/ui.jsx'
 import { apiGet } from '../lib/api.js'
 import { useQuestMutation } from '../quests/hooks.js'

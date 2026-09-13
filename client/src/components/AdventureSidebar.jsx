@@ -12,12 +12,12 @@ export default function AdventureSidebar({
 }) {
   return (
     <aside className="sidebar adventure-sidebar">
-      <NavLink to="/" className="brand" aria-label="Life RPG home" onClick={onNavigate}>
+      <NavLink to="/" className="brand" aria-label="AtlasBorn home" onClick={onNavigate}>
         <span className="brand-mark" aria-hidden="true">
           <Compass size={34} strokeWidth={1.25} />
         </span>
         <span className="brand-word">
-          <strong>LIFE RPG</strong>
+          <strong>ATLASBORN</strong>
           <small>THE ADVENTURER&apos;S ATLAS</small>
         </span>
       </NavLink>

@@ -11,7 +11,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react'
-import { ATTRIBUTES, formatCompletionDate, formatQuestDate } from '@life-rpg/shared'
+import { ATTRIBUTES, formatCompletionDate, formatQuestDate } from '@atlasborn/shared'
 import { AttributeIcon } from '../components/ui.jsx'
 import { useCompletionHistory } from './hooks.js'
 import './progression.css'

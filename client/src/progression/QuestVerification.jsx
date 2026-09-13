@@ -240,7 +240,7 @@ export default function QuestVerification({ quest, disabled = false, onVerified 
 
       {error && <p className="form-message" role="alert">{error}</p>}
       <p className="quest-verification-privacy">
-        Life RPG does not store the evidence image. It is resized in your browser and sent to Gemini only for this check.
+        AtlasBorn does not store the evidence image. It is resized in your browser and sent to Gemini only for this check.
       </p>
     </section>
   )

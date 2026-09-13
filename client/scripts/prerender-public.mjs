@@ -20,7 +20,7 @@ const origin = publicOrigin()
 const pages = [
   {
     path: '/',
-    title: 'Life RPG · The Adventurer’s Atlas',
+    title: 'AtlasBorn · The Adventurer’s Atlas',
     description:
       'Turn goals into quests, build your attributes, earn XP, collect rewards, and turn everyday progress into your own adventure.',
     body: `<main><p>YOUR STORY BEGINS HERE</p><h1>Your everyday life, turned into an adventure.</h1><p>Turn goals into quests. Build your attributes. Earn XP, collect rewards, and discover how far consistent effort can take you.</p><p><a href="/signup">Begin Your Journey</a> · <a href="/#journey">Explore the Atlas</a></p></main>`,

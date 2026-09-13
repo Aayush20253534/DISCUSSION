@@ -6,7 +6,7 @@ import {
   formatActivityDate,
   formatCompletionDate,
   formatQuestDate,
-} from '@life-rpg/shared'
+} from '@atlasborn/shared'
 import { AttributeIcon } from '../components/ui.jsx'
 import { useActivityDay } from './hooks.js'
 

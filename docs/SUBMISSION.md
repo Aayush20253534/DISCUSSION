@@ -13,7 +13,7 @@ Copy `submission.example.json` to `submission.json` and replace every placeholde
 ```json
 {
   "liveUrl": "https://your-service.onrender.com",
-  "repositoryUrl": "https://github.com/your-user/life-rpg",
+  "repositoryUrl": "https://github.com/your-user/atlasborn",
   "videoUrl": "https://public-video-link",
   "videoSeconds": 120,
   "videoSizeMb": 75

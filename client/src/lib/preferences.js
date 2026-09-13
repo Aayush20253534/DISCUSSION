@@ -1,6 +1,6 @@
 export function readMotionPreference() {
   try {
-    return localStorage.getItem('life-rpg:gentle-motion') !== 'false'
+    return localStorage.getItem('atlasborn:gentle-motion') !== 'false'
   } catch {
     return true
   }
@@ -9,7 +9,7 @@ export function readMotionPreference() {
 export function saveMotionPreference(value) {
   // Only display/audio preferences are local. Account/game data must live in Neon.
   try {
-    localStorage.setItem('life-rpg:gentle-motion', String(value))
+    localStorage.setItem('atlasborn:gentle-motion', String(value))
   } catch {
     /* A blocked storage API must not break the interface. */
   }
@@ -17,7 +17,7 @@ export function saveMotionPreference(value) {
 
 export function readSoundPreference() {
   try {
-    return localStorage.getItem('life-rpg:sound-enabled') === 'true'
+    return localStorage.getItem('atlasborn:sound-enabled') === 'true'
   } catch {
     return false
   }
@@ -25,14 +25,14 @@ export function readSoundPreference() {
 
 export function saveSoundPreference(value) {
   try {
-    localStorage.setItem('life-rpg:sound-enabled', String(value))
+    localStorage.setItem('atlasborn:sound-enabled', String(value))
   } catch {
     /* A blocked storage API must not break the interface. */
   }
 }
 
 
-const REMEMBERED_EMAIL_KEY = 'life-rpg:remembered-email'
+const REMEMBERED_EMAIL_KEY = 'atlasborn:remembered-email'
 
 export function readRememberedEmail() {
   try {

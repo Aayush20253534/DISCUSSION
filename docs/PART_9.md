@@ -1,12 +1,12 @@
 # Part 9 — Public website and account settings
 
-Part 9 turns Life RPG from a private application with a guest preview into a complete website with a deliberate public entry point and production-grade account controls.
+Part 9 turns AtlasBorn from a private application with a guest preview into a complete website with a deliberate public entry point and production-grade account controls.
 
 ## Product goals
 
 The public experience has two indexable routes:
 
-- `/` — landing page explaining the Life RPG loop with accurate product previews and clear signup/login actions.
+- `/` — landing page explaining the AtlasBorn loop with accurate product previews and clear signup/login actions.
 - `/how-it-works` — deeper explanation of quests, attributes, progression, streaks, gold, persistence, and server-authoritative rewards.
 
 Authenticated application routes remain private. Express adds `X-Robots-Tag: noindex, nofollow, noarchive` to SPA responses for non-public routes, and the client also applies noindex metadata to authenticated/account pages.
@@ -35,7 +35,7 @@ The prerender step writes meaningful fallback HTML for the landing page and `how
 `PUBLIC_APP_URL` is optional during local development. Before production deployment it should be the exact public origin, for example:
 
 ```dotenv
-PUBLIC_APP_URL=https://life-rpg.example
+PUBLIC_APP_URL=https://atlasborn.example
 ```
 
 Do not include a path or trailing slash.

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { formatActivityDate, shiftCalendarDate, shiftCalendarMonth } from '@life-rpg/shared'
+import { formatActivityDate, shiftCalendarDate, shiftCalendarMonth } from '@atlasborn/shared'
 import DayHistory from './DayHistory.jsx'
 
 export default function ActivityCalendar({ data, onMonthChange, currentMonth }) {

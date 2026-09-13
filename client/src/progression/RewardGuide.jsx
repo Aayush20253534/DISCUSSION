@@ -1,5 +1,5 @@
 import { Coins, Sparkles } from 'lucide-react'
-import { QUEST_DIFFICULTIES, QUEST_REWARDS } from '@life-rpg/shared'
+import { QUEST_DIFFICULTIES, QUEST_REWARDS } from '@atlasborn/shared'
 import './progression.css'
 
 export default function RewardGuide({ level }) {

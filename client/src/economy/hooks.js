@@ -31,7 +31,7 @@ function refreshEconomy(client, userId) {
   void client.invalidateQueries({ queryKey: ['dashboard', userId] })
   void client.invalidateQueries({ queryKey: ['auth', 'me'] })
   if ('BroadcastChannel' in window) {
-    const channel = new BroadcastChannel('life-rpg-economy')
+    const channel = new BroadcastChannel('atlasborn-economy')
     channel.postMessage({ userId })
     channel.close()
   }
@@ -69,7 +69,7 @@ export function useEconomySync() {
   const client = useQueryClient()
   useEffect(() => {
     if (!user || !('BroadcastChannel' in window)) return
-    const channel = new BroadcastChannel('life-rpg-economy')
+    const channel = new BroadcastChannel('atlasborn-economy')
     channel.onmessage = ({ data }) => {
       if (data?.userId !== user.id) return
       void client.invalidateQueries({ queryKey: ['economy', user.id] })

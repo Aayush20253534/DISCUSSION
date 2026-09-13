@@ -1,19 +1,19 @@
 # Part 4: quest completion and progression
 
-Part 4 adds the Life RPG progression engine to Part 3's saved journal. Application code remains JavaScript/JSX. It reuses React, Express, Prisma/PostgreSQL, JWT/Argon2id authentication, React Query, Radix dialogs, and Motion. No npm dependency changes are required.
+Part 4 adds the AtlasBorn progression engine to Part 3's saved journal. Application code remains JavaScript/JSX. It reuses React, Express, Prisma/PostgreSQL, JWT/Argon2id authentication, React Query, Radix dialogs, and Motion. No npm dependency changes are required.
 
 ## Upgrade from Part 3
 
 Stop the development server and save the patch in the repository root. Check it first:
 
 ```powershell
-git apply --ignore-space-change --check .\life-rpg-part-4-progression.patch
+git apply --ignore-space-change --check .\atlasborn-part-4-progression.patch
 ```
 
 If the check succeeds:
 
 ```powershell
-git apply --ignore-space-change .\life-rpg-part-4-progression.patch
+git apply --ignore-space-change .\atlasborn-part-4-progression.patch
 npm run db:generate
 npm run db:deploy
 npm run verify

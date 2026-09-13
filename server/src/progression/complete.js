@@ -5,7 +5,7 @@ import {
   characterProgress,
   levelProgress,
   todayInTimezone,
-} from '@life-rpg/shared'
+} from '@atlasborn/shared'
 import { AppError } from '../lib/errors.js'
 import { questSelect, serializeQuest } from '../quests/presentation.js'
 import {

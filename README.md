@@ -1,6 +1,6 @@
-# Life RPG
+# AtlasBorn
 
-Life RPG is a full-stack productivity game that turns real-world tasks into quests. Completing a quest awards server-calculated XP, attribute XP and gold; progress builds character levels and streaks, while gold unlocks cosmetic frames, badges, titles and themes.
+AtlasBorn is a full-stack productivity game that turns real-world tasks into quests. Completing a quest awards server-calculated XP, attribute XP and gold; progress builds character levels and streaks, while gold unlocks cosmetic frames, badges, titles and themes.
 
 The project is built for real persistence rather than a frontend-only demo. Authentication, quest ownership, progression, daily recurrence, reward transactions, inventory and activity history are enforced by the Express/PostgreSQL backend.
 
@@ -93,7 +93,7 @@ Clone the repository and install all workspaces from the repository root:
 
 ```powershell
 git clone <YOUR_PUBLIC_REPOSITORY_URL>
-cd life-rpg
+cd atlasborn
 npm ci --workspaces --include-workspace-root --include=dev
 ```
 
@@ -135,7 +135,7 @@ EMAIL_OTP_RESEND_SECONDS=60
 MAILJET_API_KEY=
 MAILJET_SECRET_KEY=
 MAILJET_FROM_EMAIL=
-MAILJET_FROM_NAME=Life RPG
+MAILJET_FROM_NAME=AtlasBorn
 AI_PROVIDER=auto
 GROQ_API_KEY=
 GEMINI_API_KEY=
@@ -146,7 +146,7 @@ GEMINI_VERIFICATION_TIMEOUT_MS=30000
 AI_REQUEST_TIMEOUT_MS=12000
 ```
 
-`DATABASE_URL` is used by the running application. `DIRECT_URL` is used by the migration wrapper. `JWT_SECRET` must remain private and is required whenever database-backed authentication is enabled. Signup email verification uses Mailjet Send API v3.1; `MAILJET_FROM_EMAIL` must be a verified Mailjet sender. AI Quest Master is enabled when at least one of `GROQ_API_KEY` or `GEMINI_API_KEY` is set. In `auto` mode the server tries Groq first and falls back to Gemini. Gemini Quest Verification uses `GEMINI_API_KEY` and `GEMINI_VERIFICATION_MODEL`; multimodal verification has its own `GEMINI_VERIFICATION_TIMEOUT_MS` budget (30 seconds by default) because image inspection can take longer than text-only AI requests. Evidence images are resized in the browser, inspected transiently, and are not stored by Life RPG. AI may suggest or verify activity, but XP, gold, levels and progression remain server-authoritative.
+`DATABASE_URL` is used by the running application. `DIRECT_URL` is used by the migration wrapper. `JWT_SECRET` must remain private and is required whenever database-backed authentication is enabled. Signup email verification uses Mailjet Send API v3.1; `MAILJET_FROM_EMAIL` must be a verified Mailjet sender. AI Quest Master is enabled when at least one of `GROQ_API_KEY` or `GEMINI_API_KEY` is set. In `auto` mode the server tries Groq first and falls back to Gemini. Gemini Quest Verification uses `GEMINI_API_KEY` and `GEMINI_VERIFICATION_MODEL`; multimodal verification has its own `GEMINI_VERIFICATION_TIMEOUT_MS` budget (30 seconds by default) because image inspection can take longer than text-only AI requests. Evidence images are resized in the browser, inspected transiently, and are not stored by AtlasBorn. AI may suggest or verify activity, but XP, gold, levels and progression remain server-authoritative.
 
 The browser normally needs no environment variables because production uses same-origin API requests. `client/.env.example` exists only for the optional `VITE_API_BASE_URL` override.
 

@@ -5,7 +5,7 @@ import {
   monthDates,
   shiftCalendarDate,
   todayInTimezone,
-} from '@life-rpg/shared'
+} from '@atlasborn/shared'
 import { createAuthentication } from '../auth/middleware.js'
 import { AppError, validate } from '../lib/errors.js'
 import { routeCacheKey, setCacheStatus } from '../lib/cache.js'

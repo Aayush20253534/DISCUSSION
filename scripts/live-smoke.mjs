@@ -26,7 +26,7 @@ async function fetchChecked(url, options = {}) {
     redirect: 'follow',
     signal: AbortSignal.timeout(20_000),
     ...rest,
-    headers: { 'user-agent': 'life-rpg-release-check/1.0', ...(headers || {}) },
+    headers: { 'user-agent': 'atlasborn-release-check/1.0', ...(headers || {}) },
   })
 }
 
@@ -61,7 +61,7 @@ export async function runLiveSmoke(value) {
   const homeHtml = await home.text()
   assert.equal(canonicalHref(homeHtml), `${origin}/`)
   assert.equal(metaContent(homeHtml, 'property="og:url"'), `${origin}/`)
-  assert.doesNotMatch(homeHtml, /life-rpg\.invalid|\/src\/main\.jsx/i)
+  assert.doesNotMatch(homeHtml, /atlasborn\.invalid|\/src\/main\.jsx/i)
   assert.match(homeHtml, /<main[\s>]/i)
   assert.match(homeHtml, /<h1[\s>]/i)
 

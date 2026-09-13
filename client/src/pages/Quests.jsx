@@ -26,7 +26,7 @@ import {
   QUEST_RECURRENCES,
   questListSchema,
   questIdSchema,
-} from '@life-rpg/shared'
+} from '@atlasborn/shared'
 import { useAuth } from '../auth/useAuth.js'
 import { AttributeIcon, PageHeading } from '../components/ui.jsx'
 import QuestRow from '../quests/QuestRow.jsx'

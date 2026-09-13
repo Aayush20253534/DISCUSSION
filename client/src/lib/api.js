@@ -71,7 +71,7 @@ async function send(path, options) {
 }
 function authLock(work) {
   // Web Locks serialize refresh/login/logout across tabs on the same origin.
-  if (navigator.locks) return navigator.locks.request('life-rpg-session', work)
+  if (navigator.locks) return navigator.locks.request('atlasborn-session', work)
   const current = localLock.then(work, work)
   localLock = current.catch(() => {})
   return current

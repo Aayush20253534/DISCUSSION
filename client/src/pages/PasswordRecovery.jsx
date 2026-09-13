@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, CheckCircle2, KeyRound, LoaderCircle, Mail, ShieldCheck } from 'lucide-react'
-import { passwordResetRequestSchema, passwordResetSchema } from '@life-rpg/shared'
+import { passwordResetRequestSchema, passwordResetSchema } from '@atlasborn/shared'
 import AuthLayout from '../components/AuthLayout.jsx'
 import FormField from '../components/FormField.jsx'
 import { useAuth } from '../auth/useAuth.js'
@@ -57,7 +57,7 @@ export default function PasswordRecovery() {
       } else {
         const result = await auth.requestPasswordReset(parsed.data)
         setSuccess(true)
-        setMessage(result.message || 'If that email belongs to a Life RPG account, a recovery link is on its way.')
+        setMessage(result.message || 'If that email belongs to a AtlasBorn account, a recovery link is on its way.')
       }
     } catch (error) {
       setFields(error.fields || {})

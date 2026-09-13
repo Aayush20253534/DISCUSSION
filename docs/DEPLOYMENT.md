@@ -1,6 +1,6 @@
 # Production deployment
 
-Life RPG is designed to deploy as one Node web service: Express serves the API and the built Vite application from the same HTTPS origin, while Neon provides PostgreSQL. Keeping browser and API traffic on one origin avoids cross-site cookie complexity and makes direct React Router refreshes predictable.
+AtlasBorn is designed to deploy as one Node web service: Express serves the API and the built Vite application from the same HTTPS origin, while Neon provides PostgreSQL. Keeping browser and API traffic on one origin avoids cross-site cookie complexity and makes direct React Router refreshes predictable.
 
 ## Recommended topology
 

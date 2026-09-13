@@ -74,8 +74,8 @@ test('verified signup normalizes email, stores Argon2id and a refresh hash, and 
   const access = value(cookie(client.response, 'life_access'))
   const payload = jwt.verify(access, secret, {
     algorithms: ['HS256'],
-    issuer: 'life-rpg-api',
-    audience: 'life-rpg-web',
+    issuer: 'atlasborn-api',
+    audience: 'atlasborn-web',
   })
   assert.equal(payload.sub, client.user.id)
   assert.equal(payload.sid, session.id)
@@ -272,8 +272,8 @@ test('expired JWTs require refresh; expired sessions and altered or wrong-algori
     sub: client.user.id,
     sid: session.id,
     type: 'access',
-    iss: 'life-rpg-api',
-    aud: 'life-rpg-web',
+    iss: 'atlasborn-api',
+    aud: 'atlasborn-web',
   }
   const expired = jwt.sign({ ...payload, iat: Math.floor(Date.now() / 1000) - 1000 }, secret, {
     algorithm: 'HS256',

@@ -71,12 +71,12 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
       <header
         className={`public-header ${isLanding ? 'landing-header' : ''} ${isLanding && headerScrolled ? 'is-scrolled' : ''} ${menuOpen ? 'menu-open' : ''}`}
       >
-        <NavLink className="public-brand" to="/" aria-label="Life RPG home" onClick={closeMenu}>
+        <NavLink className="public-brand" to="/" aria-label="AtlasBorn home" onClick={closeMenu}>
           <span className="public-brand-compass" aria-hidden="true">
             <Compass size={28} strokeWidth={1.35} />
           </span>
           <span>
-            {isLanding ? 'LIFE RPG' : <>life<em>rpg</em></>}
+            {isLanding ? 'ATLASBORN' : <>AtlasBorn</>}
             <small>{isLanding ? "THE ADVENTURER'S ATLAS" : 'MAKE EVERY DAY A QUEST'}</small>
           </span>
         </NavLink>
@@ -139,7 +139,7 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
         {isLanding ? (
           <>
             <div className="atlas-footer-brand">
-              <span className="public-footer-brand"><Compass size={20} strokeWidth={1.25} /> LIFE RPG</span>
+              <span className="public-footer-brand"><Compass size={20} strokeWidth={1.25} /> ATLASBORN</span>
               <small>THE ADVENTURER’S ATLAS</small>
               <p>Every journey begins with a single step.</p>
             </div>
@@ -153,12 +153,12 @@ export default function PublicShell({ gentleMotion, setGentleMotion, soundEnable
               <span>YOUR NEXT QUEST AWAITS</span>
               <NavLink to="/signup">Begin Your Journey <span aria-hidden="true">→</span></NavLink>
             </div>
-            <small className="atlas-footer-legal">© 2026 LIFE RPG · YOUR LIFE IS THE ADVENTURE.</small>
+            <small className="atlas-footer-legal">© 2026 ATLASBORN · YOUR LIFE IS THE ADVENTURE.</small>
           </>
         ) : (
           <>
             <div>
-              <span className="public-footer-brand"><Compass size={18} /> Life RPG</span>
+              <span className="public-footer-brand"><Compass size={18} /> AtlasBorn</span>
               <p>Turn ordinary effort into visible progress.</p>
             </div>
             <nav aria-label="Footer navigation">

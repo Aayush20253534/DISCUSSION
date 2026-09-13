@@ -11,7 +11,7 @@ import {
   Repeat2,
   ShieldCheck,
 } from 'lucide-react'
-import { QUEST_DIFFICULTIES, formatQuestDate } from '@life-rpg/shared'
+import { QUEST_DIFFICULTIES, formatQuestDate } from '@atlasborn/shared'
 import { AttributeIcon, AttributeTag } from '../components/ui.jsx'
 
 export default function QuestRow({

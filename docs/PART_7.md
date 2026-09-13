@@ -156,7 +156,7 @@ Theme state comes from `/auth/me`, so it survives refresh, login on another devi
 
 ## Cross-tab consistency
 
-Economy mutations broadcast `life-rpg-economy`. Other tabs invalidate:
+Economy mutations broadcast `atlasborn-economy`. Other tabs invalidate:
 
 - economy catalog/inventory/wallet queries;
 - progression summary;

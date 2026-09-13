@@ -7,13 +7,13 @@ Part 3 turns the private quest page into a PostgreSQL-backed journal. It builds 
 Stop the development server. Run the following in the repository root containing `client/`, `server/`, and the root `package.json`. The patch targets the completed Part 2 JWT/Argon2 implementation.
 
 ```powershell
-git apply --ignore-space-change --check .\life-rpg-part-3-quest-journal.patch
+git apply --ignore-space-change --check .\atlasborn-part-3-quest-journal.patch
 ```
 
 Continue only if the check succeeds:
 
 ```powershell
-git apply --ignore-space-change .\life-rpg-part-3-quest-journal.patch
+git apply --ignore-space-change .\atlasborn-part-3-quest-journal.patch
 npm run db:generate
 npm run db:deploy
 npm run verify

@@ -13,7 +13,7 @@ export default function FirstJourney({ step, active = true, completedCount = 0 }
       : 'Give today one small quest.'
 
   const copy = create
-    ? 'Choose something real and achievable. Once it is saved, Life RPG can remember the effort, reward it, and begin your activity history.'
+    ? 'Choose something real and achievable. Once it is saved, AtlasBorn can remember the effort, reward it, and begin your activity history.'
     : complete
       ? 'Complete the real-world task, then record it. Your first XP, gold, attribute growth, streak day, and history entry will all come from that one confirmation.'
       : 'Choose something real and achievable. Keep the next step small enough to begin, meaningful enough to matter, and let your character grow with you.'

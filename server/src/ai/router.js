@@ -6,7 +6,7 @@ import {
   questMasterRequestSchema,
   questVerificationRequestSchema,
   todayInTimezone,
-} from '@life-rpg/shared'
+} from '@atlasborn/shared'
 import { createAuthentication } from '../auth/middleware.js'
 import { createSecurity } from '../auth/security.js'
 import { AppError, validate } from '../lib/errors.js'

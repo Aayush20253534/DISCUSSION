@@ -129,6 +129,7 @@ export function createActivityRouter({ config, database, clock = () => new Date(
   })
   router.get('/day', async (req, res) => {
     const query = validate(activityDaySchema, req.query)
+    const userId = req.auth.userId
     const cached = await cache.getOrSet({
       userId,
       namespace: 'activity',
@@ -137,10 +138,10 @@ export function createActivityRouter({ config, database, clock = () => new Date(
       load: () =>
         db.$transaction(
           async (tx) => {
-        const { timezone, today } = await accountFor(tx, req.auth.userId)
+        const { timezone, today } = await accountFor(tx, userId)
         if (query.date > today) rejectFuture()
         const where = {
-          userId: req.auth.userId,
+          userId,
           completedDate: new Date(`${query.date}T00:00:00Z`),
         }
         const total = await tx.questCompletion.count({ where })

@@ -4,7 +4,6 @@ import { AppError } from '../lib/errors.js'
 
 const verificationSchema = {
   type: 'object',
-  additionalProperties: false,
   properties: {
     verdict: { type: 'string', enum: ['VERIFIED', 'UNCLEAR', 'REJECTED'] },
     confidence: { type: 'integer', minimum: 0, maximum: 100 },

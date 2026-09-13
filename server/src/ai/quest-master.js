@@ -26,7 +26,6 @@ const modelPlanSchema = z
 function planJsonSchema(input) {
   return {
     type: 'object',
-    additionalProperties: false,
     properties: {
       campaignTitle: { type: 'string' },
       summary: { type: 'string' },
@@ -36,7 +35,6 @@ function planJsonSchema(input) {
         maxItems: input.questCount,
         items: {
           type: 'object',
-          additionalProperties: false,
           properties: {
             title: { type: 'string' },
             description: { type: 'string' },

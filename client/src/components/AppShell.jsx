@@ -36,8 +36,9 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const characterWorld = Boolean(user && pathname === '/character')
   const marketplaceWorld = Boolean(user && pathname === '/marketplace')
   const inventoryWorld = Boolean(user && pathname === '/inventory')
+  const settingsWorld = Boolean(user && pathname === '/settings')
   const marketWorld = marketplaceWorld || inventoryWorld
-  const immersiveWorld = dashboardWorld || questWorld || activityWorld || characterWorld || marketWorld
+  const immersiveWorld = dashboardWorld || questWorld || activityWorld || characterWorld || marketWorld || settingsWorld
   useEffect(() => {
     const key = equippedThemeKey
     if (key) document.documentElement.dataset.rewardTheme = key
@@ -96,7 +97,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   }
 
   return (
-    <div className={`app-shell ${adventureShell ? 'adventure-shell' : ''} ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${activityWorld ? 'activity-world' : ''} ${characterWorld ? 'character-world' : ''} ${marketWorld ? 'marketplace-world' : ''} ${inventoryWorld ? 'inventory-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
+    <div className={`app-shell ${adventureShell ? 'adventure-shell' : ''} ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld || settingsWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${activityWorld ? 'activity-world' : ''} ${characterWorld ? 'character-world' : ''} ${marketWorld ? 'marketplace-world' : ''} ${inventoryWorld ? 'inventory-world' : ''} ${settingsWorld ? 'settings-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>

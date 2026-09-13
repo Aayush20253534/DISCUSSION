@@ -1691,3 +1691,43 @@
     padding-top: 8px;
   }
 }
+
+/* Password recovery shares the cinematic login portal instead of dropping into a generic form. */
+.login-forgot {
+  color: #d9b66d;
+  text-decoration: none;
+  cursor: pointer;
+}
+.login-forgot:hover { color: #f0cf84; text-decoration: underline; text-underline-offset: 4px; }
+.password-recovery-card { max-width: 620px; }
+.recovery-form { gap: 17px; }
+.recovery-back-link {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 2px;
+  color: #aab8b6;
+  font-size: 11px;
+  text-decoration: none;
+}
+.recovery-back-link:hover { color: #e2bd72; }
+.recovery-success {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 10px 0 2px;
+  text-align: center;
+}
+.recovery-success-icon {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(219, 184, 111, 0.48);
+  border-radius: 50%;
+  color: #e1bd72;
+  background: rgba(213, 175, 104, 0.07);
+}
+.recovery-success h2 { margin: 0; color: #eee7d8; font: 500 28px/1 var(--font-display); }
+.recovery-success p { max-width: 430px; margin: 0 0 4px; color: #aab8b6; font-size: 11px; line-height: 1.75; }

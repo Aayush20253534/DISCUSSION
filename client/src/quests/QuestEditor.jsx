@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { motion } from 'motion/react'
-import { ArrowRight, LoaderCircle, RefreshCw, X } from 'lucide-react'
+import { ArrowRight, CalendarDays, Clock3, Compass, LoaderCircle, RefreshCw, Sparkles, X } from 'lucide-react'
 import {
   ATTRIBUTES,
   QUEST_DIFFICULTIES,
@@ -44,6 +44,9 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
   const conflict = mutation.error?.code === 'QUEST_CHANGED'
   const missing = ['QUEST_NOT_FOUND', 'QUEST_COMPLETED'].includes(mutation.error?.code)
   const dirty = JSON.stringify(values) !== JSON.stringify(valuesFrom(original || template))
+  const selectedAttribute = ATTRIBUTES.find(({ key }) => key === values.attribute)
+  const selectedRecurrence = QUEST_RECURRENCES.find(({ key }) => key === values.recurrence)
+  const selectedDifficulty = QUEST_DIFFICULTIES.find(({ key }) => key === values.difficulty)
   function close() {
     if (busy) return
     if (dirty) {
@@ -188,7 +191,7 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
               </button>
             </div>
           ) : (
-            <form className="quest-form" ref={form} onSubmit={submit} noValidate aria-busy={busy}>
+            <form className="quest-form quest-contract-form" ref={form} onSubmit={submit} noValidate aria-busy={busy}>
               <fieldset disabled={busy || Boolean(lockedDraft)} className="quest-form-fields">
                 <div className="form-field">
                   <label htmlFor="quest-title">
@@ -365,10 +368,23 @@ export default function QuestEditor({ quest, template, onClose, onSaved }) {
                   </div>
                 </div>
               </fieldset>
-              <div className="quest-form-rewards">
-                <span>WHEN YOU COMPLETE THIS QUEST</span>
-                <RewardPreview difficulty={values.difficulty} attribute={values.attribute} />
-              </div>
+              <aside className="quest-contract-preview" aria-label="Quest contract preview">
+                <div className="quest-contract-seal" aria-hidden="true"><Compass size={30} /></div>
+                <span className="eyebrow">YOUR QUEST CONTRACT</span>
+                <h3>{values.title.trim() || 'An unwritten quest'}</h3>
+                <p>{values.description.trim() || 'Give this quest a clear intention. The journal will remember the effort when you return.'}</p>
+                <div className="quest-contract-facts">
+                  <span><AttributeIcon attribute={values.attribute} size={16} /><strong>{selectedAttribute?.name || 'Intellect'}</strong><small>Attribute</small></span>
+                  <span><Sparkles size={16} /><strong>{selectedDifficulty?.label || values.difficulty}</strong><small>Difficulty</small></span>
+                  <span><Clock3 size={16} /><strong>{values.estimatedMinutes ? `${values.estimatedMinutes} min` : 'Open'}</strong><small>Time</small></span>
+                  <span><CalendarDays size={16} /><strong>{selectedRecurrence?.label || values.recurrence}</strong><small>Rhythm</small></span>
+                </div>
+                {values.recurrence !== 'DAILY' && values.dueDate ? <p className="quest-contract-due">Due {formatQuestDate(values.dueDate)}</p> : null}
+                <div className="quest-form-rewards">
+                  <span>WHEN YOU COMPLETE THIS QUEST</span>
+                  <RewardPreview difficulty={values.difficulty} attribute={values.attribute} />
+                </div>
+              </aside>
               {message && (
                 <p className="form-message" role="alert">
                   {message}

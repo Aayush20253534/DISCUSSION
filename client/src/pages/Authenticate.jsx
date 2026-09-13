@@ -365,13 +365,9 @@ export default function Authenticate({ signup = false }) {
               />
               <span>Remember me</span>
             </label>
-            <span
-              className="login-forgot"
-              aria-disabled="true"
-              title="Password recovery is not configured in this build yet."
-            >
+            <Link className="login-forgot" to="/forgot-password">
               Forgot your password?
-            </span>
+            </Link>
           </div>
         )}
 

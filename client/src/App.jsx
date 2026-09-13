@@ -20,6 +20,7 @@ import {
 
 const Authenticate = lazy(() => import('./pages/Authenticate.jsx'))
 const Onboarding = lazy(() => import('./pages/Onboarding.jsx'))
+const PasswordRecovery = lazy(() => import('./pages/PasswordRecovery.jsx'))
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
 const Quests = lazy(() => import('./pages/Quests.jsx'))
 const Activity = lazy(() => import('./pages/Activity.jsx'))
@@ -57,7 +58,9 @@ function RoutedApplication({ gentleMotion, setGentleMotion, soundEnabled, setSou
           <Route element={<AccountGate mode="guest" />}>
             <Route path="login" element={<Authenticate key="login" />} />
             <Route path="signup" element={<Authenticate key="signup" signup />} />
+            <Route path="forgot-password" element={<PasswordRecovery />} />
           </Route>
+          <Route path="reset-password" element={<PasswordRecovery />} />
           <Route element={<AccountGate mode="onboarding" />}>
             <Route path="onboarding" element={<Onboarding />} />
           </Route>

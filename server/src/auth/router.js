@@ -1,4 +1,4 @@
-import { createHmac, randomInt, randomUUID, timingSafeEqual } from 'node:crypto'
+import { createHmac, randomBytes, randomInt, randomUUID, timingSafeEqual } from 'node:crypto'
 import { Router } from 'express'
 import { rateLimit } from 'express-rate-limit'
 import {
@@ -7,6 +7,8 @@ import {
   emailVerificationSchema,
   resendVerificationSchema,
   loginSchema,
+  passwordResetRequestSchema,
+  passwordResetSchema,
   onboardingSchema,
   profileSettingsSchema,
   changePasswordSchema,
@@ -365,6 +367,77 @@ export function createAccountRouter({ config, database, mailer, logger }) {
       },
     })
   })
+  router.post('/auth/forgot-password', security.requireCsrf, limiter(5), async (req, res) => {
+    const input = validate(passwordResetRequestSchema, req.body)
+    const account = await db.user.findUnique({
+      where: { email: input.email },
+      select: { id: true, email: true, displayName: true },
+    })
+
+    // Always return the same public response so this endpoint cannot be used to enumerate accounts.
+    if (account) {
+      const token = randomBytes(32).toString('base64url')
+      const tokenHash = hashToken(token)
+      const expiresAt = new Date(Date.now() + config.PASSWORD_RESET_MINUTES * 60000)
+      const id = randomUUID()
+      await db.$transaction([
+        db.passwordReset.deleteMany({ where: { userId: account.id } }),
+        db.passwordReset.create({ data: { id, userId: account.id, tokenHash, expiresAt } }),
+      ])
+
+      const appOrigin = config.PUBLIC_APP_URL || config.CLIENT_ORIGIN[0]
+      const resetUrl = new URL('/reset-password', appOrigin)
+      resetUrl.searchParams.set('token', token)
+      try {
+        await email.sendPasswordReset({
+          email: account.email,
+          displayName: account.displayName,
+          resetUrl: resetUrl.toString(),
+          expiresInMinutes: config.PASSWORD_RESET_MINUTES,
+        })
+      } catch (error) {
+        await db.passwordReset.deleteMany({ where: { id, tokenHash } }).catch(() => {})
+        throw error
+      }
+    }
+
+    res.status(202).json({
+      data: {
+        accepted: true,
+        message: 'If that email belongs to a Life RPG account, a recovery link is on its way.',
+      },
+    })
+  })
+
+  router.post('/auth/reset-password', security.requireCsrf, limiter(8), async (req, res) => {
+    const input = validate(passwordResetSchema, req.body)
+    const tokenHash = hashToken(input.token)
+    const reset = await db.passwordReset.findUnique({
+      where: { tokenHash },
+      select: { id: true, userId: true, expiresAt: true },
+    })
+    const now = new Date()
+    if (!reset || reset.expiresAt <= now) {
+      if (reset) await db.passwordReset.deleteMany({ where: { id: reset.id } })
+      throw new AppError(410, 'PASSWORD_RESET_EXPIRED', 'That recovery link is invalid or has expired.')
+    }
+
+    const passwordHash = await hashPassword(input.newPassword)
+    await db.$transaction(async (tx) => {
+      const consumed = await tx.passwordReset.deleteMany({
+        where: { id: reset.id, tokenHash, expiresAt: { gt: now } },
+      })
+      if (consumed.count !== 1)
+        throw new AppError(410, 'PASSWORD_RESET_EXPIRED', 'That recovery link is invalid or has expired.')
+      await tx.user.update({ where: { id: reset.userId }, data: { passwordHash } })
+      await tx.session.deleteMany({ where: { userId: reset.userId } })
+      await tx.passwordReset.deleteMany({ where: { userId: reset.userId } })
+    })
+
+    security.clearSession(res)
+    res.json({ data: { changed: true } })
+  })
+
   router.post('/auth/login', security.requireCsrf, limiter(10, true), async (req, res) => {
     const input = validate(loginSchema, req.body)
     const account = await db.user.findUnique({

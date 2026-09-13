@@ -77,6 +77,19 @@ export const loginSchema = z
     password: z.string().min(1, 'Enter your password.').max(128),
   })
   .strict()
+export const passwordResetRequestSchema = z
+  .object({
+    email: emailSchema,
+  })
+  .strict()
+
+export const passwordResetSchema = z
+  .object({
+    token: z.string().min(32, 'Password reset link is invalid or expired.').max(512),
+    newPassword: passwordSchema,
+  })
+  .strict()
+
 export const onboardingSchema = z
   .object({
     displayName: displayNameSchema,

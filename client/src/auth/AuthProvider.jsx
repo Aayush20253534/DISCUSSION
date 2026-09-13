@@ -67,6 +67,12 @@ export default function AuthProvider({ children }) {
       await client.cancelQueries({ queryKey: key })
       return accept(await authAction('login', body))
     },
+    async requestPasswordReset(body) {
+      return authAction('forgot-password', body)
+    },
+    async resetPassword(body) {
+      return authAction('reset-password', body)
+    },
     async onboard(body) {
       return accept(await apiSend('/api/v1/me/onboarding', body, 'PUT'))
     },

@@ -469,3 +469,27 @@ test('failed login rate limit applies before more password work', async () => {
   assert.equal(blocked.body.error.code, 'AUTH_RATE_LIMITED')
   assert.ok(blocked.headers['retry-after'])
 })
+
+test('password recovery is non-enumerating, single-use, updates the password, and revokes sessions', async () => {
+  const client = await signedUp()
+  const known = await mutate(client, 'post', '/auth/forgot-password', { email: input.email }).expect(202)
+  const unknown = await mutate(client, 'post', '/auth/forgot-password', { email: 'nobody@example.test' }).expect(202)
+  assert.equal(known.body.data.message, unknown.body.data.message)
+
+  const resetUrl = new URL(mailer.resetUrlFor(input.email))
+  const token = resetUrl.searchParams.get('token')
+  assert.ok(token)
+  assert.equal(await database.prisma.passwordReset.count(), 1)
+
+  const newPassword = 'A different memorable woodland path'
+  await mutate(client, 'post', '/auth/reset-password', { token, newPassword }).expect(200)
+  assert.equal(await database.prisma.passwordReset.count(), 0)
+  assert.equal(await database.prisma.session.count(), 0)
+
+  await mutate(client, 'post', '/auth/reset-password', { token, newPassword: 'Another valid password phrase' }).expect(410)
+
+  const oldLogin = await browser()
+  await mutate(oldLogin, 'post', '/auth/login', { email: input.email, password: input.password }).expect(401)
+  const newLogin = await browser()
+  await mutate(newLogin, 'post', '/auth/login', { email: input.email, password: newPassword }).expect(200)
+})

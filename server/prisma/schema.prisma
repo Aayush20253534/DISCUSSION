@@ -29,8 +29,23 @@ model User {
   inventoryItems InventoryItem[]
   equipment      CharacterEquipment[]
   currencyTransactions CurrencyTransaction[]
+  passwordResets PasswordReset[]
 
   @@map("users")
+}
+
+
+model PasswordReset {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  tokenHash String   @unique @map("token_hash") @db.VarChar(64)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_resets")
 }
 
 model EmailVerification {

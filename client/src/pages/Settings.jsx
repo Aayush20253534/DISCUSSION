@@ -4,10 +4,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import {
   Activity,
   CheckCircle2,
+  Compass,
   KeyRound,
   LoaderCircle,
   LogOut,
   MonitorSmartphone,
+  MapPin,
   RefreshCw,
   ShieldCheck,
   Volume2,
@@ -185,14 +187,27 @@ export default function Settings() {
   const otherSessionCount = sessions.data?.sessions?.filter((session) => !session.current).length || 0
 
   return (
-    <div className="page settings-page">
+    <div className="page settings-page settings-overview-page">
       <PageHeading
-        eyebrow="ACCOUNT & PREFERENCES"
-        title={<>Make the adventure <em>yours.</em></>}
-        description="Manage your profile, timezone, security, active sessions, and local comfort preferences."
+        eyebrow="YOUR ADVENTURER'S QUARTERS"
+        title={<>Keep your world <em>in order.</em></>}
+        description="Profile, security, active devices, and the little preferences that make this adventure yours."
       />
 
-      <div className="settings-grid">
+      <section className="settings-identity-panel" aria-label="Account overview">
+        <span className="settings-identity-mark" aria-hidden="true"><Compass size={30} /></span>
+        <div className="settings-identity-copy">
+          <span className="eyebrow">CURRENT ADVENTURER</span>
+          <h2>{user.displayName}</h2>
+          <p>{user.email}</p>
+        </div>
+        <div className="settings-identity-meta">
+          <span><MapPin size={14} /> {user.timezone.replaceAll('_', ' ')}</span>
+          <span><ShieldCheck size={14} /> Account protected</span>
+        </div>
+      </section>
+
+      <div className="settings-grid settings-primary-grid">
         <section className="panel settings-panel settings-profile-panel">
           <div className="section-heading">
             <div><span className="eyebrow">YOUR PROFILE</span><h2>Adventurer details</h2></div>
@@ -222,14 +237,14 @@ export default function Settings() {
                 {zones.map((zone) => <option key={zone} value={zone}>{zone.replaceAll('_', ' ')}</option>)}
               </select>
               <p className="field-hint" id="settings-timezone-hint">
-                Used for activity dates and streak display. Existing daily quests keep the timezone they were created with.
+                Used for activity dates and streak display. Existing daily quests keep their original schedule timezone.
               </p>
               {profileFields.timezone && <p className="field-error">{profileFields.timezone}</p>}
             </div>
             <div className="settings-readonly-field">
               <span>Email address</span>
               <strong>{user.email}</strong>
-              <small>Email changes are not enabled in this release.</small>
+              <small>Your sign-in address is fixed for this release.</small>
             </div>
             {profileMessage && <p className={`settings-message ${profileFields.displayName || profileFields.timezone ? 'error' : ''}`} role="status">{profileMessage}</p>}
             <button className="button button-gold" type="submit" disabled={profilePending}>
@@ -240,43 +255,13 @@ export default function Settings() {
 
         <section className="panel settings-panel settings-password-panel">
           <div className="section-heading">
-            <div><span className="eyebrow">PASSWORD</span><h2>Protect your account</h2></div>
+            <div><span className="eyebrow">PASSWORD</span><h2>Guard the gate</h2></div>
             <KeyRound size={21} className="gold" />
           </div>
           <form className="settings-form" onSubmit={changePassword} ref={passwordForm} noValidate aria-busy={passwordPending}>
-            <FormField
-              name="currentPassword"
-              label="Current password"
-              type="password"
-              autoComplete="current-password"
-              maxLength={128}
-              error={passwordFields.currentPassword}
-              disabled={passwordPending}
-              required
-            />
-            <FormField
-              name="newPassword"
-              label="New password"
-              type="password"
-              autoComplete="new-password"
-              minLength={12}
-              maxLength={128}
-              hint="Use 12–128 characters. A sentence or several unrelated words works well."
-              error={passwordFields.newPassword}
-              disabled={passwordPending}
-              required
-            />
-            <FormField
-              name="confirmPassword"
-              label="Confirm new password"
-              type="password"
-              autoComplete="new-password"
-              minLength={12}
-              maxLength={128}
-              error={passwordFields.confirmPassword}
-              disabled={passwordPending}
-              required
-            />
+            <FormField name="currentPassword" label="Current password" type="password" autoComplete="current-password" maxLength={128} error={passwordFields.currentPassword} disabled={passwordPending} required />
+            <FormField name="newPassword" label="New password" type="password" autoComplete="new-password" minLength={12} maxLength={128} hint="Use 12–128 characters. A sentence or several unrelated words works well." error={passwordFields.newPassword} disabled={passwordPending} required />
+            <FormField name="confirmPassword" label="Confirm new password" type="password" autoComplete="new-password" minLength={12} maxLength={128} error={passwordFields.confirmPassword} disabled={passwordPending} required />
             {passwordMessage && <p className={`settings-message ${Object.keys(passwordFields).length ? 'error' : ''}`} role="status">{passwordMessage}</p>}
             <button className="button button-outline" type="submit" disabled={passwordPending}>
               {passwordPending ? <><LoaderCircle size={16} className="spin" /> Updating…</> : <><KeyRound size={16} /> Change password</>}
@@ -285,18 +270,15 @@ export default function Settings() {
         </section>
       </div>
 
-      <section className="panel settings-panel sessions-panel">
+      <section className="panel settings-panel sessions-panel settings-sessions-panel">
         <div className="section-heading">
-          <div><span className="eyebrow">ACTIVE SESSIONS</span><h2>Where you are signed in</h2></div>
+          <div><span className="eyebrow">ACTIVE SESSIONS</span><h2>Where your story is open</h2></div>
           <MonitorSmartphone size={21} className="green" />
         </div>
         {sessions.isPending ? (
           <div className="sessions-loading" role="status"><LoaderCircle className="spin" size={18} /> Loading active sessions…</div>
         ) : sessions.isError ? (
-          <div className="settings-inline-error" role="alert">
-            <span>{sessions.error.message}</span>
-            <button className="text-link" onClick={() => sessions.refetch()}><RefreshCw size={13} /> Retry</button>
-          </div>
+          <div className="settings-inline-error" role="alert"><span>{sessions.error.message}</span><button className="text-link" onClick={() => sessions.refetch()}><RefreshCw size={13} /> Retry</button></div>
         ) : (
           <div className="session-list">
             {sessions.data.sessions.map((session) => (
@@ -307,11 +289,7 @@ export default function Settings() {
                   <span>{session.current ? 'This device · ' : ''}Signed in {sessionDate(session.createdAt)}</span>
                   <small>Expires {sessionDate(session.expiresAt)}</small>
                 </div>
-                <button
-                  className="button button-outline session-revoke"
-                  disabled={Boolean(sessionPending)}
-                  onClick={() => revokeSession(session)}
-                >
+                <button className="button button-outline session-revoke" disabled={Boolean(sessionPending)} onClick={() => revokeSession(session)}>
                   {sessionPending === session.id ? <LoaderCircle size={14} className="spin" /> : <LogOut size={14} />}
                   {session.current ? 'Sign out' : 'Revoke'}
                 </button>
@@ -324,51 +302,43 @@ export default function Settings() {
             {sessionPending === 'others' ? <LoaderCircle size={15} className="spin" /> : <ShieldCheck size={15} />}
             Sign out other devices
           </button>
-          <button className="button button-outline danger-soft" disabled={signingOut} onClick={() => signOut(true)}>
-            <LogOut size={15} /> Sign out everywhere
-          </button>
+          <button className="button button-outline danger-soft" disabled={signingOut} onClick={() => signOut(true)}><LogOut size={15} /> Sign out everywhere</button>
         </div>
         {sessionMessage && <p className="settings-message" role="status">{sessionMessage}</p>}
       </section>
 
-      <section className="panel settings-panel">
-        <div className="section-heading">
-          <div><span className="eyebrow">LOOK, FEEL & SOUND</span><h2>At your own pace</h2></div>
-          <Waves size={23} className="green" />
-        </div>
-        <div className="setting-row">
-          <div>
-            <label htmlFor="gentle-motion">Gentle animations</label>
-            <p id="motion-description">Allow celebratory transitions and subtle movement. Your operating system’s reduced-motion setting still takes priority.</p>
+      <div className="settings-grid settings-secondary-grid">
+        <section className="panel settings-panel settings-preferences-panel">
+          <div className="section-heading">
+            <div><span className="eyebrow">LOOK, FEEL & SOUND</span><h2>Travel at your own pace</h2></div>
+            <Waves size={23} className="green" />
           </div>
-          <input type="checkbox" role="switch" className="switch" id="gentle-motion" aria-describedby="motion-description" checked={gentleMotion} onChange={(event) => setGentleMotion(event.target.checked)} />
-        </div>
-        <div className="setting-row">
-          <div>
-            <label htmlFor="celebration-sound">Celebration sounds</label>
-            <p id="sound-description">Allow short sounds for confirmed rewards and level-ups. This preference stays on this device and defaults to off.</p>
+          <div className="setting-row">
+            <div><label htmlFor="gentle-motion">Gentle animations</label><p id="motion-description">Allow celebratory transitions and subtle world movement. Your operating system’s reduced-motion setting still takes priority.</p></div>
+            <input type="checkbox" role="switch" className="switch" id="gentle-motion" aria-describedby="motion-description" checked={gentleMotion} onChange={(event) => setGentleMotion(event.target.checked)} />
           </div>
-          <span className="setting-control-with-icon"><Volume2 size={18} /><input type="checkbox" role="switch" className="switch" id="celebration-sound" aria-describedby="sound-description" checked={soundEnabled} onChange={(event) => setSoundEnabled(event.target.checked)} /></span>
-        </div>
-        <div className="setting-row">
-          <div><h3>Adventure theme</h3><p>Your equipped Marketplace theme controls the application palette.</p></div>
-          <div className="theme-swatches" role="img" aria-label="Current adventure palette"><i /><i /><i /></div>
-        </div>
-      </section>
+          <div className="setting-row">
+            <div><label htmlFor="celebration-sound">Celebration sounds</label><p id="sound-description">Allow short sounds for confirmed rewards and level-ups. This setting stays on this device and defaults to off.</p></div>
+            <span className="setting-control-with-icon"><Volume2 size={18} /><input type="checkbox" role="switch" className="switch" id="celebration-sound" aria-describedby="sound-description" checked={soundEnabled} onChange={(event) => setSoundEnabled(event.target.checked)} /></span>
+          </div>
+          <div className="setting-row">
+            <div><h3>Adventure theme</h3><p>Your equipped Marketplace theme controls the application palette.</p></div>
+            <div className="theme-swatches" role="img" aria-label="Current adventure palette"><i /><i /><i /></div>
+          </div>
+        </section>
 
-      <section className="panel settings-panel connection-panel">
-        <div className="section-heading">
-          <div><span className="eyebrow">ACCOUNT SAFETY</span><h2>Your progress is server-backed</h2></div>
-          <Activity size={21} className="gold" />
-        </div>
-        <div className="setting-row">
-          <div>
-            <h3>Database persistence</h3>
-            <p>Your profile, quests, progression, streak history, inventory, and wallet are stored with your account rather than relying on localStorage.</p>
+        <section className="panel settings-panel connection-panel settings-safety-panel">
+          <div className="section-heading">
+            <div><span className="eyebrow">ACCOUNT SAFETY</span><h2>Your progress is carried safely</h2></div>
+            <Activity size={21} className="gold" />
           </div>
-          <ShieldCheck size={24} className="green" />
-        </div>
-      </section>
+          <div className="settings-safety-copy">
+            <span className="settings-safety-emblem"><ShieldCheck size={28} /></span>
+            <div><h3>Server-backed persistence</h3><p>Your profile, quests, progression, streak history, inventory, equipment and gold ledger are stored with your account rather than relying on local storage.</p></div>
+          </div>
+          <div className="settings-safety-note"><CheckCircle2 size={15} /> Cross-device progress stays attached to your account.</div>
+        </section>
+      </div>
     </div>
   )
 }

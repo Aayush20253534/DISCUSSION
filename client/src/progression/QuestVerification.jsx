@@ -35,7 +35,7 @@ async function prepareEvidenceImage(file) {
 
   const { image, url } = await loadImage(file)
   try {
-    const maxDimension = 1600
+    const maxDimension = 1280
     const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight))
     const width = Math.max(1, Math.round(image.naturalWidth * scale))
     const height = Math.max(1, Math.round(image.naturalHeight * scale))
@@ -47,7 +47,7 @@ async function prepareEvidenceImage(file) {
     context.fillStyle = '#ffffff'
     context.fillRect(0, 0, width, height)
     context.drawImage(image, 0, 0, width, height)
-    const dataUrl = canvas.toDataURL('image/webp', 0.84)
+    const dataUrl = canvas.toDataURL('image/webp', 0.78)
     const [header, data] = dataUrl.split(',')
     const mimeType = header.match(/^data:([^;]+);base64$/)?.[1]
     if (!data || !acceptedTypes.includes(mimeType) || data.length > 3_750_000)

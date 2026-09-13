@@ -115,7 +115,10 @@ export async function verifyQuestEvidence({
           ],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 900,
+            // Verification is a small classification response. Flash 2.5 models
+            // otherwise spend time on internal thinking that is unnecessary here.
+            maxOutputTokens: 400,
+            thinkingConfig: { thinkingBudget: 0 },
             responseMimeType: 'application/json',
             responseSchema: verificationSchema,
           },

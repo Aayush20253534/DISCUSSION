@@ -99,7 +99,7 @@ test('Gemini verification status is exposed only from server configuration', asy
   const client = await actor()
   const response = await client.agent.get('/api/v1/ai/quest-verification/status').expect(200)
   assert.equal(response.body.data.available, true)
-  assert.equal(response.body.data.model, 'gemini-2.5-flash')
+  assert.equal(response.body.data.model, 'gemini-2.5-flash-lite')
   assert.equal(JSON.stringify(response.body).includes('test-gemini-key'), false)
 })
 
@@ -243,6 +243,8 @@ test('Gemini verifier sends inline image data and validates structured output co
   assert.equal(requestBody.contents[0].parts[1].inlineData.mimeType, 'image/webp')
   assert.equal(requestBody.contents[0].parts[1].inlineData.data, image.data)
   assert.equal(requestBody.generationConfig.responseMimeType, 'application/json')
+  assert.equal(requestBody.generationConfig.maxOutputTokens, 400)
+  assert.equal(requestBody.generationConfig.thinkingConfig.thinkingBudget, 0)
 
   const cautious = await verifyQuestEvidence({
     config,

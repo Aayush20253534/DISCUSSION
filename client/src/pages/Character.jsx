@@ -1,7 +1,7 @@
-import { CheckCheck, Compass, Sparkles } from 'lucide-react'
+import { CheckCheck, Coins, Compass, Map, Sparkles } from 'lucide-react'
 import { ATTRIBUTES, characterProgress } from '@life-rpg/shared'
 import Portrait from '../components/Portrait.jsx'
-import { AttributeIcon, PageHeading } from '../components/ui.jsx'
+import { AttributeIcon } from '../components/ui.jsx'
 import { useAuth } from '../auth/useAuth.js'
 import { equippedItem } from '../economy/equipment.js'
 import { useProgress } from '../progression/hooks.js'
@@ -12,6 +12,29 @@ import RewardGuide from '../progression/RewardGuide.jsx'
 import '../quests.css'
 import '../progression/progression.css'
 
+const ATTRIBUTE_REALMS = {
+  INTELLECT: {
+    realm: 'Arcane Archives',
+    note: 'Knowledge lights the road ahead.',
+  },
+  STRENGTH: {
+    realm: 'Iron Peaks',
+    note: 'Resilience is forged one climb at a time.',
+  },
+  DISCIPLINE: {
+    realm: 'Citadel of Resolve',
+    note: 'Consistency turns intention into character.',
+  },
+  CREATIVITY: {
+    realm: 'Emberwild',
+    note: 'Every idea can become a new path.',
+  },
+  VITALITY: {
+    realm: 'Verdant Reach',
+    note: 'A long journey needs a steady flame.',
+  },
+}
+
 export default function Character() {
   const { user } = useAuth()
   const progress = useProgress()
@@ -19,29 +42,52 @@ export default function Character() {
   const equippedFrame = equippedItem(user, 'AVATAR_FRAME')
   const equippedTitle = equippedItem(user, 'CHARACTER_TITLE')
   const equippedBadge = equippedItem(user, 'PROFILE_BADGE')
+  const completedCount = progress.data?.completedCount ?? 0
+
   return (
     <div className="page growth-character-page" key={user.id}>
-      <PageHeading
-        eyebrow="BECOMING IS THE ADVENTURE"
-        title={
-          <>
+      <header className="character-world-heading">
+        <div className="character-world-heading-copy">
+          <span className="eyebrow">BECOMING IS THE ADVENTURE</span>
+          <h1>
             Meet <em>{user.displayName}.</em>
-          </>
-        }
-        description="Every part of your life adds something to your story."
-      />
+          </h1>
+          <p>Every quest leaves a mark. Every strength reveals more of the adventurer you are becoming.</p>
+        </div>
+        <div className="character-chapter-mark" aria-label={`Character level ${character.progression.level}`}>
+          <Compass size={16} />
+          <span>
+            CHARACTER CHRONICLE <i>·</i> LEVEL {character.progression.level}
+          </span>
+        </div>
+      </header>
+
       <ProgressNotice query={progress} />
-      <div className="character-layout">
-        <section className="panel character-feature">
-          <div className="eyebrow">YOUR CHARACTER</div>
-          <Portrait avatarKey={character.avatarKey} frameKey={equippedFrame?.assetKey} />
+
+      <div className="character-layout character-world-grid">
+        <section className="panel character-feature character-identity-panel">
+          <div className="character-panel-kicker">
+            <span className="eyebrow">YOUR ADVENTURER</span>
+            <span>CHAPTER {String(character.progression.level).padStart(2, '0')}</span>
+          </div>
+
+          <div className="character-portrait-stage">
+            <span className="portrait-orbit portrait-orbit-one" aria-hidden="true" />
+            <span className="portrait-orbit portrait-orbit-two" aria-hidden="true" />
+            <Portrait avatarKey={character.avatarKey} frameKey={equippedFrame?.assetKey} />
+            <span className="character-level-seal">Lv {character.progression.level}</span>
+          </div>
+
           <h2>{user.displayName}</h2>
           <span className="character-title">
             <Compass size={15} />
             {equippedTitle?.name || 'Seeker of small wonders'}
           </span>
           {equippedBadge && <span className="equipped-badge">✦ {equippedBadge.name}</span>}
-          <p>A curious soul, a well-worn notebook, and a whole world of possibilities.</p>
+          <p className="character-lore-copy">
+            A curious soul crossing one small threshold at a time. The map changes because you do.
+          </p>
+
           <div className="character-feature-stats" aria-label="Saved character totals">
             <div>
               <strong>{character.progression.level}</strong>
@@ -56,7 +102,15 @@ export default function Character() {
               <span>GOLD</span>
             </div>
           </div>
-          <ProgressMeter progress={character.progression} />
+
+          <div className="character-journey-progress">
+            <div className="character-progress-title">
+              <span>THE ROAD TO LEVEL {character.progression.level + 1}</span>
+              <Sparkles size={14} />
+            </div>
+            <ProgressMeter progress={character.progression} />
+          </div>
+
           <div className="character-completed-note">
             <CheckCheck size={17} />
             <span>
@@ -64,41 +118,70 @@ export default function Character() {
                 ? 'History is temporarily unavailable'
                 : progress.isPending
                   ? 'Reading your story…'
-                  : `${progress.data.completedCount} ${progress.data.completedCount === 1 ? 'quest' : 'quests'} completed`}
+                  : `${completedCount} ${completedCount === 1 ? 'quest' : 'quests'} written into your chronicle`}
             </span>
           </div>
         </section>
-        <section className="panel character-attributes">
-          <div className="section-heading">
+
+        <section className="panel character-attributes character-realms-panel">
+          <div className="section-heading character-realms-heading">
             <div>
-              <span className="eyebrow">FIVE WAYS TO FLOURISH</span>
+              <span className="eyebrow">FIVE REALMS OF GROWTH</span>
               <h2>Your everyday strengths</h2>
+              <p>Each kind of quest advances a different region of your character.</p>
             </div>
-            <Sparkles size={21} className="gold" />
+            <div className="character-atlas-emblem" aria-hidden="true">
+              <Map size={21} />
+            </div>
           </div>
-          {ATTRIBUTES.map(({ key, name, description }) => {
-            const attribute = character.attributes.find((item) => item.key === key)
-            return (
-              <div className={`strength-detail ${key.toLowerCase()}`} key={key}>
-                <span className="quest-icon">
-                  <AttributeIcon attribute={key} size={24} />
-                </span>
-                <div>
-                  <h3>{name}</h3>
+
+          <div className="character-realms-grid">
+            {ATTRIBUTES.map(({ key, name, description }) => {
+              const attribute = character.attributes.find((item) => item.key === key)
+              const realm = ATTRIBUTE_REALMS[key]
+              return (
+                <article className={`strength-detail character-realm-card ${key.toLowerCase()}`} key={key}>
+                  <div className="character-realm-topline">
+                    <span className="quest-icon">
+                      <AttributeIcon attribute={key} size={23} />
+                    </span>
+                    <div className="character-realm-title">
+                      <span>{realm.realm}</span>
+                      <h3>{name}</h3>
+                    </div>
+                    <span className="level-chip">{attribute.xp.toLocaleString()} XP</span>
+                  </div>
                   <p>{description}</p>
-                </div>
-                <span className="level-chip">{attribute.xp.toLocaleString()} total XP</span>
-                <ProgressMeter
-                  compact
-                  progress={attribute.progression}
-                  label={`${name} experience`}
-                />
-              </div>
-            )
-          })}
+                  <small>{realm.note}</small>
+                  <ProgressMeter compact progress={attribute.progression} label={`${name} experience`} />
+                </article>
+              )
+            })}
+          </div>
+
+          <div className="character-realms-footer">
+            <Sparkles size={15} />
+            <span>Complete quests across different realms to build a balanced adventurer.</span>
+          </div>
         </section>
       </div>
-      <div className="progression-lower-grid">
+
+      <section className="character-chronicle-heading" aria-labelledby="character-chronicle-title">
+        <div>
+          <span className="eyebrow">THE ROAD BEHIND. THE ROAD AHEAD.</span>
+          <h2 id="character-chronicle-title">Your growing chronicle</h2>
+        </div>
+        <div className="character-chronicle-totals" aria-label="Character journey summary">
+          <span>
+            <CheckCheck size={15} /> {completedCount} completed
+          </span>
+          <span>
+            <Coins size={15} /> {character.gold.toLocaleString()} gold
+          </span>
+        </div>
+      </section>
+
+      <div className="progression-lower-grid character-progress-grid">
         <CompletionHistory />
         <RewardGuide level={character.progression.level} />
       </div>

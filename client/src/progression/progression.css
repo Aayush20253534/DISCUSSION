@@ -831,3 +831,1058 @@
     top: 14px;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Character world: The Adventurer's Chronicle
+   Character.png is intentionally artwork-only. All identity, progression,
+   attribute, history, and reward content remains semantic application UI.
+   -------------------------------------------------------------------------- */
+
+.app-shell.adventure-shell.character-world {
+  --character-night: #061116;
+  --character-panel: rgba(5, 17, 23, 0.88);
+  --character-panel-soft: rgba(8, 22, 28, 0.8);
+  --character-gold: #d5af68;
+  --character-gold-bright: #edca7b;
+  --character-ivory: #efe6d5;
+  --character-muted: #a9b7b4;
+  --character-sage: #8eb19b;
+  --character-line: rgba(213, 175, 104, 0.22);
+  background: var(--character-night);
+}
+
+.app-shell.adventure-shell.character-world .workspace {
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  background: var(--character-night);
+}
+
+.app-shell.adventure-shell.character-world .workspace::before {
+  content: '';
+  position: fixed;
+  z-index: 0;
+  inset: 0 0 0 var(--sidebar-width);
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(2, 8, 12, 0.08) 0%, rgba(2, 8, 12, 0.15) 38%, rgba(2, 8, 12, 0.58) 100%),
+    linear-gradient(90deg, rgba(3, 11, 16, 0.62) 0%, rgba(3, 11, 16, 0.33) 46%, rgba(3, 11, 16, 0.08) 78%, rgba(3, 11, 16, 0.17) 100%),
+    url('/Character.png') center top / cover no-repeat;
+  transform-origin: 70% 24%;
+  animation: character-world-breathe 30s ease-in-out infinite;
+  transition: inset 0.2s ease;
+}
+
+.app-shell.adventure-shell.character-world .workspace::after {
+  content: '';
+  position: fixed;
+  z-index: 1;
+  inset: 0 0 0 var(--sidebar-width);
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 86% 11%, rgba(255, 187, 91, 0.1), transparent 22%),
+    radial-gradient(circle at 44% 54%, rgba(97, 136, 148, 0.08), transparent 34%),
+    linear-gradient(180deg, transparent 0 64%, rgba(1, 7, 10, 0.2) 79%, rgba(1, 7, 10, 0.52) 100%);
+  transition: inset 0.2s ease;
+}
+
+.app-shell.adventure-shell.character-world .topbar,
+.app-shell.adventure-shell.character-world main {
+  position: relative;
+  z-index: 4;
+}
+
+.app-shell.adventure-shell.character-world .app-footer {
+  display: none;
+}
+
+.app-shell.adventure-shell.character-world .adventure-sidebar {
+  background:
+    linear-gradient(180deg, rgba(3, 12, 17, 0.97), rgba(3, 12, 17, 0.92) 55%, rgba(3, 12, 17, 0.78)),
+    url('/Character.png') left center / auto 100% no-repeat;
+  box-shadow: 18px 0 48px rgba(0, 0, 0, 0.27);
+}
+
+.app-shell.adventure-shell.character-world .adventure-sidebar::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(4, 13, 19, 0.96), rgba(4, 13, 19, 0.22) 38%, rgba(4, 13, 19, 0.6)),
+    url('/Character.png') left 72% / 690px auto no-repeat;
+  opacity: 0.55;
+}
+
+.character-world .dashboard-ambience {
+  position: fixed;
+  z-index: 2;
+  inset: var(--adventure-topbar-height) 0 0 var(--sidebar-width);
+  overflow: hidden;
+  pointer-events: none;
+  transition: inset 0.2s ease;
+}
+
+.character-world .dashboard-lightning-flash {
+  position: absolute;
+  width: 38vw;
+  height: 32vh;
+  right: 2%;
+  top: -9%;
+  opacity: 0.18;
+  filter: blur(18px);
+  background: radial-gradient(circle, rgba(255, 195, 112, 0.33), rgba(255, 171, 72, 0.07) 40%, transparent 70%);
+  animation: character-sunset-bloom 11s ease-in-out infinite;
+}
+
+.character-world .dashboard-mist {
+  position: absolute;
+  height: 150px;
+  width: 72%;
+  border-radius: 50%;
+  opacity: 0.11;
+  filter: blur(32px);
+  background: linear-gradient(90deg, transparent, rgba(199, 216, 214, 0.48), transparent);
+}
+
+.character-world .dashboard-mist-one {
+  left: 8%;
+  top: 34%;
+  animation: character-mist-drift 24s ease-in-out infinite alternate;
+}
+
+.character-world .dashboard-mist-two {
+  right: -18%;
+  top: 68%;
+  opacity: 0.07;
+  animation: character-mist-drift-reverse 31s ease-in-out infinite alternate;
+}
+
+.character-world .dashboard-lantern-glow {
+  position: absolute;
+  left: -8%;
+  bottom: -10%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  opacity: 0.25;
+  filter: blur(38px);
+  background: radial-gradient(circle, rgba(255, 169, 65, 0.34), rgba(255, 133, 45, 0.05) 47%, transparent 72%);
+  animation: character-lantern-flicker 4.7s ease-in-out infinite;
+}
+
+/* Page composition -------------------------------------------------------- */
+.character-world .growth-character-page {
+  width: min(100%, 1450px);
+  max-width: 1450px;
+  padding: 30px 34px 54px;
+}
+
+.character-world-heading {
+  min-height: 132px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 10px 2px 20px;
+  position: relative;
+}
+
+.character-world-heading::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  bottom: 6px;
+  width: min(520px, 46vw);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(213, 175, 104, 0.68), transparent);
+}
+
+.character-world-heading-copy {
+  max-width: 780px;
+  text-shadow: 0 3px 20px rgba(0, 0, 0, 0.72);
+}
+
+.character-world-heading .eyebrow {
+  color: var(--character-gold-bright);
+  font-size: 9px;
+  letter-spacing: 3px;
+}
+
+.character-world-heading h1 {
+  margin-top: 10px;
+  color: var(--character-ivory);
+  font-size: clamp(42px, 4.2vw, 64px);
+  line-height: 0.98;
+}
+
+.character-world-heading h1 em {
+  color: #e1c485;
+  font-weight: 500;
+}
+
+.character-world-heading p {
+  max-width: 720px;
+  margin-top: 12px;
+  color: #c1cfcd;
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+.character-chapter-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 9px 13px;
+  border: 1px solid rgba(213, 175, 104, 0.24);
+  border-radius: 999px;
+  color: #d7c59f;
+  background: rgba(4, 14, 19, 0.7);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+}
+
+.character-chapter-mark svg {
+  color: var(--character-gold-bright);
+}
+
+.character-chapter-mark span {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 1.7px;
+}
+
+.character-chapter-mark i {
+  margin-inline: 4px;
+  color: rgba(213, 175, 104, 0.65);
+  font-style: normal;
+}
+
+.character-world .progress-refresh-error {
+  margin: 0 0 18px;
+  padding: 10px 13px;
+  border: 1px solid rgba(190, 107, 82, 0.34);
+  border-radius: 8px;
+  background: rgba(52, 25, 23, 0.72);
+  backdrop-filter: blur(7px);
+}
+
+.character-world-grid {
+  grid-template-columns: minmax(330px, 0.78fr) minmax(0, 1.55fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.character-world .character-feature,
+.character-world .character-attributes,
+.character-world .completion-history,
+.character-world .reward-guide {
+  border: 1px solid rgba(213, 175, 104, 0.23);
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, rgba(6, 19, 25, 0.94), rgba(5, 16, 22, 0.84)),
+    radial-gradient(circle at 50% 0, rgba(125, 153, 132, 0.08), transparent 44%);
+  box-shadow:
+    0 22px 52px rgba(0, 0, 0, 0.28),
+    inset 0 1px rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(8px);
+}
+
+.character-world .character-feature,
+.character-world .character-attributes {
+  position: relative;
+  overflow: hidden;
+}
+
+.character-world .character-feature::before,
+.character-world .character-attributes::before,
+.character-world .completion-history::before,
+.character-world .reward-guide::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  border: 1px solid rgba(213, 175, 104, 0.06);
+  border-radius: 9px;
+}
+
+/* Identity card ----------------------------------------------------------- */
+.character-world .character-identity-panel {
+  padding: 24px 25px 22px;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 23%, rgba(111, 145, 119, 0.18), transparent 32%),
+    linear-gradient(145deg, rgba(6, 20, 25, 0.95), rgba(4, 15, 20, 0.86));
+}
+
+.character-panel-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+  z-index: 2;
+}
+
+.character-panel-kicker .eyebrow {
+  color: #c5d3cf;
+  font-size: 8px;
+  letter-spacing: 2.5px;
+}
+
+.character-panel-kicker > span:last-child {
+  color: rgba(213, 175, 104, 0.72);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.character-portrait-stage {
+  position: relative;
+  width: 212px;
+  height: 212px;
+  margin: 25px auto 17px;
+  display: grid;
+  place-items: center;
+}
+
+.character-world .character-feature > .character-portrait-stage > .portrait {
+  width: 178px;
+  height: 178px;
+  margin: 0;
+  padding: 8px;
+  position: relative;
+  z-index: 3;
+  border: 1px solid rgba(232, 196, 118, 0.84);
+  border-radius: 50%;
+  background: rgba(4, 15, 20, 0.86);
+  box-shadow:
+    0 0 0 6px rgba(213, 175, 104, 0.035),
+    0 17px 42px rgba(0, 0, 0, 0.36),
+    0 0 38px rgba(120, 158, 130, 0.1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.character-world .character-feature:hover .character-portrait-stage > .portrait {
+  transform: scale(1.018);
+  box-shadow:
+    0 0 0 6px rgba(213, 175, 104, 0.055),
+    0 20px 48px rgba(0, 0, 0, 0.4),
+    0 0 46px rgba(213, 175, 104, 0.12);
+}
+
+.portrait-orbit {
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(213, 175, 104, 0.26);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.portrait-orbit::before,
+.portrait-orbit::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--character-gold-bright);
+  box-shadow: 0 0 10px rgba(237, 202, 123, 0.38);
+}
+
+.portrait-orbit::before {
+  left: 18%;
+  top: 8%;
+}
+
+.portrait-orbit::after {
+  right: 10%;
+  bottom: 21%;
+}
+
+.portrait-orbit-two {
+  inset: 20px;
+  border-style: dashed;
+  opacity: 0.5;
+  transform: rotate(32deg);
+}
+
+.character-level-seal {
+  position: absolute;
+  z-index: 5;
+  right: 14px;
+  bottom: 30px;
+  min-width: 48px;
+  min-height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0 10px;
+  border: 1px solid rgba(237, 202, 123, 0.85);
+  border-radius: 5px;
+  color: #182018;
+  background: linear-gradient(180deg, #efcf85, #cda85f);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  font: 700 12px/1 var(--font-sans);
+}
+
+.character-world .character-feature h2 {
+  color: var(--character-ivory);
+  font-size: clamp(34px, 3vw, 45px);
+  line-height: 0.95;
+  margin-top: 3px;
+}
+
+.character-world .character-title {
+  color: #e0c47f;
+  font-size: 10px;
+  margin-top: 10px;
+}
+
+.character-world .equipped-badge {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 5px 9px;
+  border: 1px solid rgba(213, 175, 104, 0.24);
+  border-radius: 999px;
+  color: #d8c799;
+  background: rgba(44, 40, 26, 0.5);
+  font-size: 9px;
+}
+
+.character-world .character-lore-copy {
+  max-width: 330px;
+  margin: 18px auto 0;
+  color: #aebebb;
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+.character-world .character-feature-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  margin-top: 21px;
+  padding: 18px 0 0;
+  border-top: 1px solid rgba(213, 175, 104, 0.16);
+}
+
+.character-world .character-feature-stats > div {
+  padding: 0 8px;
+  border-right: 1px solid rgba(213, 175, 104, 0.13);
+}
+
+.character-world .character-feature-stats > div:last-child {
+  border-right: 0;
+}
+
+.character-world .character-feature-stats strong {
+  color: #f0dfb8;
+  font-size: 27px;
+  line-height: 1;
+}
+
+.character-world .character-feature-stats span {
+  display: block;
+  margin-top: 6px;
+  color: #91a5a3;
+  font-size: 7px;
+  letter-spacing: 1.5px;
+}
+
+.character-journey-progress {
+  margin-top: 19px;
+  padding: 14px 15px 11px;
+  border: 1px solid rgba(139, 165, 147, 0.16);
+  border-radius: 9px;
+  background: rgba(6, 18, 23, 0.7);
+  text-align: left;
+}
+
+.character-progress-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #aebfbc;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.character-progress-title svg {
+  color: var(--character-gold-bright);
+}
+
+.character-world .character-journey-progress .growth-meter {
+  margin-top: 10px;
+}
+
+.character-world .growth-meter-label {
+  color: #b5c4c1;
+}
+
+.character-world .growth-meter-label > span:first-child,
+.character-world .growth-meter-label strong {
+  color: #e8d2a1;
+}
+
+.character-world .growth-meter-track {
+  height: 6px;
+  border-color: rgba(117, 146, 126, 0.38);
+  background: rgba(5, 15, 20, 0.9);
+}
+
+.character-world .growth-meter-track > span {
+  background: linear-gradient(90deg, #789d84, #d8b966 78%, #f0d897);
+  box-shadow: 0 0 13px rgba(216, 185, 102, 0.14);
+}
+
+.character-world .growth-meter > p {
+  color: #8fa3a0;
+  font-size: 9px;
+}
+
+.character-world .character-completed-note {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-color: rgba(213, 175, 104, 0.13);
+  color: #b9cac4;
+  font-size: 9px;
+}
+
+.character-world .character-completed-note svg {
+  color: #9bc3a3;
+}
+
+/* Realm / attribute atlas ------------------------------------------------- */
+.character-world .character-realms-panel {
+  padding: 0 22px 18px;
+}
+
+.character-world .character-realms-heading {
+  align-items: flex-start;
+  padding: 24px 4px 18px;
+  margin: 0;
+  border-bottom: 1px solid rgba(213, 175, 104, 0.15);
+}
+
+.character-world .character-realms-heading .eyebrow {
+  color: #b9cbc8;
+  letter-spacing: 2.3px;
+}
+
+.character-world .character-realms-heading h2 {
+  margin-top: 7px;
+  color: var(--character-ivory);
+  font: 500 clamp(31px, 2.8vw, 42px)/1 var(--font-display);
+}
+
+.character-world .character-realms-heading p {
+  margin-top: 9px;
+  max-width: 610px;
+  color: #99acab;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.character-atlas-emblem {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(213, 175, 104, 0.33);
+  border-radius: 50%;
+  color: var(--character-gold-bright);
+  background: radial-gradient(circle, rgba(213, 175, 104, 0.1), transparent 70%);
+}
+
+.character-realms-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 16px;
+}
+
+.character-world .character-realm-card {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  padding: 15px;
+  border: 1px solid rgba(144, 171, 158, 0.17);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(13, 31, 35, 0.88), rgba(7, 21, 27, 0.72));
+  transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+}
+
+.character-world .character-realm-card:last-child {
+  grid-column: 1 / -1;
+}
+
+.character-world .character-realm-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(213, 175, 104, 0.38);
+  background: linear-gradient(135deg, rgba(17, 37, 39, 0.94), rgba(8, 23, 29, 0.8));
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+.character-realm-topline {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  gap: 11px;
+  align-items: center;
+}
+
+.character-world .character-realm-card .quest-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(156, 180, 168, 0.22);
+  border-radius: 9px;
+  background: rgba(13, 30, 34, 0.8);
+}
+
+.character-realm-title > span {
+  display: block;
+  margin-bottom: 3px;
+  color: rgba(213, 175, 104, 0.76);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.character-world .character-realm-card h3 {
+  margin: 0;
+  color: #edf0df;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.character-world .character-realm-card > p {
+  margin: 10px 0 0 49px;
+  color: #a3b5b1;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.character-world .character-realm-card > small {
+  display: block;
+  margin: 6px 0 0 49px;
+  color: rgba(176, 195, 188, 0.58);
+  font: italic 12px/1.35 var(--font-display);
+}
+
+.character-world .character-realm-card .level-chip {
+  margin: 0;
+  border-color: rgba(213, 175, 104, 0.18);
+  color: #dbc58f;
+  background: rgba(45, 48, 33, 0.5);
+}
+
+.character-world .character-realm-card .growth-meter {
+  margin: 12px 0 0 49px;
+}
+
+.character-world .character-realm-card.intellect .quest-icon { color: #9ebcd3; }
+.character-world .character-realm-card.strength .quest-icon { color: #d89a77; }
+.character-world .character-realm-card.discipline .quest-icon { color: #d5b969; }
+.character-world .character-realm-card.creativity .quest-icon { color: #b9a3d2; }
+.character-world .character-realm-card.vitality .quest-icon { color: #8fbd99; }
+
+.character-realms-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(213, 175, 104, 0.12);
+  color: #9fb0ad;
+  font-size: 9px;
+}
+
+.character-realms-footer svg {
+  color: var(--character-gold-bright);
+}
+
+/* Chronicle / lower progression ------------------------------------------ */
+.character-chronicle-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 30px;
+  padding: 0 2px 14px;
+  border-bottom: 1px solid rgba(213, 175, 104, 0.22);
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.7);
+}
+
+.character-chronicle-heading .eyebrow {
+  color: var(--character-gold-bright);
+  letter-spacing: 2.2px;
+}
+
+.character-chronicle-heading h2 {
+  margin-top: 5px;
+  color: var(--character-ivory);
+  font: 500 34px/1 var(--font-display);
+}
+
+.character-chronicle-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.character-chronicle-totals span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid rgba(213, 175, 104, 0.18);
+  border-radius: 999px;
+  color: #c9d2ca;
+  background: rgba(5, 16, 21, 0.72);
+  font-size: 9px;
+  backdrop-filter: blur(7px);
+}
+
+.character-chronicle-totals svg {
+  color: var(--character-gold-bright);
+}
+
+.character-world .character-progress-grid {
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.65fr);
+  gap: 20px;
+  margin-top: 18px;
+}
+
+.character-world .completion-history,
+.character-world .reward-guide {
+  position: relative;
+  overflow: hidden;
+}
+
+.character-world .completion-history > .section-heading {
+  padding: 23px 24px 17px;
+}
+
+.character-world .completion-history .section-heading h2,
+.character-world .reward-guide h2 {
+  color: var(--character-ivory);
+  font-size: 30px;
+}
+
+.character-world .history-toolbar {
+  padding: 0 24px 16px;
+  color: #a7b8b4;
+}
+
+.character-world .history-toolbar select {
+  border-color: rgba(213, 175, 104, 0.2);
+  background: rgba(5, 18, 23, 0.85);
+  color: #d4d8cc;
+}
+
+.character-world .history-list {
+  padding-inline: 24px;
+}
+
+.character-world .history-list > li {
+  border-color: rgba(213, 175, 104, 0.12);
+}
+
+.character-world .history-title a,
+.character-world .history-title strong {
+  color: #e9e4d4;
+}
+
+.character-world .history-earned span {
+  color: #d7bf86;
+}
+
+.character-world .reward-guide {
+  padding: 23px 22px;
+}
+
+.character-world .reward-guide .eyebrow {
+  color: #b8cac5;
+}
+
+.character-world .reward-guide h2 em {
+  color: var(--character-gold-bright);
+}
+
+.character-world .next-level-note {
+  border-color: rgba(213, 175, 104, 0.2);
+  background: rgba(32, 43, 32, 0.56);
+}
+
+.character-world .reward-guide li {
+  border-color: rgba(213, 175, 104, 0.11);
+}
+
+/* Motion ----------------------------------------------------------------- */
+@keyframes character-world-breathe {
+  0%, 100% { background-size: cover; }
+  50% { background-size: 101.5% auto; }
+}
+
+@keyframes character-sunset-bloom {
+  0%, 100% { opacity: 0.12; transform: scale(0.96); }
+  50% { opacity: 0.24; transform: scale(1.05); }
+}
+
+@keyframes character-mist-drift {
+  from { transform: translate3d(-5%, 0, 0); }
+  to { transform: translate3d(13%, 7px, 0); }
+}
+
+@keyframes character-mist-drift-reverse {
+  from { transform: translate3d(8%, 0, 0); }
+  to { transform: translate3d(-15%, -5px, 0); }
+}
+
+@keyframes character-lantern-flicker {
+  0%, 100% { opacity: 0.2; transform: scale(0.97); }
+  32% { opacity: 0.28; transform: scale(1.03); }
+  51% { opacity: 0.22; transform: scale(0.99); }
+  74% { opacity: 0.31; transform: scale(1.04); }
+}
+
+/* Responsive ------------------------------------------------------------- */
+@media (max-width: 1180px) {
+  .character-world-grid {
+    grid-template-columns: minmax(290px, 0.78fr) minmax(0, 1.35fr);
+  }
+
+  .character-realms-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .character-world .character-realm-card:last-child {
+    grid-column: auto;
+  }
+
+  .character-world .character-progress-grid {
+    grid-template-columns: minmax(0, 1fr) 270px;
+  }
+}
+
+@media (max-width: 960px) {
+  .character-world .growth-character-page {
+    padding-inline: 26px;
+  }
+
+  .character-world-heading {
+    min-height: auto;
+  }
+
+  .character-world-grid,
+  .character-world .character-progress-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .character-world .character-identity-panel {
+    display: grid;
+    grid-template-columns: minmax(200px, 0.58fr) minmax(0, 1fr);
+    column-gap: 24px;
+    text-align: left;
+  }
+
+  .character-panel-kicker,
+  .character-feature-stats,
+  .character-journey-progress,
+  .character-completed-note {
+    grid-column: 1 / -1;
+  }
+
+  .character-portrait-stage {
+    grid-row: 2 / span 5;
+    margin: 22px auto 10px;
+  }
+
+  .character-world .character-feature h2 {
+    align-self: end;
+    margin-top: 35px;
+  }
+
+  .character-world .character-title,
+  .character-world .equipped-badge,
+  .character-world .character-lore-copy {
+    justify-self: start;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .character-world .character-lore-copy {
+    max-width: 440px;
+  }
+
+  .character-realms-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .character-world .character-realm-card:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .character-world .reward-guide {
+    max-width: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell.adventure-shell.character-world .workspace::before,
+  .app-shell.adventure-shell.character-world .workspace::after {
+    inset: 0;
+  }
+
+  .character-world .dashboard-ambience {
+    inset: var(--adventure-topbar-height) 0 0 0;
+  }
+
+  .app-shell.adventure-shell.character-world .workspace::before {
+    background-position: 69% top;
+    animation: none;
+  }
+
+  .character-world .dashboard-mist-two,
+  .character-world .dashboard-lightning-flash {
+    display: none;
+  }
+
+  .character-world .growth-character-page {
+    padding: 23px 16px 42px;
+  }
+
+  .character-world-heading {
+    display: block;
+    padding-top: 4px;
+  }
+
+  .character-world-heading h1 {
+    font-size: clamp(38px, 11vw, 52px);
+  }
+
+  .character-world-heading p {
+    font-size: 11px;
+  }
+
+  .character-chapter-mark {
+    margin-top: 17px;
+  }
+
+  .character-world .character-identity-panel {
+    display: block;
+    padding: 21px 18px 19px;
+    text-align: center;
+  }
+
+  .character-portrait-stage {
+    width: 190px;
+    height: 190px;
+    margin: 20px auto 15px;
+  }
+
+  .character-world .character-feature > .character-portrait-stage > .portrait {
+    width: 160px;
+    height: 160px;
+  }
+
+  .character-world .character-feature h2 {
+    margin-top: 2px;
+  }
+
+  .character-world .character-title,
+  .character-world .equipped-badge {
+    justify-self: auto;
+  }
+
+  .character-world .character-lore-copy {
+    margin-inline: auto;
+  }
+
+  .character-realms-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .character-world .character-realm-card:last-child {
+    grid-column: auto;
+  }
+
+  .character-chronicle-heading {
+    display: block;
+  }
+
+  .character-chronicle-totals {
+    margin-top: 11px;
+  }
+}
+
+@media (max-width: 520px) {
+  .character-world .growth-character-page {
+    padding-inline: 12px;
+  }
+
+  .character-world-heading .eyebrow,
+  .character-panel-kicker .eyebrow {
+    letter-spacing: 1.8px;
+  }
+
+  .character-chapter-mark span {
+    font-size: 7px;
+    letter-spacing: 1.1px;
+  }
+
+  .character-world .character-feature-stats strong {
+    font-size: 23px;
+  }
+
+  .character-world .character-realms-panel {
+    padding-inline: 14px;
+  }
+
+  .character-realm-topline {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .character-world .character-realm-card .level-chip {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .character-world .character-realm-card > p,
+  .character-world .character-realm-card > small,
+  .character-world .character-realm-card .growth-meter {
+    margin-left: 47px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell.adventure-shell.character-world .workspace::before,
+  .character-world .dashboard-lightning-flash,
+  .character-world .dashboard-mist-one,
+  .character-world .dashboard-mist-two,
+  .character-world .dashboard-lantern-glow {
+    animation: none !important;
+  }
+
+  .character-world .character-realm-card,
+  .character-world .character-feature > .character-portrait-stage > .portrait {
+    transition: none;
+  }
+}
+
+[data-motion='off'] .app-shell.adventure-shell.character-world .workspace::before,
+[data-motion='off'] .character-world .dashboard-lightning-flash,
+[data-motion='off'] .character-world .dashboard-mist-one,
+[data-motion='off'] .character-world .dashboard-mist-two,
+[data-motion='off'] .character-world .dashboard-lantern-glow {
+  animation: none !important;
+}

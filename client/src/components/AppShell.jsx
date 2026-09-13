@@ -57,6 +57,8 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const guideReturnFocusRef = useRef(null)
   const previousPath = useRef(pathname)
   const dashboardWorld = Boolean(user && pathname === '/')
+  const questWorld = Boolean(user && pathname === '/quests')
+  const immersiveWorld = dashboardWorld || questWorld
   const userInitial = user?.displayName?.trim()?.charAt(0)?.toUpperCase() || 'A'
   useEffect(() => {
     const key = equippedThemeKey
@@ -116,7 +118,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   }
 
   return (
-    <div className={`app-shell ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
+    <div className={`app-shell ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
@@ -209,7 +211,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
           </NavLink>
         </div>
       </aside>
-      {dashboardWorld && (
+      {immersiveWorld && (
         <button
           type="button"
           className="mobile-sidebar-scrim"
@@ -221,7 +223,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
       <div className="workspace">
         <header className="topbar">
           <div className="topbar-left">
-            {dashboardWorld && (
+            {immersiveWorld && (
               <button
                 className="icon-button mobile-menu-button"
                 aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
@@ -237,7 +239,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
               aria-expanded={!collapsed}
               onClick={() => setCollapsed(!collapsed)}
             >
-              {dashboardWorld ? (
+              {immersiveWorld ? (
                 <Map className="topbar-map-icon" size={18} strokeWidth={1.5} />
               ) : collapsed ? (
                 <PanelLeftOpen size={19} />
@@ -265,20 +267,28 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
             >
               <HelpCircle size={19} />
             </button>
-            {user && dashboardWorld && (
+            {user && immersiveWorld && (
               <>
                 <NavLink to="/settings" className="icon-button topbar-settings" aria-label="Open settings">
                   <Settings size={19} />
                 </NavLink>
                 <NavLink to="/character" className="topbar-profile-link" aria-label="Open your character">
-                  <span className="topbar-avatar-initial">{userInitial}</span>
+                  {questWorld ? (
+                    <Portrait
+                      className="topbar-avatar-portrait"
+                      avatarKey={user?.character?.avatarKey}
+                      frameKey={equippedFrame?.assetKey}
+                    />
+                  ) : (
+                    <span className="topbar-avatar-initial">{userInitial}</span>
+                  )}
                   <ChevronDown size={15} />
                 </NavLink>
               </>
             )}
           </div>
         </header>
-        {dashboardWorld && (
+        {immersiveWorld && (
           <div className="dashboard-ambience" aria-hidden="true">
             <span className="dashboard-lightning-flash" />
             <span className="dashboard-mist dashboard-mist-one" />

@@ -10,11 +10,13 @@ import {
   CheckCheck,
   ChevronDown,
   Compass,
+  Flag,
   LoaderCircle,
   Plus,
   RefreshCw,
   Repeat2,
   Search,
+  SlidersHorizontal,
   Sparkles,
   X,
 } from 'lucide-react'
@@ -32,10 +34,37 @@ import QuestEditor from '../quests/QuestEditor.jsx'
 import CompleteQuest from '../progression/CompleteQuest.jsx'
 import QuestDetails from '../quests/QuestDetails.jsx'
 import { useQuestMutation, useQuests, useQuestSummary } from '../quests/hooks.js'
-import { sampleQuests } from '../data/preview.js'
 import { useInteractionFeedback } from '../interactions/interaction-context.js'
 import '../quests.css'
 import '../progression/progression.css'
+
+
+const inspirationIdeas = [
+  {
+    id: 'read-20',
+    title: 'Read for 20 minutes',
+    detail: 'Give one chapter, article, or lesson your full attention.',
+    attribute: 'INTELLECT',
+    duration: '20 min',
+    difficulty: 'Easy',
+  },
+  {
+    id: 'workout-15',
+    title: 'Do a 15 minute workout',
+    detail: 'Move with intention for a short, achievable burst.',
+    attribute: 'VITALITY',
+    duration: '15 min',
+    difficulty: 'Easy',
+  },
+  {
+    id: 'plan-day',
+    title: 'Plan your day',
+    detail: 'Choose the few things that deserve your attention today.',
+    attribute: 'DISCIPLINE',
+    duration: '10 min',
+    difficulty: 'Easy',
+  },
+]
 
 const defaults = {
   q: '',
@@ -167,30 +196,26 @@ function QuestJournal() {
             label: 'Active quests',
             icon: BookOpen,
             updates: { status: 'ACTIVE', due: 'ALL' },
-            caption: 'ROOM TO BEGIN',
           },
           {
             key: 'dailyReady',
             label: 'Daily ready',
             icon: Repeat2,
             updates: { status: 'ACTIVE', recurrence: 'DAILY', due: 'ALL' },
-            caption: 'RETURN & GROW',
           },
           {
             key: 'completed',
             label: 'Completed',
             icon: CheckCheck,
             updates: { status: 'COMPLETED', due: 'ALL', sort: 'COMPLETED' },
-            caption: 'EFFORT, REMEMBERED',
           },
           {
             key: 'archived',
             label: 'Archived',
             icon: Archive,
             updates: { status: 'ARCHIVED', due: 'ALL' },
-            caption: 'KEPT FOR LATER',
           },
-        ].map(({ key, label, icon: Icon, updates, caption }) => (
+        ].map(({ key, label, icon: Icon, updates }) => (
           <button
             key={key}
             className="journal-summary-card"
@@ -204,7 +229,6 @@ function QuestJournal() {
               <strong>{count(key)}</strong>
               <span>{label}</span>
             </span>
-            <small>{caption}</small>
           </button>
         ))}
       </div>
@@ -286,76 +310,84 @@ function QuestJournal() {
               <ChevronDown size={14} />
             </label>
           </div>
-          <div className="journal-attributes" role="group" aria-label="Filter quests by attribute">
-            {[{ key: 'ALL', name: 'All strengths' }, ...ATTRIBUTES].map(({ key, name }) => (
-              <button
-                className={`filter-chip ${key.toLowerCase()} ${filters.attribute === key ? 'selected' : ''}`}
-                key={key}
-                aria-pressed={filters.attribute === key}
-                onClick={() => changeFilters({ attribute: key })}
-              >
-                {key !== 'ALL' && <AttributeIcon attribute={key} size={13} />}
-                {name}
-              </button>
-            ))}
-          </div>
-          <div className="journal-secondary-filters">
-            <label>
-              Difficulty
-              <select
-                value={filters.difficulty}
-                onChange={(event) => changeFilters({ difficulty: event.target.value })}
-              >
-                <option value="ALL">Any difficulty</option>
-                {QUEST_DIFFICULTIES.map(({ key, label }) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Recurrence
-              <select
-                value={filters.recurrence}
-                onChange={(event) =>
-                  changeFilters({
-                    recurrence: event.target.value,
-                    ...(event.target.value === 'DAILY' ? { due: 'ALL' } : {}),
-                  })
-                }
-              >
-                <option value="ALL">Any recurrence</option>
-                {QUEST_RECURRENCES.map(({ key, label }) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              One-time date
-              <select
-                value={filters.due}
-                disabled={filters.recurrence === 'DAILY'}
-                onChange={(event) => changeFilters({ due: event.target.value })}
-              >
-                <option value="ALL">Any due date</option>
-                <option value="TODAY">Due today</option>
-                <option value="UPCOMING">Upcoming</option>
-                <option value="OVERDUE">Overdue</option>
-                <option value="UNSCHEDULED">No due date</option>
-              </select>
-            </label>
-            {hasFilters && (
-              <button
-                className="journal-clear"
-                onClick={() => changeFilters({ ...defaults, status: filters.status })}
-              >
-                <X size={13} />
-                Clear filters
-              </button>
-            )}
+          <div className="journal-control-row">
+            <div className="journal-attributes" role="group" aria-label="Filter quests by attribute">
+              {[{ key: 'ALL', name: 'All categories' }, ...ATTRIBUTES].map(({ key, name }) => (
+                <button
+                  className={`filter-chip ${key.toLowerCase()} ${filters.attribute === key ? 'selected' : ''}`}
+                  key={key}
+                  aria-pressed={filters.attribute === key}
+                  onClick={() => changeFilters({ attribute: key })}
+                >
+                  {key !== 'ALL' && <AttributeIcon attribute={key} size={13} />}
+                  {name}
+                </button>
+              ))}
+            </div>
+            <details className="journal-filter-menu">
+              <summary aria-label="More quest filters">
+                <SlidersHorizontal size={14} />
+                <span>Filters</span>
+              </summary>
+              <div className="journal-secondary-filters">
+                <label>
+                  Difficulty
+                  <select
+                    value={filters.difficulty}
+                    onChange={(event) => changeFilters({ difficulty: event.target.value })}
+                  >
+                    <option value="ALL">Any difficulty</option>
+                    {QUEST_DIFFICULTIES.map(({ key, label }) => (
+                      <option key={key} value={key}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Recurrence
+                  <select
+                    value={filters.recurrence}
+                    onChange={(event) =>
+                      changeFilters({
+                        recurrence: event.target.value,
+                        ...(event.target.value === 'DAILY' ? { due: 'ALL' } : {}),
+                      })
+                    }
+                  >
+                    <option value="ALL">Any recurrence</option>
+                    {QUEST_RECURRENCES.map(({ key, label }) => (
+                      <option key={key} value={key}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  One-time date
+                  <select
+                    value={filters.due}
+                    disabled={filters.recurrence === 'DAILY'}
+                    onChange={(event) => changeFilters({ due: event.target.value })}
+                  >
+                    <option value="ALL">Any due date</option>
+                    <option value="TODAY">Due today</option>
+                    <option value="UPCOMING">Upcoming</option>
+                    <option value="OVERDUE">Overdue</option>
+                    <option value="UNSCHEDULED">No due date</option>
+                  </select>
+                </label>
+                {hasFilters && (
+                  <button
+                    className="journal-clear"
+                    onClick={() => changeFilters({ ...defaults, status: filters.status })}
+                  >
+                    <X size={13} />
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            </details>
           </div>
           <div className="journal-results-head">
             <span aria-live="polite">
@@ -449,8 +481,18 @@ function QuestJournal() {
             </div>
           ) : (
             <div className="journal-empty">
-              <span className="empty-journal-icon">
-                {hasFilters ? <Search size={31} /> : <BookOpen size={31} />}
+              <span className={`empty-journal-icon ${!hasFilters && filters.status === 'ACTIVE' ? 'empty-journal-landmark' : ''}`}>
+                {hasFilters ? (
+                  <Search size={28} />
+                ) : filters.status === 'ACTIVE' ? (
+                  <>
+                    <Flag size={27} />
+                    <i className="empty-journal-star empty-journal-star-one">✦</i>
+                    <i className="empty-journal-star empty-journal-star-two">✦</i>
+                  </>
+                ) : (
+                  <BookOpen size={29} />
+                )}
               </span>
               <h3>
                 {hasFilters
@@ -459,7 +501,7 @@ function QuestJournal() {
                     ? 'Good things take a first step.'
                     : filters.status === 'ARCHIVED'
                       ? 'Nothing tucked away yet.'
-                      : 'A fresh page. A small beginning.'}
+                      : 'No quests yet.'}
               </h3>
               <p>
                 {hasFilters
@@ -468,7 +510,7 @@ function QuestJournal() {
                     ? 'Finish a real-world quest and mark it complete. Your earned rewards and finished quests will appear here.'
                     : filters.status === 'ARCHIVED'
                       ? 'Archived quests will wait here until you’re ready to return to them.'
-                      : 'Read a few pages. Take a walk. Make something. Start with a quest that feels like you.'}
+                      : 'A clearer, brighter you begins with one small quest.'}
               </p>
               <button
                 className="button button-outline"
@@ -528,41 +570,39 @@ function QuestJournal() {
             </h2>
             <p>Make an idea your own. You choose what finds a place in your journal.</p>
             <div className="inspiration-list">
-              {sampleQuests.map((item) => (
-                <div className={`inspiration-item ${item.attribute.toLowerCase()}`} key={item.id}>
-                  <AttributeIcon attribute={item.attribute} size={22} />
-                  <h3>{item.title}</h3>
-                  <p>{item.detail}</p>
-                  <button
-                    className="text-link"
-                    onClick={() =>
-                      setEditor({
-                        template: {
-                          title: item.title,
-                          description: item.detail,
-                          attribute: item.attribute,
-                          difficulty: item.difficulty.toUpperCase(),
-                          estimatedMinutes: Number.parseInt(item.duration, 10),
-                        },
-                      })
-                    }
-                  >
-                    Use this idea
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
+              {inspirationIdeas.map((item) => (
+                <button
+                  type="button"
+                  className={`inspiration-item ${item.attribute.toLowerCase()}`}
+                  key={item.id}
+                  aria-label={`Create quest: ${item.title}`}
+                  onClick={() =>
+                    setEditor({
+                      template: {
+                        title: item.title,
+                        description: item.detail,
+                        attribute: item.attribute,
+                        difficulty: item.difficulty.toUpperCase(),
+                        estimatedMinutes: Number.parseInt(item.duration, 10),
+                      },
+                    })
+                  }
+                >
+                  <span className="inspiration-icon">
+                    <AttributeIcon attribute={item.attribute} size={20} />
+                  </span>
+                  <span className="inspiration-copy">
+                    <strong>{item.title}</strong>
+                    <small>{ATTRIBUTES.find(({ key }) => key === item.attribute)?.name}</small>
+                  </span>
+                  <Plus className="inspiration-plus" size={18} aria-hidden="true" />
+                </button>
               ))}
             </div>
+            <button type="button" className="inspiration-footer-link" onClick={() => setEditor({})}>
+              Explore more ideas <ArrowRight size={15} />
+            </button>
           </section>
-          <div className="journal-quote">
-            <span>✦</span>
-            <p>
-              Start smaller than you think.
-              <br />
-              Begin sooner than you planned.
-            </p>
-            <small>ONE STEP IS ENOUGH FOR TODAY</small>
-          </div>
         </aside>
       </div>
       {completing && <CompleteQuest quest={completing} onClose={() => setCompleting(null)} />}

@@ -1,6 +1,7 @@
 /* Life RPG dashboard world -------------------------------------------------- */
 .dashboard-world {
-  --sidebar-width: 260px;
+  --sidebar-width: clamp(190px, 15.8vw, 260px);
+  --dashboard-topbar-height: clamp(56px, 3.8vw, 64px);
   --dashboard-gold: #d5af68;
   --dashboard-gold-bright: #e8c476;
   --dashboard-ivory: #efe6d5;
@@ -62,7 +63,7 @@
 /* Sidebar ----------------------------------------------------------------- */
 .dashboard-world .sidebar {
   width: var(--sidebar-width);
-  padding: 22px 18px 18px;
+  padding: 18px 14px 14px;
   overflow: hidden;
   border-right: 1px solid rgba(213, 175, 104, 0.22);
   background:
@@ -84,20 +85,20 @@
 }
 
 .dashboard-world .brand {
-  min-height: 126px;
-  margin: 0 4px 22px;
-  padding: 8px 8px 18px;
+  min-height: 108px;
+  margin: 0 3px 16px;
+  padding: 5px 6px 14px;
   display: grid;
   justify-items: center;
   align-content: center;
-  gap: 9px;
+  gap: 6px;
   text-align: center;
   border-bottom: 1px solid rgba(213, 175, 104, 0.14);
 }
 
 .dashboard-world .brand-mark {
-  width: 62px;
-  height: 62px;
+  width: 54px;
+  height: 54px;
   color: var(--dashboard-gold-bright);
   border: 1px solid rgba(213, 175, 104, 0.46);
   border-radius: 50%;
@@ -114,7 +115,7 @@
 }
 
 .dashboard-world .brand-mark::before {
-  width: 76px;
+  width: 66px;
   height: 1px;
   left: 50%;
   top: 50%;
@@ -123,7 +124,7 @@
 
 .dashboard-world .brand-mark::after {
   width: 1px;
-  height: 76px;
+  height: 66px;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
@@ -139,16 +140,16 @@
 .dashboard-world .brand-word strong {
   display: block;
   color: #f0d49b;
-  font: 600 24px/1 var(--font-display);
+  font: 600 22px/1 var(--font-display);
   letter-spacing: 2px;
 }
 
 .dashboard-world .brand-word small {
   display: block;
-  margin-top: 8px;
+  margin-top: 7px;
   color: #c6c5bc;
-  font: 600 7px/1.2 var(--font-sans);
-  letter-spacing: 2.25px;
+  font: 600 6.5px/1.2 var(--font-sans);
+  letter-spacing: 2px;
 }
 
 .dashboard-world .sidebar-section-label {
@@ -156,17 +157,17 @@
 }
 
 .dashboard-world .primary-nav {
-  gap: 8px;
+  gap: 5px;
 }
 
 .dashboard-world .nav-link {
   position: relative;
-  min-height: 58px;
-  gap: 16px;
-  padding: 0 18px;
+  min-height: 50px;
+  gap: 14px;
+  padding: 0 15px;
   border-radius: 8px;
   color: #c9d0cc;
-  font: 500 16px/1 var(--font-display);
+  font: 500 15px/1 var(--font-display);
   letter-spacing: 0.1px;
 }
 
@@ -198,12 +199,16 @@
 .dashboard-world .sidebar-bottom {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  margin-top: auto;
 }
 
 .dashboard-world .journey-note {
   position: relative;
-  margin: 18px 8px 12px;
-  padding: 28px 10px 18px;
+  margin: 12px 6px 8px;
+  padding: 24px 8px 11px;
   border: 0;
   text-align: center;
 }
@@ -238,7 +243,7 @@
 
 .dashboard-world .journey-note p {
   color: #eee2cf;
-  font: italic 24px/1.22 var(--font-display);
+  font: italic 20px/1.2 var(--font-display);
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
 }
 
@@ -248,9 +253,9 @@
 }
 
 .dashboard-world .dashboard-sidebar-signout {
-  min-height: 40px;
-  margin: 2px 10px 0;
-  padding: 0 14px;
+  min-height: 36px;
+  margin: 0 6px;
+  padding: 0 12px;
   border-top: 1px solid rgba(213, 175, 104, 0.08);
   color: #acaaa2;
   font: 500 10px/1 var(--font-sans);
@@ -286,8 +291,8 @@
 
 /* Top navigation ----------------------------------------------------------- */
 .dashboard-world .topbar {
-  min-height: 72px;
-  padding: 0 34px;
+  min-height: var(--dashboard-topbar-height);
+  padding: 0 clamp(22px, 2.1vw, 34px);
   border-bottom: 1px solid rgba(213, 175, 104, 0.2);
   background: linear-gradient(180deg, rgba(3, 12, 18, 0.78), rgba(3, 12, 18, 0.42));
   backdrop-filter: blur(5px);
@@ -369,7 +374,7 @@
 .dashboard-ambience {
   position: fixed;
   z-index: 1;
-  inset: 72px 0 0 var(--sidebar-width);
+  inset: var(--dashboard-topbar-height) 0 0 var(--sidebar-width);
   overflow: hidden;
   pointer-events: none;
   transition: inset 0.2s ease;
@@ -421,17 +426,17 @@
 /* Main composition --------------------------------------------------------- */
 .dashboard-world .dashboard-page-authenticated {
   max-width: 1460px;
-  padding: 43px 42px 36px;
+  padding: clamp(30px, 2.6vw, 43px) clamp(28px, 2.55vw, 42px) 32px;
 }
 
 .dashboard-welcome {
   position: relative;
-  min-height: 146px;
+  min-height: clamp(104px, 8vw, 132px);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 28px;
-  padding: 7px 4px 18px;
+  padding: 5px 4px 14px;
 }
 
 .dashboard-welcome::before {
@@ -456,7 +461,7 @@
 .dashboard-welcome h1 {
   margin-top: 9px;
   color: var(--dashboard-ivory);
-  font: 500 clamp(44px, 4vw, 61px)/0.98 var(--font-display);
+  font: 500 clamp(40px, 3.2vw, 54px)/0.98 var(--font-display);
   letter-spacing: -1.3px;
   text-shadow: 0 3px 22px rgba(0, 0, 0, 0.5);
 }
@@ -471,7 +476,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 15px;
+  margin-top: 12px;
   color: #b9c3c1;
   font-size: 11px;
 }
@@ -493,7 +498,7 @@
 .dashboard-welcome-quote {
   margin: 6px 14% 0 0;
   color: rgba(239, 230, 213, 0.78);
-  font: italic 15px/1.35 var(--font-display);
+  font: italic 14px/1.35 var(--font-display);
   text-align: right;
   text-shadow: 0 2px 12px #000;
 }
@@ -632,12 +637,13 @@
 
 /* Chapter card ------------------------------------------------------------- */
 .first-journey {
-  min-height: 220px;
+  height: clamp(178px, 13.35vw, 220px);
+  min-height: clamp(178px, 13.35vw, 220px);
   display: grid;
-  grid-template-columns: minmax(0, 1.17fr) minmax(360px, 0.83fr);
+  grid-template-columns: minmax(0, 51.5%) minmax(0, 48.5%);
   align-items: stretch;
   gap: 0;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   padding: 0;
   overflow: hidden;
   border-color: rgba(232, 196, 118, 0.48);
@@ -647,17 +653,17 @@
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: 90px minmax(0, 1fr);
+  grid-template-columns: 78px minmax(0, 1fr);
   align-items: center;
-  gap: 20px;
-  padding: 28px 28px 25px 31px;
-  background: linear-gradient(90deg, rgba(7, 17, 23, 0.98), rgba(7, 17, 23, 0.9) 72%, rgba(7, 17, 23, 0.54));
+  gap: 15px;
+  padding: 22px 22px 20px 25px;
+  background: linear-gradient(90deg, rgba(7, 17, 23, 0.985), rgba(7, 17, 23, 0.94) 74%, rgba(7, 17, 23, 0.72));
 }
 
 .first-journey-mark {
   position: relative;
-  width: 76px;
-  height: 76px;
+  width: 68px;
+  height: 68px;
   display: grid;
   place-items: center;
   color: var(--dashboard-gold-bright);
@@ -676,36 +682,36 @@
 }
 
 .first-journey-mark::before {
-  width: 90px;
+  width: 80px;
   height: 1px;
 }
 
 .first-journey-mark::after {
   width: 1px;
-  height: 90px;
+  height: 80px;
 }
 
 .first-journey-copy h2 {
   margin-top: 7px;
   color: #f0e5d1;
-  font: 500 clamp(29px, 2.6vw, 39px)/1.03 var(--font-display);
+  font: 500 clamp(27px, 2.25vw, 36px)/1.03 var(--font-display);
   letter-spacing: -0.35px;
 }
 
 .first-journey-copy > p {
-  max-width: 690px;
-  margin-top: 8px;
+  max-width: 540px;
+  margin-top: 7px;
   color: #b9c4c1;
-  font-size: 10px;
-  line-height: 1.58;
+  font-size: 9px;
+  line-height: 1.52;
 }
 
 .first-journey-steps {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 14px 0 0;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin: 12px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -713,10 +719,10 @@
 .first-journey-steps li {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
   color: #a8b4b1;
-  font-size: 8px;
+  font-size: 7.5px;
 }
 
 .first-journey-steps li.current,
@@ -725,8 +731,8 @@
 }
 
 .first-journey-step-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
   border: 1px solid rgba(213, 175, 104, 0.42);
@@ -751,14 +757,15 @@
 
 .first-journey-atlas {
   position: relative;
-  min-height: 220px;
+  min-height: 100%;
   overflow: hidden;
   background:
-    linear-gradient(90deg, rgba(7, 17, 23, 0.55), rgba(28, 22, 13, 0.1) 25%, rgba(62, 45, 24, 0.1)),
-    radial-gradient(circle at 75% 30%, rgba(115, 83, 39, 0.15), transparent 32%),
-    linear-gradient(135deg, rgba(208, 177, 119, 0.78), rgba(151, 119, 72, 0.56)),
-    url('/Dashboard.png') 73% 43% / 720px auto no-repeat;
-  filter: saturate(0.75) sepia(0.18);
+    linear-gradient(90deg, rgba(7, 17, 23, 0.93) 0%, rgba(39, 30, 20, 0.48) 13%, rgba(87, 65, 39, 0.18) 52%, rgba(48, 36, 22, 0.16) 100%),
+    linear-gradient(135deg, rgba(203, 176, 124, 0.34), rgba(128, 98, 58, 0.2)),
+    radial-gradient(circle at 76% 26%, rgba(209, 176, 113, 0.18), transparent 35%),
+    url('/Dashboard.png') 73% 41% / 760px auto no-repeat;
+  background-blend-mode: normal, color, soft-light, luminosity;
+  filter: sepia(0.42) saturate(0.62) contrast(1.08) brightness(0.82);
 }
 
 .first-journey-atlas::before {
@@ -766,19 +773,30 @@
   position: absolute;
   inset: 0;
   background:
-    repeating-linear-gradient(16deg, rgba(74, 49, 24, 0.11) 0 1px, transparent 1px 21px),
-    radial-gradient(circle at 55% 55%, transparent 0 48%, rgba(71, 43, 22, 0.18) 77%);
+    repeating-linear-gradient(16deg, rgba(63, 43, 25, 0.14) 0 1px, transparent 1px 21px),
+    repeating-linear-gradient(104deg, rgba(244, 220, 174, 0.025) 0 1px, transparent 1px 30px),
+    radial-gradient(circle at 55% 55%, transparent 0 44%, rgba(51, 33, 20, 0.28) 78%);
   mix-blend-mode: multiply;
+}
+
+.first-journey-atlas::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  inset: 0 auto 0 0;
+  width: clamp(30px, 3.2vw, 52px);
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(7, 17, 23, 0.72), rgba(7, 17, 23, 0));
 }
 
 .first-journey-atlas blockquote {
   position: absolute;
   z-index: 2;
-  right: 9%;
-  top: 37px;
+  right: 8%;
+  top: 30px;
   margin: 0;
   color: rgba(56, 37, 20, 0.86);
-  font: italic 22px/1.04 var(--font-display);
+  font: italic 20px/1.04 var(--font-display);
   text-align: center;
   transform: rotate(-1.5deg);
 }
@@ -786,8 +804,8 @@
 .chapter-map-compass {
   position: absolute;
   z-index: 2;
-  top: 28px;
-  left: 45%;
+  top: 24px;
+  left: 43%;
   color: rgba(67, 47, 25, 0.65);
 }
 
@@ -844,9 +862,9 @@
 .first-journey-cta {
   position: absolute;
   z-index: 4;
-  right: 30px;
-  bottom: 25px;
-  min-width: 230px;
+  right: clamp(18px, 1.45vw, 24px);
+  bottom: clamp(13px, 1.1vw, 18px);
+  min-width: 220px;
   justify-content: space-between;
 }
 
@@ -854,24 +872,24 @@
 .dashboard-reference-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.9fr) minmax(260px, 0.75fr);
-  gap: 16px;
+  gap: 14px;
   align-items: stretch;
 }
 
 .dashboard-panel-heading {
   position: relative;
   z-index: 2;
-  min-height: 48px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 16px 20px 10px;
+  padding: 14px 18px 8px;
 }
 
 .dashboard-character-summary,
 .today-quests {
-  min-height: 378px;
+  min-height: clamp(305px, 23.9vw, 394px);
 }
 
 .dashboard-character-summary {
@@ -892,7 +910,7 @@
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: 160px minmax(0, 1fr);
+  grid-template-columns: clamp(132px, 10vw, 160px) minmax(0, 1fr);
   align-items: center;
   gap: 16px;
   padding-top: 4px;
@@ -900,8 +918,8 @@
 
 .dashboard-character-portrait {
   position: relative;
-  width: 148px;
-  height: 148px;
+  width: clamp(120px, 9vw, 148px);
+  height: clamp(120px, 9vw, 148px);
   padding: 8px;
   border: 1px solid rgba(232, 196, 118, 0.68);
   border-radius: 50%;
@@ -981,7 +999,7 @@
 
 .dashboard-character-copy h2 {
   color: #f1e8d8;
-  font: 500 clamp(31px, 2.9vw, 42px)/0.95 var(--font-display);
+  font: 500 clamp(28px, 2.15vw, 36px)/0.95 var(--font-display);
   max-width: 250px;
 }
 
@@ -1013,7 +1031,7 @@
 
 .dashboard-attribute-cell {
   min-width: 0;
-  min-height: 61px;
+  min-height: clamp(50px, 3.7vw, 61px);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1241,7 +1259,7 @@
 .today-quests-empty {
   position: relative;
   z-index: 2;
-  min-height: 255px;
+  min-height: clamp(185px, 14.2vw, 235px);
   display: grid;
   align-content: center;
   justify-items: center;
@@ -1319,12 +1337,12 @@
 .dashboard-right-rail {
   min-width: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) 106px;
-  gap: 16px;
+  grid-template-rows: minmax(0, 1fr) clamp(84px, 6.7vw, 106px);
+  gap: 14px;
 }
 
 .dashboard-atlas {
-  min-height: 256px;
+  min-height: clamp(202px, 16.3vw, 268px);
   overflow: hidden;
 }
 
@@ -1335,7 +1353,7 @@
 .dashboard-atlas-map {
   position: relative;
   z-index: 2;
-  height: 170px;
+  height: clamp(116px, 9.45vw, 156px);
   margin: 0 12px;
   overflow: hidden;
   border: 1px solid rgba(213, 175, 104, 0.18);
@@ -1461,12 +1479,12 @@
 .dashboard-streak {
   position: relative;
   z-index: 2;
-  min-height: 106px;
+  min-height: clamp(84px, 6.7vw, 106px);
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 15px;
-  padding: 14px 18px;
+  gap: 13px;
+  padding: 12px 16px;
   color: inherit;
   transition: border-color 0.18s ease, transform 0.18s ease, background 0.18s ease;
 }
@@ -1478,8 +1496,8 @@
 }
 
 .dashboard-streak-emblem {
-  width: 63px;
-  height: 63px;
+  width: clamp(44px, 3.4vw, 56px);
+  height: clamp(44px, 3.4vw, 56px);
   display: grid;
   place-items: center;
   color: #e8bb67;
@@ -1497,7 +1515,7 @@
 .dashboard-streak-copy strong {
   margin-top: 4px;
   color: #f2e7d5;
-  font: 500 28px/0.95 var(--font-display);
+  font: 500 25px/0.95 var(--font-display);
 }
 
 .dashboard-streak-copy small {
@@ -1600,7 +1618,7 @@
 /* Responsive --------------------------------------------------------------- */
 @media (max-width: 1260px) {
   .dashboard-world {
-    --sidebar-width: 228px;
+    --sidebar-width: clamp(184px, 15.8vw, 202px);
   }
 
   .dashboard-world.sidebar-collapsed {
@@ -1608,7 +1626,7 @@
   }
 
   .dashboard-world .dashboard-page-authenticated {
-    padding: 34px 28px 30px;
+    padding: 30px 26px 30px;
   }
 
   .dashboard-world .brand-word strong {
@@ -1616,12 +1634,12 @@
   }
 
   .dashboard-world .nav-link {
-    font-size: 15px;
-    min-height: 54px;
+    font-size: 14px;
+    min-height: 48px;
   }
 
   .first-journey {
-    grid-template-columns: minmax(0, 1.05fr) minmax(315px, 0.95fr);
+    grid-template-columns: minmax(0, 51.5%) minmax(300px, 48.5%);
   }
 
   .first-journey-content {
@@ -1648,7 +1666,7 @@
   }
 
   .dashboard-attribute-summary {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 5px;
     margin-top: 12px;
   }
@@ -1892,6 +1910,7 @@
   }
 
   .first-journey {
+    height: auto;
     min-height: auto;
     grid-template-columns: 1fr;
   }
@@ -2088,6 +2107,84 @@
     margin-inline: 10px;
   }
 }
+
+/* Compact desktop/laptop fit ---------------------------------------------
+   The reference was composed on a tall 16:9 canvas. On common laptops the
+   browser chrome removes a lot of vertical room, so compress only spacing,
+   not functionality, and keep sign-out reachable without sidebar scrolling. */
+@media (max-height: 820px) and (min-width: 821px) {
+  .dashboard-world .sidebar {
+    padding-top: 12px;
+    padding-bottom: 10px;
+  }
+
+  .dashboard-world .brand {
+    min-height: 88px;
+    margin-bottom: 9px;
+    padding-bottom: 10px;
+    gap: 4px;
+  }
+
+  .dashboard-world .brand-mark {
+    width: 46px;
+    height: 46px;
+  }
+
+  .dashboard-world .brand-mark::before { width: 58px; }
+  .dashboard-world .brand-mark::after { height: 58px; }
+
+  .dashboard-world .brand-word strong { font-size: 19px; }
+
+  .dashboard-world .brand-word small {
+    margin-top: 5px;
+    font-size: 5.5px;
+    letter-spacing: 1.65px;
+  }
+
+  .dashboard-world .primary-nav { gap: 3px; }
+
+  .dashboard-world .nav-link {
+    min-height: 44px;
+    padding-inline: 13px;
+    gap: 12px;
+    font-size: 14px;
+  }
+
+  .dashboard-world .nav-link svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .dashboard-world .journey-note {
+    margin: 7px 4px 5px;
+    padding: 19px 4px 7px;
+  }
+
+  .dashboard-world .journey-note::before,
+  .dashboard-world .journey-note::after { top: 8px; }
+
+  .dashboard-world .journey-divider {
+    top: 0;
+    font-size: 13px;
+  }
+
+  .dashboard-world .journey-note p {
+    font-size: 17px;
+    line-height: 1.14;
+  }
+
+  .dashboard-world .dashboard-sidebar-signout {
+    min-height: 32px;
+    margin-top: 0;
+    flex: 0 0 auto;
+  }
+
+  .dashboard-world .dashboard-page-authenticated { padding-top: 28px; }
+  .dashboard-welcome { min-height: 104px; }
+  .dashboard-welcome h1 { margin-top: 7px; }
+  .dashboard-welcome-meta { margin-top: 10px; }
+}
+
 
 /* Motion ------------------------------------------------------------------ */
 @keyframes dashboard-world-breath {

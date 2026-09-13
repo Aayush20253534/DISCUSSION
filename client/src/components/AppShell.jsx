@@ -237,9 +237,14 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
               aria-expanded={!collapsed}
               onClick={() => setCollapsed(!collapsed)}
             >
-              {collapsed ? <PanelLeftOpen size={19} /> : <PanelLeftClose size={19} />}
+              {dashboardWorld ? (
+                <Map className="topbar-map-icon" size={18} strokeWidth={1.5} />
+              ) : collapsed ? (
+                <PanelLeftOpen size={19} />
+              ) : (
+                <PanelLeftClose size={19} />
+              )}
             </button>
-            {dashboardWorld && <Map className="topbar-map-icon" size={18} strokeWidth={1.5} />}
             <Compass className="mobile-brand" size={22} />
             <span>THE EVERYDAY ADVENTURE</span>
           </div>

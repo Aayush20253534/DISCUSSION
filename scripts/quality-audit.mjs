@@ -35,12 +35,22 @@ for (const file of sourceFiles) {
   }
 }
 
-const [appShell, publicShell, css, renderYaml, packageJsonText] = await Promise.all([
+const [
+  appShell,
+  publicShell,
+  css,
+  renderYaml,
+  packageJsonText,
+  rootVercelText,
+  clientVercelText,
+] = await Promise.all([
   readFile(path.join(clientSource, 'components', 'AppShell.jsx'), 'utf8'),
   readFile(path.join(clientSource, 'public', 'PublicShell.jsx'), 'utf8'),
   readFile(path.join(clientSource, 'index.css'), 'utf8'),
   readFile(path.join(root, 'render.yaml'), 'utf8'),
   readFile(path.join(root, 'package.json'), 'utf8'),
+  readFile(path.join(root, 'vercel.json'), 'utf8'),
+  readFile(path.join(root, 'client', 'vercel.json'), 'utf8'),
 ])
 for (const [name, shell] of [
   ['authenticated shell', appShell],
@@ -66,5 +76,27 @@ assert.match(
   /^\s*buildCommand:\s*npm run render:build\s*$/m,
   'render.yaml must use the repository-owned render:build command instead of duplicating deployment steps in the dashboard',
 )
+
+
+for (const [name, text] of [
+  ['root vercel.json', rootVercelText],
+  ['client/vercel.json', clientVercelText],
+]) {
+  const vercelConfig = JSON.parse(text)
+  const rewrites = vercelConfig.rewrites || []
+  assert.deepEqual(
+    rewrites[0],
+    {
+      source: '/api/:path*',
+      destination: 'https://discussion-q412.onrender.com/api/:path*',
+    },
+    `${name} must proxy API requests before the SPA fallback`,
+  )
+  assert.deepEqual(
+    rewrites.at(-1),
+    { source: '/(.*)', destination: '/index.html' },
+    `${name} must send direct browser-route requests to the Vite SPA entry point`,
+  )
+}
 
 console.log(JSON.stringify({ event: 'quality.audit_passed', clientSourceFiles: sourceFiles.length }))

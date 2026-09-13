@@ -18,7 +18,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run db:generate && node --test --test-concurrency=1 server/tests/*.test.js shared/tests/*.test.js",
+    "test": "npm run db:generate && node scripts/run-tests.mjs",
     "verify": "npm run lint && npm run quality:audit && npm test && npm run db:validate && npm run build && npm run test:production",
     "render:build": "npm ci --workspaces --include-workspace-root --include=dev --no-audit --no-fund && npm run build && npm run db:deploy",
     "verify:live": "node scripts/live-smoke.mjs",

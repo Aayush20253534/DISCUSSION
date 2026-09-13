@@ -638,3 +638,519 @@
   .marketplace-world .dashboard-lantern-glow { animation: none !important; }
   .marketplace-world .market-treasure-card { transition: none; }
 }
+
+/* Marketplace + Inventory polish · keep the reward flow inside the current world -------- */
+.market-reward-dialog {
+  width: min(780px, calc(100vw - 36px));
+  max-height: min(86dvh, 760px);
+  padding: 30px;
+  overflow: auto;
+  color: #e9e4d6;
+  border: 1px solid rgba(222, 187, 112, .48);
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, rgba(5, 17, 23, .97), rgba(7, 24, 29, .95)),
+    radial-gradient(circle at 86% 8%, rgba(222, 187, 112, .1), transparent 28%);
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, .62),
+    inset 0 1px 0 rgba(255, 241, 201, .05),
+    inset 0 0 70px rgba(213, 175, 104, .025);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(213, 175, 104, .58) rgba(7, 18, 23, .55);
+}
+.market-reward-dialog::before,
+.market-reward-dialog::after {
+  content: '';
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  pointer-events: none;
+  opacity: .62;
+}
+.market-reward-dialog::before {
+  left: 10px;
+  top: 10px;
+  border-left: 1px solid rgba(230, 196, 121, .62);
+  border-top: 1px solid rgba(230, 196, 121, .62);
+}
+.market-reward-dialog::after {
+  right: 10px;
+  bottom: 10px;
+  border-right: 1px solid rgba(230, 196, 121, .5);
+  border-bottom: 1px solid rgba(230, 196, 121, .5);
+}
+.market-reward-dialog > .eyebrow {
+  display: inline-flex;
+  margin-right: 42px;
+  color: #dfb96d;
+  font-size: 8px;
+  letter-spacing: .24em;
+}
+.market-reward-dialog .dialog-title {
+  max-width: 640px;
+  margin: 9px 0 7px;
+  color: #f1ead9;
+  font: 500 clamp(34px, 4vw, 48px)/.98 var(--font-display);
+  letter-spacing: -.015em;
+}
+.market-reward-dialog .dialog-description {
+  max-width: 650px;
+  margin: 0 0 18px;
+  color: #b8c7c1;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.market-reward-dialog .dialog-close {
+  right: 16px;
+  top: 15px;
+  color: #c7d2cd;
+  border: 1px solid rgba(166, 181, 175, .2);
+  background: rgba(3, 12, 17, .55);
+}
+.market-reward-dialog .dialog-close:hover {
+  color: #f0cd80;
+  border-color: rgba(222, 187, 112, .46);
+  background: rgba(32, 35, 27, .72);
+}
+.market-reward-dialog .market-preview-content {
+  display: grid;
+  grid-template-columns: minmax(250px, .95fr) minmax(260px, 1.05fr);
+  grid-template-areas:
+    'art rarity'
+    'art requirements'
+    'art summary'
+    'art note'
+    'art action';
+  gap: 12px 20px;
+  align-items: start;
+}
+.market-reward-dialog .market-preview-content > .reward-art {
+  grid-area: art;
+  width: 100%;
+  min-height: 340px;
+  height: 100%;
+  border: 1px solid rgba(213, 175, 104, .24);
+  border-radius: 11px;
+  box-shadow: inset 0 0 38px rgba(255, 255, 255, .025);
+}
+.market-reward-dialog .market-preview-content > .reward-art > svg {
+  width: 72px;
+  height: 72px;
+}
+.market-reward-dialog .preview-rarity-line {
+  grid-area: rarity;
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(174, 190, 183, .14);
+}
+.market-reward-dialog .market-requirements {
+  grid-area: requirements;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid rgba(166, 181, 175, .14);
+  border-radius: 8px;
+  background: rgba(5, 16, 21, .44);
+}
+.market-reward-dialog .purchase-summary {
+  grid-area: summary;
+  margin: 0;
+  border-color: rgba(213, 175, 104, .18);
+  background: rgba(213, 175, 104, .18);
+}
+.market-reward-dialog .purchase-summary span {
+  min-width: 0;
+  padding: 13px 14px;
+  background: rgba(7, 22, 27, .92);
+}
+.market-reward-dialog .purchase-summary strong {
+  font-size: 23px;
+}
+.market-reward-dialog .modal-note {
+  grid-area: note;
+  margin: 0;
+  padding: 11px 13px;
+  color: #9fb0aa;
+  border-color: rgba(213, 175, 104, .16);
+  background: rgba(84, 70, 41, .12);
+  font-size: 9px;
+  line-height: 1.65;
+}
+.market-reward-dialog .market-preview-content > .button {
+  grid-area: action;
+  min-height: 44px;
+  margin-top: 0;
+}
+.market-reward-dialog .purchase-confirmed {
+  grid-template-columns: minmax(250px, .9fr) minmax(250px, 1.1fr);
+  grid-template-areas:
+    'banner banner'
+    'art copy'
+    'art actions';
+  gap: 14px 20px;
+  margin-top: 8px;
+}
+.market-reward-dialog .purchase-confirmed > .purchase-rarity-banner { grid-area: banner; }
+.market-reward-dialog .purchase-confirmed > div:nth-child(2) {
+  grid-area: art;
+  overflow: hidden;
+  border-radius: 11px;
+  border: 1px solid rgba(213, 175, 104, .22);
+}
+.market-reward-dialog .purchase-confirmed > div:nth-child(2) .reward-art {
+  min-height: 300px;
+  height: 100%;
+}
+.market-reward-dialog .purchase-confirmed-copy { grid-area: copy; margin: 0; align-self: end; }
+.market-reward-dialog .purchase-confirmed-actions { grid-area: actions; align-self: start; }
+
+/* Inventory shares the Emporium world instead of falling back to the generic account shell. */
+.marketplace-world.inventory-world .workspace::before {
+  background:
+    linear-gradient(180deg, rgba(3, 10, 16, .4) 0%, rgba(3, 10, 16, .56) 48%, rgba(3, 10, 16, .76) 100%),
+    linear-gradient(90deg, rgba(3, 12, 18, .38) 0%, rgba(3, 12, 18, .06) 52%, rgba(3, 12, 18, .28) 100%),
+    url('/Marketplace.png') center top / cover no-repeat;
+}
+.marketplace-world.inventory-world .dashboard-lantern-glow {
+  background:
+    radial-gradient(circle at 10% 62%, rgba(255, 176, 68, .09), transparent 23%),
+    radial-gradient(circle at 86% 54%, rgba(255, 176, 68, .14), transparent 26%);
+}
+.marketplace-world .inventory-vault-page {
+  width: min(100%, 1360px);
+  margin: 0 auto;
+  padding: clamp(30px, 3.2vw, 48px) clamp(26px, 3vw, 44px) 72px;
+}
+.inventory-world-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 30px;
+  align-items: end;
+  margin-bottom: 24px;
+  padding: 4px 0 25px;
+  border-bottom: 1px solid rgba(226, 191, 119, .24);
+}
+.inventory-world-heading .eyebrow,
+.inventory-section-heading .eyebrow {
+  color: #e3bd70;
+  font: 700 9px/1.4 var(--font-sans);
+  letter-spacing: .24em;
+}
+.inventory-world-heading h1 {
+  max-width: 760px;
+  margin: 10px 0 8px;
+  color: #f3ead8;
+  font: 500 clamp(42px, 4vw, 64px)/.98 var(--font-display);
+  letter-spacing: -.02em;
+  text-shadow: 0 4px 26px rgba(0, 0, 0, .58);
+}
+.inventory-world-heading h1 em { color: #e4bd72; font-weight: 400; }
+.inventory-world-heading p {
+  max-width: 760px;
+  color: #c2cdca;
+  font-size: 11px;
+  line-height: 1.8;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .6);
+}
+.inventory-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.inventory-heading-actions > .button { min-height: 48px; }
+.inventory-vault-page > .economy-notice,
+.inventory-ledger-panel .economy-notice { margin-top: 0; }
+.inventory-loadout-section,
+.inventory-ledger-panel {
+  overflow: hidden;
+  border-color: rgba(213, 175, 104, .26);
+  background:
+    linear-gradient(145deg, rgba(6, 18, 23, .92), rgba(7, 22, 27, .82));
+  box-shadow: 0 20px 55px rgba(0, 0, 0, .27);
+  backdrop-filter: blur(8px);
+}
+.inventory-loadout-section {
+  margin: 22px 0 30px;
+}
+.inventory-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 22px 23px 18px;
+}
+.inventory-section-heading h2 {
+  margin: 7px 0 4px;
+  color: #eee5d3;
+  font: 500 31px/1 var(--font-display);
+}
+.inventory-section-heading p {
+  max-width: 660px;
+  color: #91a39d;
+  font-size: 9px;
+  line-height: 1.65;
+}
+.inventory-section-sigil {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(213, 175, 104, .3);
+  border-radius: 50%;
+  color: #e5be70;
+  background: radial-gradient(circle, rgba(213, 175, 104, .12), transparent 68%);
+}
+.inventory-equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  border-top: 1px solid rgba(166, 181, 175, .14);
+  background: rgba(166, 181, 175, .12);
+}
+.inventory-equipment-slot {
+  min-width: 0;
+  min-height: 104px;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: linear-gradient(145deg, rgba(6, 19, 24, .96), rgba(8, 26, 31, .9));
+}
+.inventory-equipment-slot .reward-art.compact {
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(213, 175, 104, .23);
+}
+.inventory-equipment-slot small,
+.inventory-equipment-slot strong,
+.inventory-equipment-slot div > span { display: block; }
+.inventory-equipment-slot small {
+  color: #d9b66f;
+  font-size: 7px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+.inventory-equipment-slot strong {
+  margin-top: 5px;
+  overflow: hidden;
+  color: #e7e2d5;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inventory-equipment-slot div > span {
+  margin-top: 4px;
+  color: #718983;
+  font-size: 7.5px;
+}
+.inventory-empty-slot {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(159, 177, 169, .28);
+  border-radius: 50%;
+  color: #61766f;
+  background: rgba(4, 14, 18, .32);
+}
+.inventory-treasures-section {
+  margin: 8px 0 34px;
+}
+.inventory-catalog-heading {
+  align-items: end;
+  padding: 0 0 14px;
+  border-bottom: 1px solid rgba(213, 175, 104, .16);
+}
+.inventory-catalog-heading h2 { font-size: 36px; }
+.inventory-owned-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid rgba(166, 181, 175, .18);
+  border-radius: 7px;
+  color: #9eb0aa;
+  background: rgba(6, 17, 22, .62);
+  font-size: 8px;
+}
+.marketplace-world .inventory-filters {
+  display: flex;
+  gap: 7px;
+  margin: 14px 0 18px;
+}
+.marketplace-world .inventory-filters button {
+  padding: 8px 11px;
+  border: 1px solid rgba(152, 171, 165, .22);
+  border-radius: 6px;
+  color: #aab8b4;
+  background: rgba(7, 20, 25, .82);
+  font-size: 8px;
+}
+.marketplace-world .inventory-filters button:hover {
+  color: #eee2cc;
+  border-color: rgba(213, 175, 104, .42);
+}
+.marketplace-world .inventory-filters button.active {
+  color: #181b18;
+  border-color: #e7c779;
+  background: #dfbb70;
+}
+.inventory-vault-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.inventory-vault-card {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  border-color: rgba(185, 165, 111, .24);
+  background: linear-gradient(155deg, rgba(5, 18, 23, .95), rgba(8, 25, 29, .89));
+  box-shadow: 0 16px 38px rgba(0, 0, 0, .24);
+}
+.inventory-vault-card.equipped {
+  border-color: rgba(226, 190, 111, .62);
+  box-shadow:
+    inset 0 0 0 1px rgba(226, 190, 111, .1),
+    0 18px 42px rgba(0, 0, 0, .28);
+}
+.inventory-vault-art {
+  position: relative;
+  height: 166px;
+  border-bottom: 1px solid rgba(213, 175, 104, .14);
+  overflow: hidden;
+}
+.inventory-vault-art .reward-art {
+  width: 100%;
+  height: 100%;
+}
+.inventory-equipped-ribbon {
+  position: absolute;
+  top: 11px;
+  left: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px;
+  border: 1px solid rgba(226, 190, 111, .48);
+  border-radius: 999px;
+  color: #f0d99f;
+  background: rgba(9, 22, 24, .84);
+  backdrop-filter: blur(8px);
+  font-size: 7px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.inventory-vault-copy {
+  display: flex;
+  min-height: 210px;
+  flex-direction: column;
+  padding: 16px;
+}
+.inventory-vault-copy h3 {
+  margin: 7px 0 5px;
+  color: #eee6d5;
+  font: 500 24px/1.05 var(--font-display);
+}
+.inventory-vault-copy > p {
+  min-height: 44px;
+  color: #91a49f;
+  font-size: 9px;
+  line-height: 1.65;
+}
+.inventory-vault-copy > small {
+  display: block;
+  margin-top: 8px;
+  color: #71857f;
+  font-size: 7.5px;
+}
+.inventory-vault-copy > .button {
+  width: 100%;
+  min-height: 38px;
+  justify-content: center;
+  margin-top: auto;
+}
+.inventory-vault-empty {
+  min-height: 290px;
+  border-color: rgba(213, 175, 104, .22);
+  background: rgba(5, 18, 23, .82);
+  backdrop-filter: blur(8px);
+}
+.inventory-ledger-panel {
+  margin-top: 0;
+}
+.inventory-ledger-panel .compact-heading {
+  padding-top: 20px;
+  padding-bottom: 16px;
+}
+.inventory-ledger-panel .wallet-list {
+  padding: 0 23px 12px;
+}
+.inventory-ledger-panel .wallet-row {
+  border-color: rgba(166, 181, 175, .14);
+}
+.inventory-ledger-panel .wallet-sign {
+  background: rgba(38, 56, 51, .65);
+  border: 1px solid rgba(166, 181, 175, .12);
+}
+
+@media (max-width: 1180px) {
+  .inventory-world-heading { grid-template-columns: 1fr; }
+  .inventory-heading-actions { justify-content: flex-start; }
+  .inventory-equipment-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .inventory-vault-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .market-reward-dialog {
+    width: min(94vw, 560px);
+    max-height: calc(100dvh - 28px);
+    padding: 24px 18px 20px;
+  }
+  .market-reward-dialog .market-preview-content {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'art' 'rarity' 'requirements' 'summary' 'note' 'action';
+  }
+  .market-reward-dialog .market-preview-content > .reward-art { min-height: 210px; height: 210px; }
+  .market-reward-dialog .purchase-confirmed {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'banner' 'art' 'copy' 'actions';
+  }
+  .market-reward-dialog .purchase-confirmed > div:nth-child(2) .reward-art { min-height: 210px; }
+
+  .marketplace-world .inventory-vault-page { padding: 24px 16px 84px; }
+  .inventory-world-heading { gap: 18px; margin-bottom: 18px; padding-bottom: 20px; }
+  .inventory-world-heading h1 { font-size: clamp(38px, 12vw, 52px); }
+  .inventory-heading-actions { align-items: stretch; }
+  .inventory-heading-actions .market-wallet { flex: 1; min-width: 0; }
+  .inventory-heading-actions > .button { min-width: 142px; justify-content: center; }
+  .inventory-equipment-grid { grid-template-columns: 1fr; }
+  .inventory-section-heading { padding: 19px 18px 15px; }
+  .inventory-catalog-heading { align-items: flex-start; padding: 0 0 13px; }
+  .inventory-owned-mark { margin-top: 2px; }
+  .marketplace-world .inventory-filters { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .marketplace-world .inventory-filters button { white-space: nowrap; }
+  .inventory-vault-grid { grid-template-columns: 1fr; }
+  .inventory-vault-card { display: grid; grid-template-columns: 132px minmax(0, 1fr); }
+  .inventory-vault-art { height: 100%; min-height: 218px; border-right: 1px solid rgba(213, 175, 104, .14); border-bottom: 0; }
+  .inventory-vault-copy { min-height: 218px; }
+  .inventory-vault-copy > p { min-height: 0; }
+}
+
+@media (max-width: 480px) {
+  .inventory-heading-actions { flex-direction: column; }
+  .inventory-vault-card { grid-template-columns: 1fr; }
+  .inventory-vault-art { height: 150px; min-height: 150px; border-right: 0; border-bottom: 1px solid rgba(213, 175, 104, .14); }
+  .inventory-vault-copy { min-height: 0; }
+  .inventory-section-heading { flex-direction: column; }
+  .inventory-section-sigil { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .market-reward-dialog *,
+  .inventory-vault-card,
+  .inventory-equipment-slot { transition: none !important; }
+}

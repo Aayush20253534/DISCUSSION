@@ -1,5 +1,4 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Compass, Settings } from 'lucide-react'
 import { useQuestSync } from '../quests/hooks.js'
@@ -13,12 +12,10 @@ import { useAuth } from '../auth/useAuth.js'
 import { Modal, PageSkeleton } from './ui.jsx'
 import PublicShell from '../public/PublicShell.jsx'
 import { applyPageMeta } from '../lib/meta.js'
-import { useInteractionFeedback } from '../interactions/interaction-context.js'
 
 export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }) {
   const auth = useAuth()
   const { user } = auth
-  const { moving } = useInteractionFeedback()
   useQuestSync()
   useEconomySync()
   const equippedTheme = equippedItem(user, 'THEME')
@@ -38,7 +35,9 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const activityWorld = Boolean(user && pathname === '/activity')
   const characterWorld = Boolean(user && pathname === '/character')
   const marketplaceWorld = Boolean(user && pathname === '/marketplace')
-  const immersiveWorld = dashboardWorld || questWorld || activityWorld || characterWorld || marketplaceWorld
+  const inventoryWorld = Boolean(user && pathname === '/inventory')
+  const marketWorld = marketplaceWorld || inventoryWorld
+  const immersiveWorld = dashboardWorld || questWorld || activityWorld || characterWorld || marketWorld
   useEffect(() => {
     const key = equippedThemeKey
     if (key) document.documentElement.dataset.rewardTheme = key
@@ -97,7 +96,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   }
 
   return (
-    <div className={`app-shell ${adventureShell ? 'adventure-shell' : ''} ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${activityWorld ? 'activity-world' : ''} ${characterWorld ? 'character-world' : ''} ${marketplaceWorld ? 'marketplace-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
+    <div className={`app-shell ${adventureShell ? 'adventure-shell' : ''} ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${activityWorld ? 'activity-world' : ''} ${characterWorld ? 'character-world' : ''} ${marketWorld ? 'marketplace-world' : ''} ${inventoryWorld ? 'inventory-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
@@ -140,20 +139,11 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
           </div>
         )}
         <main id="main-content" tabIndex={-1} ref={mainRef}>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              className="route-stage"
-              key={pathname}
-              initial={moving ? { opacity: 0, y: 8 } : false}
-              animate={{ opacity: 1, y: 0 }}
-              exit={moving ? { opacity: 0, y: -5 } : { opacity: 1 }}
-              transition={{ duration: moving ? 0.18 : 0 }}
-            >
-              <Suspense fallback={<PageSkeleton />}>
-                <Outlet context={{ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }} />
-              </Suspense>
-            </motion.div>
-          </AnimatePresence>
+          <div className="route-stage" key={pathname}>
+            <Suspense fallback={<PageSkeleton />}>
+              <Outlet context={{ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }} />
+            </Suspense>
+          </div>
         </main>
         <footer className="app-footer">
           <span>Life is the adventure. You are the hero.</span>

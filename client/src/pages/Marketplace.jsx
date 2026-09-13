@@ -308,6 +308,8 @@ export default function Marketplace() {
       <Modal
         open={Boolean(selectedLive)}
         onOpenChange={(open) => !open && closePreview()}
+        className="market-reward-dialog"
+        eyebrow="THE WANDERING EMPORIUM"
         title={purchaseResult?.purchased ? `${purchaseResult.item.rarity} treasure claimed.` : selectedLive?.name || 'Reward preview'}
         description={purchaseResult?.purchased ? `${purchaseResult.item.name} now belongs to your character.` : selectedLive?.description || ''}
         returnFocusRef={returnFocusRef}

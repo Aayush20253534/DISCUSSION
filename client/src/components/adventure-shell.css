@@ -7,6 +7,7 @@
   --adventure-gold: #d5af68;
   --adventure-gold-bright: #e8c476;
   --adventure-ivory: #efe6d5;
+  --adventure-topbar-height: clamp(56px, 3.8vw, 64px);
 }
 
 .app-shell.adventure-shell.sidebar-collapsed {
@@ -259,6 +260,61 @@
   display: none;
 }
 
+/* One shared compact Overview topbar for every authenticated page. */
+.app-shell.adventure-shell .topbar {
+  min-height: var(--adventure-topbar-height);
+  padding: 0 clamp(22px, 2.1vw, 34px);
+  border-bottom: 1px solid rgba(213, 175, 104, 0.2);
+  background: linear-gradient(180deg, rgba(3, 12, 18, 0.78), rgba(3, 12, 18, 0.42));
+  backdrop-filter: blur(5px);
+}
+
+.app-shell.adventure-shell .topbar-left {
+  gap: 18px;
+}
+
+.app-shell.adventure-shell .topbar-left > span {
+  color: #c7ccc8;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3.6px;
+}
+
+.app-shell.adventure-shell .topbar-map-icon {
+  color: var(--adventure-gold-bright);
+}
+
+.app-shell.adventure-shell .topbar-right {
+  gap: 12px;
+}
+
+.app-shell.adventure-shell .topbar .icon-button {
+  color: #bec8c7;
+  border-radius: 50%;
+}
+
+.app-shell.adventure-shell .topbar .icon-button:hover {
+  color: var(--adventure-gold-bright);
+  background: rgba(213, 175, 104, 0.08);
+}
+
+.app-shell.adventure-shell .topbar .preview-pill {
+  min-height: 34px;
+  padding: 7px 17px;
+  border-color: rgba(106, 143, 99, 0.72);
+  background: rgba(19, 52, 41, 0.42);
+  color: #c6ddc8;
+  font-size: 10px;
+  letter-spacing: 0.1px;
+}
+
+.app-shell.adventure-shell .topbar .preview-pill > span {
+  width: 7px;
+  height: 7px;
+  background: #8ed69d;
+  box-shadow: 0 0 10px rgba(142, 214, 157, 0.5);
+}
+
 /* Keep Preferences accessible after removing the older per-page sidebar
    footer by exposing the same Overview top-right account controls everywhere. */
 .app-shell.adventure-shell .topbar-profile-link {
@@ -413,11 +469,43 @@
     pointer-events: auto;
   }
 
-  .app-shell.adventure-shell .mobile-menu-button {
-    display: grid;
+  .app-shell.adventure-shell .topbar {
+    min-height: 62px;
+    padding: 0 14px;
   }
 
-  .app-shell.adventure-shell .collapse-button {
+  .app-shell.adventure-shell .mobile-menu-button {
+    display: grid;
+    width: 34px;
+    height: 34px;
+  }
+
+  .app-shell.adventure-shell .collapse-button,
+  .app-shell.adventure-shell .topbar-map-icon,
+  .app-shell.adventure-shell .topbar-settings,
+  .app-shell.adventure-shell .guide-button {
+    display: none;
+  }
+
+  .app-shell.adventure-shell .mobile-brand {
+    display: block;
+    color: var(--adventure-gold-bright);
+  }
+
+  .app-shell.adventure-shell .topbar-left {
+    gap: 8px;
+  }
+
+  .app-shell.adventure-shell .topbar-left > span {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 7px;
+    letter-spacing: 1.6px;
+  }
+
+  .app-shell.adventure-shell .topbar .preview-pill {
     display: none;
   }
 

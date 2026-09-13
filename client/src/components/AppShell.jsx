@@ -1,22 +1,12 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import {
-  ChevronDown,
-  Compass,
-  HelpCircle,
-  Map,
-  Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Settings,
-  X,
-} from 'lucide-react'
+import { Compass, Settings } from 'lucide-react'
 import { useQuestSync } from '../quests/hooks.js'
 import { useEconomySync } from '../economy/hooks.js'
 import { equippedItem } from '../economy/equipment.js'
-import Portrait from './Portrait.jsx'
 import AdventureSidebar from './AdventureSidebar.jsx'
+import AdventureTopbar from './AdventureTopbar.jsx'
 import { adventureNavigation } from './adventure-navigation.js'
 import './adventure-shell.css'
 import { useAuth } from '../auth/useAuth.js'
@@ -31,7 +21,6 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const { moving } = useInteractionFeedback()
   useQuestSync()
   useEconomySync()
-  const equippedFrame = equippedItem(user, 'AVATAR_FRAME')
   const equippedTheme = equippedItem(user, 'THEME')
   const equippedThemeKey = equippedTheme?.assetKey
   const [collapsed, setCollapsed] = useState(false)
@@ -48,7 +37,6 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const questWorld = Boolean(user && pathname === '/quests')
   const activityWorld = Boolean(user && pathname === '/activity')
   const immersiveWorld = dashboardWorld || questWorld || activityWorld
-  const userInitial = user?.displayName?.trim()?.charAt(0)?.toUpperCase() || 'A'
   useEffect(() => {
     const key = equippedThemeKey
     if (key) document.documentElement.dataset.rewardTheme = key
@@ -129,73 +117,18 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
         />
       )}
       <div className="workspace">
-        <header className="topbar">
-          <div className="topbar-left">
-            {adventureShell && (
-              <button
-                className="icon-button mobile-menu-button"
-                aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
-                aria-expanded={mobileMenuOpen}
-                onClick={() => setMobileMenuOpen((open) => !open)}
-              >
-                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            )}
-            <button
-              className="icon-button collapse-button"
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              aria-expanded={!collapsed}
-              onClick={() => setCollapsed(!collapsed)}
-            >
-              {adventureShell ? (
-                <Map className="topbar-map-icon" size={18} strokeWidth={1.5} />
-              ) : collapsed ? (
-                <PanelLeftOpen size={19} />
-              ) : (
-                <PanelLeftClose size={19} />
-              )}
-            </button>
-            <Compass className="mobile-brand" size={22} />
-            <span>THE EVERYDAY ADVENTURE</span>
-          </div>
-          <div className="topbar-right">
-            {!user && (
-              <NavLink to="/login" className="text-link">
-                Sign in
-              </NavLink>
-            )}
-            <span className="preview-pill">
-              <span />
-              {user ? 'Your adventure' : 'World preview'}
-            </span>
-            <button
-              className="icon-button guide-button"
-              aria-label="How Life RPG works"
-              onClick={(event) => { guideReturnFocusRef.current = event.currentTarget; setGuideOpen(true) }}
-            >
-              <HelpCircle size={19} />
-            </button>
-            {user && adventureShell && (
-              <>
-                <NavLink to="/settings" className="icon-button topbar-settings" aria-label="Open settings">
-                  <Settings size={19} />
-                </NavLink>
-                <NavLink to="/character" className="topbar-profile-link" aria-label="Open your character">
-                  {questWorld || activityWorld ? (
-                    <Portrait
-                      className="topbar-avatar-portrait"
-                      avatarKey={user?.character?.avatarKey}
-                      frameKey={equippedFrame?.assetKey}
-                    />
-                  ) : (
-                    <span className="topbar-avatar-initial">{userInitial}</span>
-                  )}
-                  <ChevronDown size={15} />
-                </NavLink>
-              </>
-            )}
-          </div>
-        </header>
+        <AdventureTopbar
+          user={user}
+          adventureShell={adventureShell}
+          collapsed={collapsed}
+          mobileMenuOpen={mobileMenuOpen}
+          onToggleMobileMenu={() => setMobileMenuOpen((open) => !open)}
+          onToggleSidebar={() => setCollapsed((value) => !value)}
+          onOpenGuide={(event) => {
+            guideReturnFocusRef.current = event.currentTarget
+            setGuideOpen(true)
+          }}
+        />
         {immersiveWorld && (
           <div className="dashboard-ambience" aria-hidden="true">
             <span className="dashboard-lightning-flash" />

@@ -28,7 +28,7 @@ function ActivityJournal() {
   return (
     <div className="page activity-page">
       <PageHeading
-        eyebrow="THE DAYS THAT MAKE YOU"
+        eyebrow="THE CHRONICLE OF YOUR JOURNEY"
         title={
           <>
             Find your <em>rhythm.</em>
@@ -37,7 +37,7 @@ function ActivityJournal() {
         description="A little effort, a little more often. Your journey takes shape one day at a time."
       >
         <span className="chapter-badge">
-          <CalendarDays size={16} /> YOUR ACTIVITY
+          <CalendarDays size={16} /> CHRONICLE <span>•</span> YOUR ACTIVITY
         </span>
       </PageHeading>
       {query.isPending ? (

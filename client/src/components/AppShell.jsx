@@ -46,7 +46,8 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const adventureShell = Boolean(user)
   const dashboardWorld = Boolean(user && pathname === '/')
   const questWorld = Boolean(user && pathname === '/quests')
-  const immersiveWorld = dashboardWorld || questWorld
+  const activityWorld = Boolean(user && pathname === '/activity')
+  const immersiveWorld = dashboardWorld || questWorld || activityWorld
   const userInitial = user?.displayName?.trim()?.charAt(0)?.toUpperCase() || 'A'
   useEffect(() => {
     const key = equippedThemeKey
@@ -106,7 +107,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   }
 
   return (
-    <div className={`app-shell ${adventureShell ? 'adventure-shell' : ''} ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
+    <div className={`app-shell ${adventureShell ? 'adventure-shell' : ''} ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${activityWorld ? 'activity-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
@@ -180,7 +181,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
                   <Settings size={19} />
                 </NavLink>
                 <NavLink to="/character" className="topbar-profile-link" aria-label="Open your character">
-                  {questWorld ? (
+                  {questWorld || activityWorld ? (
                     <Portrait
                       className="topbar-avatar-portrait"
                       avatarKey={user?.character?.avatarKey}

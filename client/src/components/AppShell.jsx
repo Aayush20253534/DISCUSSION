@@ -41,6 +41,29 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const marketWorld = marketplaceWorld || inventoryWorld
   const immersiveWorld = dashboardWorld || questWorld || activityWorld || characterWorld || marketWorld
   useEffect(() => {
+    if (!mobileMenuOpen) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false)
+    }
+    const closeOnWideViewport = () => {
+      if (window.innerWidth > 760) setMobileMenuOpen(false)
+    }
+
+    window.addEventListener('keydown', closeOnEscape)
+    window.addEventListener('resize', closeOnWideViewport, { passive: true })
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+      window.removeEventListener('resize', closeOnWideViewport)
+    }
+  }, [mobileMenuOpen])
+
+  useEffect(() => {
     const key = equippedThemeKey
     if (key) document.documentElement.dataset.rewardTheme = key
     else delete document.documentElement.dataset.rewardTheme

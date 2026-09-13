@@ -1,0 +1,1555 @@
+/* --------------------------------------------------------------------------
+   Mobile finishing pass
+   --------------------------------------------------------------------------
+   This file is intentionally imported after the rest of the application CSS.
+   It does not replace the desktop art direction. It only provides predictable
+   phone/tablet composition, safe viewport bounds, touch-sized controls and a
+   single-column fallback for every private/public route.
+   -------------------------------------------------------------------------- */
+
+.mobile-sidebar-support-nav { display: none; }
+
+@media (max-width: 760px) {
+  html {
+    width: 100%;
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body,
+  #root {
+    width: 100%;
+    min-width: 0;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    overscroll-behavior-x: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    min-width: 0;
+  }
+
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+    font-size: 16px;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #root .button,
+  #root .icon-button,
+  #root .text-link,
+  #root .nav-link {
+    touch-action: manipulation;
+  }
+
+  #root .page,
+  #root .route-stage,
+  main,
+  section,
+  article,
+  aside,
+  form,
+  fieldset {
+    min-width: 0;
+  }
+
+  #root .page-heading {
+    width: 100%;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  #root .page-heading > div:first-child {
+    min-width: 0;
+  }
+
+  #root .page-heading h1,
+  #root .page-heading .page-description,
+  body .dialog-title,
+  body .dialog-description {
+    overflow-wrap: anywhere;
+  }
+
+  #root .panel {
+    min-width: 0;
+  }
+
+  /* Authenticated shell --------------------------------------------------- */
+  #root .app-shell.adventure-shell,
+  #root .app-shell.adventure-shell.sidebar-collapsed {
+    --sidebar-width: 0px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  #root .app-shell.adventure-shell .workspace {
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
+  }
+
+  #root .app-shell.adventure-shell main {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #root .app-shell.adventure-shell .topbar {
+    min-height: 60px;
+    height: 60px;
+    padding: 0 max(12px, env(safe-area-inset-left)) 0 max(12px, env(safe-area-inset-right));
+    border-bottom-color: rgba(213, 175, 104, 0.16);
+    background: rgba(4, 15, 20, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  #root .app-shell.adventure-shell .topbar-left,
+  #root .app-shell.adventure-shell .topbar-right {
+    min-width: 0;
+  }
+
+  #root .app-shell.adventure-shell .topbar-left {
+    flex: 1;
+    gap: 8px;
+  }
+
+  #root .app-shell.adventure-shell .topbar-left > span {
+    max-width: min(38vw, 145px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #root .app-shell.adventure-shell .topbar-right {
+    flex: 0 0 auto;
+    gap: 5px;
+  }
+
+  #root .app-shell.adventure-shell .topbar-profile-link {
+    flex: 0 0 auto;
+    padding: 0;
+  }
+
+  #root .app-shell.adventure-shell .topbar-avatar-initial {
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+  }
+
+  #root .app-shell.adventure-shell .mobile-menu-button {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+  }
+
+  #root .app-shell.adventure-shell .adventure-sidebar {
+    display: flex;
+    width: min(88vw, 318px);
+    max-width: 318px;
+    height: 100dvh;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transform: translate3d(-104%, 0, 0);
+    will-change: transform;
+  }
+
+  #root .app-shell.adventure-shell.mobile-sidebar-open .adventure-sidebar {
+    transform: translate3d(0, 0, 0);
+  }
+
+  #root .app-shell.adventure-shell .adventure-sidebar .brand,
+  #root .app-shell.adventure-shell.sidebar-collapsed .adventure-sidebar .brand {
+    min-height: 88px;
+    margin: 0 2px 10px;
+    padding: 4px 5px 12px;
+  }
+
+  #root .app-shell.adventure-shell .adventure-sidebar .brand-mark,
+  #root .app-shell.adventure-shell.sidebar-collapsed .adventure-sidebar .brand-mark {
+    width: 48px;
+    height: 48px;
+  }
+
+  #root .app-shell.adventure-shell .adventure-sidebar .brand-word strong {
+    font-size: 21px;
+  }
+
+  #root .app-shell.adventure-shell .adventure-sidebar .brand-word small {
+    font-size: 6px;
+    letter-spacing: 1.8px;
+  }
+
+  #root .app-shell.adventure-shell .adventure-sidebar .primary-nav {
+    gap: 4px;
+  }
+
+  #root .app-shell.adventure-shell .mobile-sidebar-support-nav {
+    display: grid;
+    gap: 4px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(213, 175, 104, 0.12);
+  }
+
+  #root .app-shell.adventure-shell .adventure-sidebar .nav-link,
+  #root .app-shell.adventure-shell.sidebar-collapsed .adventure-sidebar .nav-link {
+    min-height: 48px;
+    justify-content: flex-start;
+    gap: 13px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  #root .app-shell.adventure-shell .adventure-sidebar .journey-note,
+  #root .app-shell.adventure-shell.sidebar-collapsed .adventure-sidebar .journey-note {
+    display: none;
+  }
+
+  #root .app-shell.adventure-shell .adventure-sidebar .sidebar-bottom {
+    margin-top: auto;
+    padding-top: 12px;
+  }
+
+  #root .app-shell.adventure-shell .adventure-sidebar .dashboard-sidebar-signout,
+  #root .app-shell.adventure-shell.sidebar-collapsed .adventure-sidebar .dashboard-sidebar-signout {
+    min-height: 44px;
+    justify-content: flex-start;
+    margin: 0 4px;
+    padding-inline: 13px;
+  }
+
+  #root .app-shell.adventure-shell .mobile-sidebar-scrim {
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  /* Shared phone page rhythm -------------------------------------------- */
+  #root .dashboard-world .dashboard-page-authenticated,
+  #root .quest-world .quest-journal-page,
+  #root .activity-world .activity-page,
+  #root .character-world .growth-character-page,
+  #root .marketplace-world .market-v2-page,
+  #root .marketplace-world .inventory-vault-page,
+  #root .settings-world .settings-overview-page {
+    width: 100%;
+    max-width: none;
+    margin-inline: auto;
+    padding-left: 14px;
+    padding-right: 14px;
+    padding-bottom: calc(36px + env(safe-area-inset-bottom));
+  }
+
+  #root .dashboard-world .workspace::before,
+  #root .quest-world .workspace::before,
+  #root .activity-world .workspace::before,
+  #root .character-world .workspace::before,
+  #root .marketplace-world .workspace::before,
+  #root .settings-world .workspace::before {
+    background-attachment: scroll !important;
+  }
+
+  #root .dashboard-world .dashboard-ambience,
+  #root .quest-world .dashboard-ambience,
+  #root .activity-world .dashboard-ambience,
+  #root .character-world .dashboard-ambience,
+  #root .marketplace-world .dashboard-ambience {
+    inset: 60px 0 0;
+  }
+
+  /* Shared dialogs ------------------------------------------------------- */
+  body .dialog-overlay {
+    padding: 0;
+    background: rgba(1, 7, 10, 0.78);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
+
+  body .dialog-content,
+  body .dialog-content.quest-editor,
+  body .dialog-content.quest-master-dialog,
+  body .dialog-content.market-reward-dialog,
+  body .dialog-content.quest-detail,
+  body .dialog-content.completion-dialog {
+    box-sizing: border-box;
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+    margin: 0 !important;
+    padding: 22px 16px 18px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 12px;
+    scrollbar-width: thin;
+  }
+
+  body .dialog-content .dialog-close {
+    top: 10px;
+    right: 10px;
+    width: 38px;
+    height: 38px;
+  }
+
+  body .dialog-content > .eyebrow {
+    max-width: calc(100% - 44px);
+    font-size: 7px;
+    letter-spacing: 2px;
+    white-space: normal;
+  }
+
+  body .dialog-content .dialog-title {
+    margin-right: 42px;
+    font-size: clamp(29px, 9vw, 38px);
+    line-height: 1;
+  }
+
+  body .dialog-content .dialog-description {
+    font-size: 10px;
+    line-height: 1.6;
+  }
+
+  body .dialog-content .button {
+    min-height: 44px;
+  }
+
+  #root .network-status {
+    inset: 68px 10px auto 10px;
+    max-width: none;
+  }
+
+  #root .lost-page {
+    min-height: calc(100svh - 60px);
+    padding: 36px 16px;
+  }
+
+  body .guide-steps {
+    padding-left: 0;
+  }
+
+  body .guide-steps li {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  /* Dashboard ------------------------------------------------------------ */
+  #root .dashboard-world .dashboard-page-authenticated {
+    padding-top: 20px;
+  }
+
+  #root .dashboard-world .dashboard-welcome {
+    min-height: 0;
+    padding: 8px 1px 20px;
+  }
+
+  #root .dashboard-world .dashboard-welcome h1 {
+    max-width: 100%;
+    font-size: clamp(36px, 11.4vw, 48px);
+    line-height: 0.98;
+  }
+
+  #root .dashboard-world .dashboard-welcome-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    max-width: 100%;
+  }
+
+  #root .dashboard-world .dashboard-meta-dot {
+    display: none;
+  }
+
+  #root .dashboard-world .dashboard-reference-grid,
+  #root .dashboard-world .dashboard-right-rail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #root .dashboard-world .dashboard-character-summary,
+  #root .dashboard-world .today-quests,
+  #root .dashboard-world .dashboard-atlas,
+  #root .dashboard-world .dashboard-streak,
+  #root .dashboard-world .first-journey {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #root .dashboard-world .dashboard-character-main {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  #root .dashboard-world .dashboard-character-portrait {
+    width: 92px;
+    height: 92px;
+  }
+
+  #root .dashboard-world .dashboard-character-copy h2 {
+    font-size: clamp(25px, 8vw, 31px);
+  }
+
+  #root .dashboard-world .dashboard-attribute-summary {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  #root .dashboard-world .today-quest {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  #root .dashboard-world .today-complete-button {
+    grid-column: 2;
+    width: 100%;
+    max-width: 180px;
+    justify-self: start;
+  }
+
+  #root .dashboard-world .first-journey-content {
+    padding-inline: 17px;
+  }
+
+  #root .dashboard-world .first-journey-cta {
+    width: calc(100% - 34px);
+    margin-inline: 17px;
+  }
+
+  /* Quest journal -------------------------------------------------------- */
+  #root .quest-world .quest-journal-page {
+    padding-top: 20px;
+  }
+
+  #root .quest-world .quest-journal-page .page-heading {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    margin-bottom: 18px;
+    padding: 0;
+  }
+
+  #root .quest-world .quest-journal-page h1 {
+    font-size: clamp(38px, 11.5vw, 50px);
+  }
+
+  #root .quest-world .quest-heading-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  #root .quest-world .quest-master-trigger,
+  #root .quest-world .new-quest-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    justify-content: center;
+    padding-inline: 10px;
+    font-size: 9px;
+  }
+
+  #root .quest-world .journal-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  #root .quest-world .journal-summary-card {
+    min-height: 82px;
+    gap: 9px;
+    padding: 13px 12px;
+  }
+
+  #root .quest-world .journal-summary-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  #root .quest-world .journal-summary-card strong {
+    font-size: 26px;
+  }
+
+  #root .quest-world .journal-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  #root .quest-world .saved-journal,
+  #root .quest-world .journal-inspiration {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #root .quest-world .journal-section-head {
+    min-height: 0;
+    padding: 20px 16px 14px;
+  }
+
+  #root .quest-world .journal-status-tabs {
+    width: 100%;
+    gap: 18px;
+    padding-inline: 16px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  #root .quest-world .journal-status-tabs::-webkit-scrollbar,
+  #root .quest-world .reward-filters::-webkit-scrollbar,
+  #root .marketplace-world .reward-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  #root .quest-world .journal-status-tabs button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  #root .quest-world .journal-search-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    padding-inline: 16px;
+  }
+
+  #root .quest-world .journal-search-row .search-field,
+  #root .quest-world .journal-sort,
+  #root .quest-world .journal-sort select {
+    width: 100%;
+  }
+
+  #root .quest-world .journal-control-row {
+    min-width: 0;
+  }
+
+  #root .quest-world .journal-attributes {
+    flex-wrap: nowrap;
+    gap: 7px;
+    padding-inline: 16px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  #root .quest-world .journal-attributes .filter-chip {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  #root .quest-world .journal-secondary-filters {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin-inline: 16px;
+  }
+
+  #root .quest-world .journal-secondary-filters label,
+  #root .quest-world .journal-secondary-filters select {
+    width: 100%;
+  }
+
+  #root .quest-world .journal-clear {
+    margin-left: 0;
+    justify-self: start;
+  }
+
+  #root .quest-world .journal-results-head,
+  #root .quest-world .saved-quest-list,
+  #root .quest-world .journal-footnote,
+  #root .quest-world .quest-pagination {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  #root .quest-world .saved-quest {
+    position: relative;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 10px;
+    padding: 16px 0 54px;
+  }
+
+  #root .quest-world .saved-quest-copy {
+    min-width: 0;
+  }
+
+  #root .quest-world .saved-quest-actions {
+    position: absolute;
+    right: 0;
+    bottom: 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+  }
+
+  #root .quest-world .saved-quest-actions .icon-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  #root .quest-world .saved-quest-arrow {
+    display: none;
+  }
+
+  #root .quest-world .inspiration-panel {
+    padding: 20px 17px 5px;
+  }
+
+  #root .quest-world .inspiration-list {
+    grid-template-columns: 1fr;
+  }
+
+  body .quest-editor .quest-contract-form,
+  body .quest-master-dialog .quest-master-form,
+  body .quest-master-dialog .quest-master-drafts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body .quest-editor .quest-contract-preview {
+    position: relative;
+    top: auto;
+    order: 2;
+  }
+
+  body .quest-editor .quest-form-grid,
+  body .quest-editor .quest-recurrence-options,
+  body .quest-master-dialog .quest-master-options,
+  body .quest-master-dialog .quest-master-tune {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body .quest-editor .quest-attribute-picker > div {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  body .quest-editor .quest-attribute-picker label {
+    min-height: 74px;
+    padding: 11px 4px;
+  }
+
+  body .quest-editor .quest-form-footer,
+  body .quest-master-dialog .quest-master-actions,
+  body .quest-master-dialog .quest-master-planbar,
+  body .quest-master-dialog .quest-master-selectbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  body .quest-editor .quest-form-footer > div,
+  body .quest-master-dialog .quest-master-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body .quest-editor .quest-form-footer .button,
+  body .quest-master-dialog .quest-master-actions .button,
+  body .quest-master-dialog .quest-master-generate {
+    width: 100%;
+    justify-content: center;
+  }
+
+  body .quest-master-dialog .quest-master-draft {
+    min-width: 0;
+  }
+
+  /* Activity ------------------------------------------------------------- */
+  #root .activity-world .activity-page {
+    padding-top: 20px;
+  }
+
+  #root .activity-world .activity-page .page-heading {
+    min-height: 0;
+    margin-bottom: 16px;
+  }
+
+  #root .activity-world .activity-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  #root .activity-world .current-streak {
+    grid-column: 1 / -1;
+  }
+
+  #root .activity-world .activity-stat {
+    min-height: 132px;
+    padding: 17px 14px;
+  }
+
+  #root .activity-world .activity-stat > strong {
+    font-size: 40px;
+  }
+
+  #root .activity-world .activity-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+  }
+
+  #root .activity-world .activity-calendar,
+  #root .activity-world .activity-day-history {
+    width: 100%;
+    padding: 16px 11px;
+  }
+
+  #root .activity-world .calendar-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 11px;
+  }
+
+  #root .activity-world .calendar-toolbar label,
+  #root .activity-world .calendar-toolbar input {
+    width: 100%;
+  }
+
+  #root .activity-world .calendar-arrows {
+    justify-content: space-between;
+  }
+
+  #root .activity-world .calendar-table {
+    width: 100%;
+    table-layout: fixed;
+    border-spacing: 2px 4px;
+  }
+
+  #root .activity-world .calendar-day {
+    width: auto;
+    min-width: 0;
+    min-height: 43px;
+    padding: 2px;
+  }
+
+  #root .activity-world .calendar-day > span {
+    font-size: 13px;
+  }
+
+  #root .activity-world .calendar-day small {
+    display: none;
+  }
+
+  #root .activity-world .calendar-legend,
+  #root .activity-world .calendar-totals {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  #root .activity-world .activity-receipt-body,
+  #root .activity-world .activity-guide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #root .activity-world .activity-pagination {
+    gap: 8px;
+  }
+
+  /* Character ------------------------------------------------------------ */
+  #root .character-world .growth-character-page {
+    padding-top: 20px;
+  }
+
+  #root .character-world .character-world-heading,
+  #root .character-world .character-chronicle-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  #root .character-world .character-world-heading h1 {
+    font-size: clamp(38px, 11.5vw, 50px);
+  }
+
+  #root .character-world .character-chapter-mark {
+    width: fit-content;
+    margin-top: 0;
+  }
+
+  #root .character-world .character-world-grid,
+  #root .character-world .character-layout,
+  #root .character-world .character-progress-grid,
+  #root .character-world .progression-lower-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  #root .character-world .character-identity-panel {
+    width: 100%;
+    padding: 20px 16px 18px;
+  }
+
+  #root .character-world .character-portrait-stage {
+    width: 168px;
+    height: 168px;
+    margin: 17px auto 13px;
+  }
+
+  #root .character-world .character-feature > .character-portrait-stage > .portrait {
+    width: 142px;
+    height: 142px;
+  }
+
+  #root .character-world .character-feature-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  #root .character-world .character-realms-panel {
+    width: 100%;
+    padding-inline: 13px;
+  }
+
+  #root .character-world .character-realms-heading {
+    gap: 10px;
+    padding-inline: 3px;
+  }
+
+  #root .character-world .character-atlas-emblem {
+    display: none;
+  }
+
+  #root .character-world .character-realms-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  #root .character-world .character-realm-card,
+  #root .character-world .character-realm-card:last-child {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  #root .character-world .character-chronicle-totals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  #root .character-world .character-chronicle-totals > * {
+    flex: 1 1 110px;
+  }
+
+  /* Marketplace + Inventory -------------------------------------------- */
+  #root .marketplace-world .market-v2-page,
+  #root .marketplace-world .inventory-vault-page {
+    padding-top: 20px;
+  }
+
+  #root .marketplace-world .market-world-heading,
+  #root .marketplace-world .inventory-world-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    margin-bottom: 17px;
+    padding-bottom: 17px;
+  }
+
+  #root .marketplace-world .market-world-heading h1,
+  #root .marketplace-world .inventory-world-heading h1 {
+    font-size: clamp(38px, 11.5vw, 50px);
+  }
+
+  #root .marketplace-world .market-heading-actions,
+  #root .marketplace-world .inventory-heading-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: stretch;
+  }
+
+  #root .marketplace-world .market-wallet {
+    min-width: 0;
+  }
+
+  #root .marketplace-world .market-heading-actions > .button,
+  #root .marketplace-world .inventory-heading-actions > .button {
+    min-width: 0;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  #root .marketplace-world .market-feature-grid,
+  #root .marketplace-world .daily-deal-grid,
+  #root .marketplace-world .market-v2-grid,
+  #root .marketplace-world .market-grid,
+  #root .marketplace-world .collection-grid,
+  #root .marketplace-world .inventory-equipment-grid,
+  #root .marketplace-world .inventory-vault-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 11px;
+  }
+
+  #root .marketplace-world .market-merchant-card {
+    grid-template-columns: minmax(0, 1fr) 56px;
+    gap: 12px;
+    min-height: 0;
+    padding: 18px 16px;
+  }
+
+  #root .marketplace-world .merchant-copy h2 {
+    font-size: 27px;
+  }
+
+  #root .marketplace-world .merchant-sigil {
+    width: 54px;
+    height: 54px;
+  }
+
+  #root .marketplace-world .weekly-legend-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  #root .marketplace-world .weekly-legend-side {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  #root .marketplace-world .weekly-legend-side .button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  #root .marketplace-world .market-treasure-card,
+  #root .marketplace-world .inventory-vault-card {
+    display: grid;
+    grid-template-columns: 118px minmax(0, 1fr);
+    min-width: 0;
+  }
+
+  #root .marketplace-world .market-treasure-card .reward-art,
+  #root .marketplace-world .market-treasure-card.feature .reward-art,
+  #root .marketplace-world .inventory-vault-art {
+    width: 100%;
+    height: 100%;
+    min-height: 190px;
+  }
+
+  #root .marketplace-world .item-copy,
+  #root .marketplace-world .inventory-vault-copy {
+    min-width: 0;
+    min-height: 190px;
+    padding: 14px;
+  }
+
+  #root .marketplace-world .item-copy h2,
+  #root .marketplace-world .inventory-vault-copy h3 {
+    overflow-wrap: anywhere;
+  }
+
+  #root .marketplace-world .item-footer,
+  #root .marketplace-world .market-actions {
+    gap: 8px;
+  }
+
+  #root .marketplace-world .reward-filters,
+  #root .marketplace-world .inventory-filters {
+    width: 100%;
+    max-width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  #root .marketplace-world .reward-filters button,
+  #root .marketplace-world .inventory-filters button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  #root .marketplace-world .market-section-heading,
+  #root .marketplace-world .inventory-section-heading,
+  #root .marketplace-world .inventory-catalog-heading {
+    align-items: flex-start;
+    gap: 9px;
+  }
+
+  #root .marketplace-world .market-profile-summary {
+    justify-content: flex-start;
+  }
+
+  #root .marketplace-world .wallet-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  body .market-reward-dialog .market-preview-content,
+  body .market-reward-dialog .purchase-confirmed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body .market-reward-dialog .market-preview-content > .reward-art,
+  body .market-reward-dialog .purchase-confirmed > div:nth-child(2) .reward-art {
+    height: 190px;
+    min-height: 190px;
+  }
+
+  /* Settings ------------------------------------------------------------- */
+  #root .settings-world .settings-overview-page {
+    padding-top: 20px;
+  }
+
+  #root .settings-world .settings-overview-page .page-heading {
+    margin-bottom: 16px;
+  }
+
+  #root .settings-world .settings-overview-page .page-heading h1 {
+    font-size: clamp(38px, 11.5vw, 50px);
+  }
+
+  #root .settings-world .settings-identity-panel {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    padding: 15px;
+  }
+
+  #root .settings-world .settings-identity-meta {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  #root .settings-world .settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+  }
+
+  #root .settings-world .settings-primary-grid,
+  #root .settings-world .settings-secondary-grid {
+    margin-block: 0 13px;
+  }
+
+  #root .settings-world .settings-panel .section-heading {
+    padding: 18px 16px 14px;
+  }
+
+  #root .settings-world .settings-form {
+    padding: 17px 16px 19px;
+  }
+
+  #root .settings-world .settings-form .button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  #root .settings-world .session-list {
+    margin-inline: 16px;
+  }
+
+  #root .settings-world .session-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+    padding: 15px 0;
+  }
+
+  #root .settings-world .session-revoke {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  #root .settings-world .session-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+
+  #root .settings-world .session-actions .button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  #root .settings-world .setting-row {
+    margin-inline: 16px;
+    gap: 14px;
+    padding-block: 17px;
+  }
+
+  #root .settings-world .setting-row > div:first-child {
+    flex: 1 1 190px;
+  }
+
+  #root .settings-world .settings-safety-copy {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    padding: 18px 16px;
+  }
+
+  #root .settings-world .settings-safety-note {
+    margin: 0 16px 18px;
+  }
+
+  /* Login / signup / recovery / onboarding ------------------------------ */
+  #root .login-auth-page {
+    height: auto;
+    min-height: 100svh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: calc(72px + env(safe-area-inset-top)) 10px calc(18px + env(safe-area-inset-bottom));
+    background-position: 34% center;
+  }
+
+  #root .login-brand {
+    top: max(14px, env(safe-area-inset-top));
+    left: 14px;
+  }
+
+  #root .login-back {
+    top: max(20px, calc(env(safe-area-inset-top) + 6px));
+    right: 14px;
+    min-height: 40px;
+  }
+
+  #root .login-portal-card,
+  #root .signup-portal-card,
+  #root .otp-portal-card,
+  #root .password-recovery-card {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: min(100%, 520px);
+    max-width: 520px;
+    max-height: none;
+    margin: 54px auto 8px;
+    padding: 40px 18px 18px;
+    transform: none !important;
+  }
+
+  #root .login-card-medallion {
+    width: 50px;
+    height: 50px;
+  }
+
+  #root .login-card-medallion svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  #root .login-title,
+  #root .signup-portal-card .login-title {
+    font-size: clamp(34px, 10vw, 42px) !important;
+  }
+
+  #root .login-description {
+    font-size: 11px !important;
+    line-height: 1.5 !important;
+  }
+
+  #root .login-account-form .form-field input,
+  #root .login-account-form .form-field select,
+  #root .login-account-form textarea,
+  #root .recovery-form input,
+  #root .otp-digit {
+    font-size: 16px;
+  }
+
+  #root .login-options {
+    flex-wrap: wrap;
+    gap: 10px 14px;
+  }
+
+  #root .login-primary-button {
+    min-height: 46px;
+  }
+
+  #root .otp-input-row {
+    gap: 5px;
+  }
+
+  #root .otp-digit {
+    height: 45px;
+  }
+
+  #root .otp-actions {
+    flex-wrap: wrap;
+  }
+
+  #root .auth-page:not(.login-auth-page) {
+    display: block;
+    min-height: 100svh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  #root .auth-page:not(.login-auth-page) .auth-story {
+    display: none;
+  }
+
+  #root .auth-page:not(.login-auth-page) .auth-form-side {
+    width: 100%;
+    min-height: 100svh;
+    padding: calc(22px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom));
+  }
+
+  #root .auth-page:not(.login-auth-page) .auth-card {
+    width: min(100%, 560px);
+    margin: 44px auto 0;
+  }
+
+  #root .onboarding-form,
+  #root .avatar-picker,
+  #root .avatar-options,
+  #root .starting-stats {
+    min-width: 0;
+  }
+
+  #root .avatar-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Public landing ------------------------------------------------------- */
+  #root .public-site,
+  #root .public-site-landing,
+  #root .public-site main,
+  #root .landing-cinematic-hero,
+  #root .atlas-home,
+  #root .atlas-section,
+  #root .atlas-section-inner {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  #root .public-header.landing-header,
+  #root .public-header {
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(14px, env(safe-area-inset-right));
+  }
+
+  #root .landing-header .public-nav.landing-nav,
+  #root .public-nav {
+    max-height: calc(100dvh - 72px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+  }
+
+  #root .landing-cinematic-hero {
+    min-height: 100svh;
+    height: auto;
+    padding-bottom: max(26px, env(safe-area-inset-bottom));
+  }
+
+  #root .landing-copy-shell {
+    width: min(100%, 560px);
+    max-width: 100%;
+  }
+
+  #root .landing-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  #root .landing-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  #root .landing-progression {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  #root .landing-progression::-webkit-scrollbar {
+    display: none;
+  }
+
+  #root .atlas-section-inner {
+    width: 100%;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  #root .atlas-section-heading h2 {
+    overflow-wrap: anywhere;
+  }
+
+  #root .atlas-quest-route,
+  #root .atlas-contract-stack,
+  #root .atlas-market-track,
+  #root .atlas-chronicle-layout,
+  #root .atlas-evolution-stage {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #root .atlas-market-track {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  #root .atlas-market-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  #root .atlas-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  #root .app-shell.adventure-shell .topbar-left > span {
+    display: none;
+  }
+
+  #root .app-shell.adventure-shell .topbar-right {
+    margin-left: auto;
+  }
+
+  #root .dashboard-world .dashboard-page-authenticated,
+  #root .quest-world .quest-journal-page,
+  #root .activity-world .activity-page,
+  #root .character-world .growth-character-page,
+  #root .marketplace-world .market-v2-page,
+  #root .marketplace-world .inventory-vault-page,
+  #root .settings-world .settings-overview-page {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
+  #root .dashboard-world .dashboard-character-main {
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  #root .dashboard-world .dashboard-character-portrait {
+    width: 78px;
+    height: 78px;
+  }
+
+  #root .dashboard-world .dashboard-character-summary,
+  #root .dashboard-world .today-quests {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  #root .quest-world .quest-heading-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #root .quest-world .journal-summary-card {
+    min-height: 74px;
+    padding: 12px 10px;
+  }
+
+  #root .quest-world .journal-summary-icon {
+    display: none;
+  }
+
+  body .quest-editor .quest-attribute-picker > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body .quest-editor .quest-contract-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #root .activity-world .activity-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #root .activity-world .current-streak {
+    grid-column: auto;
+  }
+
+  #root .activity-world .activity-stat {
+    min-height: 118px;
+  }
+
+  #root .character-world .character-feature-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #root .marketplace-world .market-heading-actions,
+  #root .marketplace-world .inventory-heading-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #root .marketplace-world .market-treasure-card,
+  #root .marketplace-world .inventory-vault-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #root .marketplace-world .market-treasure-card .reward-art,
+  #root .marketplace-world .market-treasure-card.feature .reward-art,
+  #root .marketplace-world .inventory-vault-art {
+    height: 156px;
+    min-height: 156px;
+    border-right: 0;
+  }
+
+  #root .marketplace-world .item-copy,
+  #root .marketplace-world .inventory-vault-copy {
+    min-height: 0;
+  }
+
+  #root .marketplace-world .wallet-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  #root .marketplace-world .wallet-row > :last-child {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  #root .settings-world .settings-identity-panel {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  #root .settings-world .settings-identity-mark {
+    width: 44px;
+    height: 44px;
+  }
+
+  #root .settings-world .setting-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  #root .settings-world .setting-control-with-icon,
+  #root .settings-world .theme-swatches {
+    margin-left: 0;
+  }
+
+  #root .login-auth-page {
+    padding-inline: 7px;
+  }
+
+  #root .login-brand-copy small {
+    display: none;
+  }
+
+  #root .login-back span {
+    display: none;
+  }
+
+  #root .login-portal-card,
+  #root .signup-portal-card,
+  #root .otp-portal-card,
+  #root .password-recovery-card {
+    width: 100%;
+    margin-top: 48px;
+    padding: 37px 15px 16px;
+  }
+
+  #root .login-eyebrow {
+    font-size: 6.5px;
+    letter-spacing: 2.4px;
+    white-space: normal;
+  }
+
+  #root .otp-input-row {
+    gap: 4px;
+  }
+
+  #root .otp-digit {
+    height: 42px;
+    font-size: 18px;
+  }
+
+  #root .avatar-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #root .atlas-section-inner {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+@media (max-width: 390px) {
+  body .dialog-content,
+  body .dialog-content.quest-editor,
+  body .dialog-content.quest-master-dialog,
+  body .dialog-content.market-reward-dialog,
+  body .dialog-content.quest-detail,
+  body .dialog-content.completion-dialog {
+    width: calc(100vw - 10px);
+    max-width: calc(100vw - 10px);
+    max-height: calc(100dvh - 10px);
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+  #root .dashboard-world .dashboard-attribute-summary,
+  #root .character-world .character-feature-stats {
+    gap: 4px;
+  }
+
+  #root .quest-world .journal-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body .quest-editor .quest-attribute-picker > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #root .marketplace-world .market-merchant-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #root .marketplace-world .merchant-sigil {
+    display: none;
+  }
+
+  #root .settings-world .settings-identity-meta span {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) and (max-height: 700px) {
+  #root .app-shell.adventure-shell .adventure-sidebar .brand,
+  #root .app-shell.adventure-shell.sidebar-collapsed .adventure-sidebar .brand {
+    min-height: 72px;
+  }
+
+  #root .app-shell.adventure-shell .adventure-sidebar .nav-link,
+  #root .app-shell.adventure-shell.sidebar-collapsed .adventure-sidebar .nav-link {
+    min-height: 43px;
+  }
+
+  #root .login-auth-page {
+    padding-top: 58px;
+  }
+
+  #root .login-portal-card,
+  #root .signup-portal-card,
+  #root .otp-portal-card,
+  #root .password-recovery-card {
+    margin-top: 38px;
+  }
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+  #root .app-shell.adventure-shell .adventure-sidebar,
+  #root .app-shell.adventure-shell .mobile-sidebar-scrim {
+    transition: none;
+  }
+}

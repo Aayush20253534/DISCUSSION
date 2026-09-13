@@ -1,4 +1,4 @@
-import { Compass, LogOut } from 'lucide-react'
+import { Compass, LogOut, PackageCheck, Settings } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { adventureNavigation } from './adventure-navigation.js'
 
@@ -38,6 +38,25 @@ export default function AdventureSidebar({
             <span>{label}</span>
           </NavLink>
         ))}
+      </nav>
+
+      <nav className="mobile-sidebar-support-nav" aria-label="Account navigation">
+        <NavLink
+          to="/inventory"
+          className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          onClick={onNavigate}
+        >
+          <PackageCheck size={20} strokeWidth={1.6} />
+          <span>Inventory</span>
+        </NavLink>
+        <NavLink
+          to="/settings"
+          className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          onClick={onNavigate}
+        >
+          <Settings size={20} strokeWidth={1.6} />
+          <span>Preferences</span>
+        </NavLink>
       </nav>
 
       <div className="sidebar-bottom">

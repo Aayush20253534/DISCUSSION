@@ -1,5 +1,5 @@
 import { CheckCheck, Coins, Compass, Map, Sparkles } from 'lucide-react'
-import { ATTRIBUTES, characterProgress } from '@life-rpg/shared'
+import { ATTRIBUTES, characterProgress, levelProgress } from '@life-rpg/shared'
 import Portrait from '../components/Portrait.jsx'
 import { AttributeIcon } from '../components/ui.jsx'
 import { useAuth } from '../auth/useAuth.js'
@@ -147,10 +147,14 @@ export default function Character() {
 
           <div className="character-realms-grid">
             {ATTRIBUTES.map(({ key, name, description }) => {
-              const attribute = character.attributes.find((item) => item.key === key)
-              const realm = ATTRIBUTE_REALMS[key]
+              const attribute = character.attributes.find((item) => item.key === key) || {
+                key,
+                xp: 0,
+                progression: levelProgress(0, 50),
+              }
+              const realm = ATTRIBUTE_REALMS[key] || { realm: name, note: description }
               return (
-                <article className={`strength-detail character-realm-card ${key.toLowerCase()}`} key={key}>
+                <article className={`character-realm-card ${key.toLowerCase()}`} key={key}>
                   <div className="character-realm-topline">
                     <span className="quest-icon">
                       <AttributeIcon attribute={key} size={23} />
@@ -159,7 +163,7 @@ export default function Character() {
                       <span>{realm.realm}</span>
                       <h3>{name}</h3>
                     </div>
-                    <span className="level-chip">{attribute.xp.toLocaleString()} XP</span>
+                    <span className="level-chip">Lv {attribute.progression.level}</span>
                   </div>
                   <p>{description}</p>
                   <small>{realm.note}</small>

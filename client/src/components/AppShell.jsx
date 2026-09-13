@@ -30,15 +30,16 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const guideReturnFocusRef = useRef(null)
   const previousPath = useRef(pathname)
   const adventureShell = Boolean(user)
+  const routeMatches = (path) => pathname === path || pathname.startsWith(`${path}/`)
   const dashboardWorld = Boolean(user && pathname === '/')
-  const questWorld = Boolean(user && pathname === '/quests')
-  const activityWorld = Boolean(user && pathname === '/activity')
-  const characterWorld = Boolean(user && pathname === '/character')
-  const marketplaceWorld = Boolean(user && pathname === '/marketplace')
-  const inventoryWorld = Boolean(user && pathname === '/inventory')
-  const settingsWorld = Boolean(user && pathname === '/settings')
+  const questWorld = Boolean(user && routeMatches('/quests'))
+  const activityWorld = Boolean(user && routeMatches('/activity'))
+  const characterWorld = Boolean(user && routeMatches('/character'))
+  const marketplaceWorld = Boolean(user && routeMatches('/marketplace'))
+  const inventoryWorld = Boolean(user && routeMatches('/inventory'))
+  const settingsWorld = Boolean(user && routeMatches('/settings'))
   const marketWorld = marketplaceWorld || inventoryWorld
-  const immersiveWorld = dashboardWorld || questWorld || activityWorld || characterWorld || marketWorld || settingsWorld
+  const immersiveWorld = dashboardWorld || questWorld || activityWorld || characterWorld || marketWorld
   useEffect(() => {
     const key = equippedThemeKey
     if (key) document.documentElement.dataset.rewardTheme = key
@@ -97,7 +98,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   }
 
   return (
-    <div className={`app-shell ${adventureShell ? 'adventure-shell' : ''} ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld || settingsWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${activityWorld ? 'activity-world' : ''} ${characterWorld ? 'character-world' : ''} ${marketWorld ? 'marketplace-world' : ''} ${inventoryWorld ? 'inventory-world' : ''} ${settingsWorld ? 'settings-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
+    <div className={`app-shell ${adventureShell ? 'adventure-shell' : ''} ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${activityWorld ? 'activity-world' : ''} ${characterWorld ? 'character-world' : ''} ${marketWorld ? 'marketplace-world' : ''} ${inventoryWorld ? 'inventory-world' : ''} ${settingsWorld ? 'settings-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>

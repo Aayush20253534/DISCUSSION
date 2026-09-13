@@ -23,7 +23,7 @@ import '../dashboard/dashboard.css'
 const featuredAttributes = [
   { key: 'INTELLECT', label: 'Mind' },
   { key: 'DISCIPLINE', label: 'Discipline' },
-  { key: 'CREATIVITY', label: 'Exploration' },
+  { key: 'CREATIVITY', label: 'Creativity' },
 ]
 
 function CharacterSummary({ data, user, equippedFrame, equippedTitle, equippedBadge }) {

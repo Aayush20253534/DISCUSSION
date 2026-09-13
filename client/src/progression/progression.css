@@ -867,7 +867,8 @@
   background:
     linear-gradient(180deg, rgba(2, 8, 12, 0.08) 0%, rgba(2, 8, 12, 0.15) 38%, rgba(2, 8, 12, 0.58) 100%),
     linear-gradient(90deg, rgba(3, 11, 16, 0.62) 0%, rgba(3, 11, 16, 0.33) 46%, rgba(3, 11, 16, 0.08) 78%, rgba(3, 11, 16, 0.17) 100%),
-    url('/Character.png') center top / cover no-repeat;
+    url('/Character.png') center top / cover no-repeat,
+    url('/Dashboard.png') center top / cover no-repeat;
   transform-origin: 70% 24%;
   animation: character-world-breathe 30s ease-in-out infinite;
   transition: inset 0.2s ease;
@@ -899,7 +900,8 @@
 .app-shell.adventure-shell.character-world .adventure-sidebar {
   background:
     linear-gradient(180deg, rgba(3, 12, 17, 0.97), rgba(3, 12, 17, 0.92) 55%, rgba(3, 12, 17, 0.78)),
-    url('/Character.png') left center / auto 100% no-repeat;
+    url('/Character.png') left center / auto 100% no-repeat,
+    url('/Dashboard.png') left center / auto 100% no-repeat;
   box-shadow: 18px 0 48px rgba(0, 0, 0, 0.27);
 }
 
@@ -911,7 +913,8 @@
   pointer-events: none;
   background:
     linear-gradient(180deg, rgba(4, 13, 19, 0.96), rgba(4, 13, 19, 0.22) 38%, rgba(4, 13, 19, 0.6)),
-    url('/Character.png') left 72% / 690px auto no-repeat;
+    url('/Character.png') left 72% / 690px auto no-repeat,
+    url('/Dashboard.png') left 72% / 690px auto no-repeat;
   opacity: 0.55;
 }
 
@@ -1402,6 +1405,7 @@
 .character-realms-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
   gap: 12px;
   padding-top: 16px;
 }
@@ -1409,6 +1413,8 @@
 .character-world .character-realm-card {
   display: block;
   min-width: 0;
+  height: 100%;
+  overflow: hidden;
   margin: 0;
   padding: 15px;
   border: 1px solid rgba(144, 171, 158, 0.17);
@@ -1482,6 +1488,7 @@
   border-color: rgba(213, 175, 104, 0.18);
   color: #dbc58f;
   background: rgba(45, 48, 33, 0.5);
+  font-variant-numeric: tabular-nums;
 }
 
 .character-world .character-realm-card .growth-meter {

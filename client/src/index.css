@@ -2415,11 +2415,38 @@ h1 em {
   }
 }
 
-/* Keep Radix dialogs centered even when Motion adds its own transform. */
+/* Keep every Radix/Motion dialog physically centered.
+   Motion writes an inline transform for scale/y animations, which can replace the
+   translate(-50%, -50%) used for fixed centering. Using an !important centering
+   transform here intentionally wins that conflict. The dialogs still fade in, but
+   they can no longer open with their top-left corner parked at the viewport centre. */
 .dialog-content {
-  translate: -50% -50%;
-  transform: none;
+  top: 50%;
+  left: 50%;
+  translate: none !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 32px);
   overscroll-behavior: contain;
+}
+
+/* Large fantasy dialogs need the same viewport guardrails as the shared modal. */
+.dialog-content.quest-editor,
+.dialog-content.quest-master-dialog,
+.dialog-content.market-reward-dialog {
+  box-sizing: border-box;
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  margin: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .dialog-content {
+    max-width: calc(100vw - 20px);
+    max-height: calc(100dvh - 20px);
+  }
 }
 
 /* Settings uses the same world and restrained panel language as Overview. */

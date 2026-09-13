@@ -1530,3 +1530,231 @@
     transition: none;
   }
 }
+
+/* Final authenticated Home/Dashboard phone layout -------------------------
+   Keep every card on one readable track and prevent the desktop character
+   composition from squeezing stats into the identity column. */
+@media (max-width: 760px) {
+  #root .dashboard-world .dashboard-page-authenticated {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    padding: 18px 12px calc(92px + env(safe-area-inset-bottom));
+    overflow-x: clip;
+  }
+
+  #root .dashboard-world .dashboard-welcome {
+    display: block;
+    width: 100%;
+  }
+
+  #root .dashboard-world .dashboard-welcome-copy {
+    min-width: 0;
+  }
+
+  #root .dashboard-world .dashboard-welcome-quote {
+    display: none;
+  }
+
+  #root .dashboard-world .dashboard-welcome-meta span {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  #root .dashboard-world .dashboard-reference-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  #root .dashboard-world .dashboard-reference-grid > *,
+  #root .dashboard-world .dashboard-right-rail {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #root .dashboard-world .dashboard-character-summary {
+    min-height: 0;
+    padding: 0 14px 16px;
+  }
+
+  #root .dashboard-world .dashboard-panel-heading {
+    min-height: 42px;
+    padding: 12px 0 8px;
+  }
+
+  #root .dashboard-world .dashboard-panel-heading .text-link {
+    flex: 0 0 auto;
+    font-size: 8px;
+    white-space: nowrap;
+  }
+
+  #root .dashboard-world .dashboard-character-main {
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+  }
+
+  #root .dashboard-world .dashboard-character-portrait {
+    width: 88px;
+    height: 88px;
+    padding: 5px;
+  }
+
+  #root .dashboard-world .dashboard-character-copy {
+    min-width: 0;
+  }
+
+  #root .dashboard-world .dashboard-character-copy h2 {
+    max-width: 100%;
+    font-size: clamp(25px, 8vw, 32px);
+    line-height: 1;
+    overflow-wrap: anywhere;
+  }
+
+  #root .dashboard-world .dashboard-character-title,
+  #root .dashboard-world .dashboard-character-badge {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  #root .dashboard-world .dashboard-attribute-summary {
+    grid-column: 1 / -1;
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 9px;
+  }
+
+  #root .dashboard-world .dashboard-attribute-cell {
+    min-width: 0;
+    min-height: 52px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 5px;
+    padding: 7px 6px;
+  }
+
+  #root .dashboard-world .dashboard-attribute-cell small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #root .dashboard-world .dashboard-character-progress {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    margin-top: 13px;
+  }
+
+  #root .dashboard-world .dashboard-character-progress blockquote {
+    display: none;
+  }
+
+  #root .dashboard-world .today-quest-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    padding-inline: 12px;
+  }
+
+  #root .dashboard-world .today-quest-summary > span:nth-child(2) {
+    border-right: 0;
+  }
+
+  #root .dashboard-world .today-quest-summary > span:nth-child(-n + 2) {
+    border-bottom: 1px solid rgba(158, 175, 174, 0.12);
+  }
+
+  #root .dashboard-world .today-quest {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 9px;
+    padding: 12px;
+  }
+
+  #root .dashboard-world .today-quest-copy > a {
+    white-space: normal;
+    line-height: 1.45;
+  }
+
+  #root .dashboard-world .today-complete-button {
+    grid-column: 2;
+    width: 100%;
+    max-width: 190px;
+    min-height: 36px;
+    justify-content: center;
+  }
+
+  #root .dashboard-world .dashboard-right-rail {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  #root .dashboard-world .dashboard-atlas {
+    min-height: 238px;
+  }
+
+  #root .dashboard-world .dashboard-atlas-map {
+    height: 132px;
+    margin-inline: 10px;
+  }
+
+  #root .dashboard-world .dashboard-streak {
+    min-height: 94px;
+  }
+}
+
+@media (max-width: 430px) {
+  #root .dashboard-world .dashboard-page-authenticated {
+    padding-inline: 10px;
+  }
+
+  #root .dashboard-world .dashboard-character-summary {
+    padding-inline: 11px;
+  }
+
+  #root .dashboard-world .dashboard-character-main {
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  #root .dashboard-world .dashboard-character-portrait {
+    width: 72px;
+    height: 72px;
+  }
+
+  #root .dashboard-world .dashboard-character-level {
+    right: -4px;
+    bottom: 7px;
+    min-width: 38px;
+    height: 25px;
+    font-size: 8px;
+  }
+
+  #root .dashboard-world .dashboard-character-copy h2 {
+    font-size: clamp(23px, 8vw, 28px);
+  }
+
+  #root .dashboard-world .dashboard-attribute-summary {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  #root .dashboard-world .dashboard-attribute-cell {
+    min-height: 42px;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    padding: 7px 9px;
+  }
+
+  #root .dashboard-world .dashboard-attribute-cell span {
+    display: contents;
+  }
+
+  #root .dashboard-world .dashboard-attribute-cell strong {
+    margin: 0;
+    justify-self: end;
+  }
+}

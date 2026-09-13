@@ -6,6 +6,7 @@ import { createApp } from '../src/app.js'
 import { parseEnv } from '../src/config/env.js'
 import { testDatabase } from './helpers/database.js'
 import { createTestMailer } from './helpers/email.js'
+import { verifiedCompletionBody } from './helpers/verification.js'
 
 const origin = 'http://localhost:5173'
 const config = parseEnv({ NODE_ENV: 'test', JWT_SECRET: 'journey-test-secret-'.repeat(5) })
@@ -74,7 +75,12 @@ test('complete production-like journey persists progression, economy and cosmeti
   ]) {
     const quest = await createQuest(hero, title, attribute)
     quests.push(quest)
-    await mutate(hero, 'post', `/quests/${quest.id}/complete`, { revision: quest.revision }).expect(201)
+    await mutate(
+      hero,
+      'post',
+      `/quests/${quest.id}/complete`,
+      verifiedCompletionBody(config, hero.user.id, quest),
+    ).expect(201)
   }
 
   const beforePurchase = (await hero.agent.get('/api/v1/dashboard').expect(200)).body.data
@@ -131,16 +137,22 @@ test('complete production-like journey persists progression, economy and cosmeti
   assert.equal(me.equipment[0].inventoryItem.shopItem.id, title.id)
 
   // A lost response can be retried after a fresh login without another reward.
-  const replay = await mutate(returning, 'post', `/quests/${quests[0].id}/complete`, {
-    revision: quests[0].revision,
-  }).expect(200)
+  const replay = await mutate(
+    returning,
+    'post',
+    `/quests/${quests[0].id}/complete`,
+    verifiedCompletionBody(config, me.id, quests[0]),
+  ).expect(200)
   assert.equal(replay.body.data.newlyCompleted, false)
   assert.equal((await returning.agent.get('/api/v1/wallet').expect(200)).body.data.transactions.length, 4)
 
   // A second account receives a 404 rather than learning whether another user's quest exists.
   const stranger = await signup('journey-stranger')
   await stranger.agent.get(`/api/v1/quests/${quests[0].id}`).expect(404)
-  await mutate(stranger, 'post', `/quests/${quests[0].id}/complete`, {
-    revision: quests[0].revision,
-  }).expect(404)
+  await mutate(
+    stranger,
+    'post',
+    `/quests/${quests[0].id}/complete`,
+    verifiedCompletionBody(config, stranger.user.id, quests[0]),
+  ).expect(404)
 })

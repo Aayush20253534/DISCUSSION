@@ -53,7 +53,7 @@ export const questCompleteSchema = z
       .int()
       .min(1)
       .max(MAX_STORED_POINTS - 1),
-    verificationToken: z.string().min(20).max(4096).optional(),
+    verificationToken: z.string().min(20).max(4096),
   })
   .strict()
 const integerParam = (fallback, max) =>

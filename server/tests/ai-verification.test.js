@@ -132,7 +132,7 @@ test('verified evidence creates a short-lived completion token and persists an A
   assert.equal(history.body.data.completions[0].aiVerified, true)
 })
 
-test('unclear or rejected evidence cannot mint a verified completion token', async () => {
+test('unclear or rejected evidence cannot mint a token or complete the quest', async () => {
   verificationResult = {
     ...verificationResult,
     verdict: 'UNCLEAR',
@@ -149,10 +149,11 @@ test('unclear or rejected evidence cannot mint a verified completion token', asy
   }).expect(200)
   assert.equal(checked.body.data.verificationToken, null)
 
-  const completed = await mutate(client, 'post', `/quests/${item.id}/complete`, {
+  await mutate(client, 'post', `/quests/${item.id}/complete`, {
     revision: item.revision,
-  }).expect(201)
-  assert.equal(completed.body.data.completion.aiVerified, false)
+  }).expect(422)
+  const stored = await database.prisma.quest.findUnique({ where: { id: item.id } })
+  assert.equal(stored.status, 'ACTIVE')
 })
 
 test('verification enforces ownership, current revision, image contract and CSRF', async () => {

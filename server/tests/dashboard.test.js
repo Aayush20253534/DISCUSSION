@@ -6,6 +6,7 @@ import { createApp } from '../src/app.js'
 import { parseEnv } from '../src/config/env.js'
 import { testDatabase } from './helpers/database.js'
 import { createTestMailer } from './helpers/email.js'
+import { verifiedCompletionBody } from './helpers/verification.js'
 
 const origin = 'http://localhost:5173'
 const config = parseEnv({ NODE_ENV: 'test', JWT_SECRET: 'dashboard-test-secret-'.repeat(5) })
@@ -63,9 +64,12 @@ async function createQuest(client, title, fields = {}) {
 
 async function complete(client, quest) {
   return (
-    await mutate(client, 'post', `/quests/${quest.id}/complete`, {
-      revision: quest.revision,
-    }).expect(201)
+    await mutate(
+      client,
+      'post',
+      `/quests/${quest.id}/complete`,
+      verifiedCompletionBody(config, client.user.id, quest),
+    ).expect(201)
   ).body.data
 }
 

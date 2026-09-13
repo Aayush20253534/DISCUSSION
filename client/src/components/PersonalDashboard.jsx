@@ -60,18 +60,18 @@ function CharacterSummary({ data, user, equippedFrame, equippedTitle, equippedBa
             {equippedTitle?.name || 'Seeker of small wonders'}
           </span>
           {equippedBadge && <span className="dashboard-character-badge">✦ {equippedBadge.name}</span>}
+        </div>
 
-          <div className="dashboard-attribute-summary" aria-label="Character attribute levels">
-            {quickAttributes.map(({ key, label, attribute }) => (
-              <div className={`dashboard-attribute-cell ${key.toLowerCase()}`} key={key}>
-                <AttributeIcon attribute={key} size={17} />
-                <span>
-                  <small>{label}</small>
-                  <strong>{attribute?.progression.level ?? 0}</strong>
-                </span>
-              </div>
-            ))}
-          </div>
+        <div className="dashboard-attribute-summary" aria-label="Character attribute levels">
+          {quickAttributes.map(({ key, label, attribute }) => (
+            <div className={`dashboard-attribute-cell ${key.toLowerCase()}`} key={key}>
+              <AttributeIcon attribute={key} size={17} />
+              <span>
+                <small>{label}</small>
+                <strong>{attribute?.progression.level ?? 0}</strong>
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 

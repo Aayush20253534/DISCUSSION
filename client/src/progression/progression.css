@@ -2193,3 +2193,287 @@
     height: 48px;
   }
 }
+
+/* Verified-completion gate -------------------------------------------------
+   Completion is now a deliberate proof flow instead of a generic confirm box. */
+.completion-dialog:not(.completion-earned) {
+  width: min(780px, calc(100vw - 32px));
+  max-width: 780px;
+  max-height: min(90dvh, 840px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 30px;
+  border: 1px solid rgba(219, 183, 105, 0.38);
+  background:
+    radial-gradient(circle at 84% 7%, rgba(213, 175, 104, 0.08), transparent 28%),
+    linear-gradient(150deg, rgba(5, 17, 22, 0.995), rgba(8, 25, 29, 0.985));
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.64), inset 0 1px rgba(255,255,255,0.025);
+}
+
+.completion-proof-heading {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding-right: 34px;
+}
+
+.completion-proof-heading .completion-check {
+  width: 50px;
+  height: 50px;
+  margin: 0;
+  border-color: rgba(214, 180, 105, 0.42);
+  background: radial-gradient(circle, rgba(213, 175, 104, 0.12), rgba(15, 35, 31, 0.72));
+  color: #dfbd72;
+}
+
+.completion-proof-heading .eyebrow {
+  display: block;
+  margin-bottom: 7px;
+  color: #c9aa66;
+  font-size: 8px;
+  letter-spacing: 2.4px;
+}
+
+.completion-proof-heading .dialog-title {
+  margin: 0;
+  color: #f0e8d8;
+  font: 500 clamp(29px, 3vw, 38px)/1.02 var(--font-display);
+}
+
+.completion-proof-heading .dialog-description {
+  max-width: 590px;
+  margin: 9px 0 0;
+  color: #a9bbb6;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.completion-proof-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 20px 0 16px;
+}
+
+.completion-proof-steps span {
+  min-width: 0;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border: 1px solid rgba(129, 153, 145, 0.18);
+  border-radius: 7px;
+  background: rgba(7, 23, 27, 0.7);
+  color: #7f938e;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.completion-proof-steps span.done {
+  border-color: rgba(83, 164, 119, 0.34);
+  color: #a7d2b7;
+  background: rgba(25, 74, 49, 0.18);
+}
+
+.completion-proof-steps span.current {
+  border-color: rgba(213, 175, 104, 0.42);
+  color: #e1c27e;
+  background: rgba(88, 69, 31, 0.17);
+}
+
+.completion-proof-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(320px, 1.08fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.completion-proof-summary,
+.completion-proof-verification {
+  min-width: 0;
+  border: 1px solid rgba(126, 153, 143, 0.18);
+  border-radius: 9px;
+  background: rgba(7, 22, 26, 0.68);
+}
+
+.completion-proof-summary {
+  padding: 15px;
+}
+
+.completion-proof-verification {
+  padding: 14px;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.completion-proof-verification.verified {
+  border-color: rgba(83, 164, 119, 0.42);
+  background: linear-gradient(180deg, rgba(24, 72, 48, 0.19), rgba(7, 22, 26, 0.72));
+}
+
+.completion-section-label {
+  color: #899d98;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+}
+
+.completion-proof-summary .completion-intention {
+  margin: 9px 0 0;
+  padding: 15px;
+  border-color: rgba(111, 145, 128, 0.25);
+  background: rgba(10, 31, 31, 0.68);
+}
+
+.completion-proof-summary .completion-intention h2 {
+  margin: 10px 0 8px;
+  font-size: 23px;
+}
+
+.completion-proof-summary .completion-intention > p {
+  max-height: 92px;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.completion-proof-summary .completion-intention .reward-preview {
+  margin-top: 13px;
+  padding-top: 12px;
+}
+
+.completion-proof-summary > .completion-note {
+  margin: 12px 2px 0;
+  color: #82958f;
+  font-size: 8px;
+  line-height: 1.55;
+}
+
+.completion-verification-gate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(126, 153, 143, 0.16);
+}
+
+.completion-verification-gate > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.completion-verification-gate strong {
+  color: #e6e4d9;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.completion-gate-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 7px;
+  border: 1px solid rgba(213, 175, 104, 0.34);
+  border-radius: 999px;
+  color: #cfb16f;
+  background: rgba(83, 64, 27, 0.2);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+
+.completion-gate-badge.verified {
+  border-color: rgba(83, 164, 119, 0.4);
+  color: #a6d2b6;
+  background: rgba(25, 91, 59, 0.16);
+}
+
+.completion-proof-verification .quest-verification {
+  margin: 0;
+  padding: 12px;
+  border-color: rgba(126, 153, 143, 0.2);
+  background: rgba(4, 19, 23, 0.58);
+}
+
+.quest-verification-optional.required {
+  display: inline-flex;
+  border-color: rgba(213, 175, 104, 0.42);
+  color: #e0bd72;
+  background: rgba(94, 70, 28, 0.22);
+}
+
+.completion-dialog:not(.completion-earned) > .form-message {
+  margin: 13px 0 0;
+}
+
+.completion-dialog:not(.completion-earned) > .completion-actions {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(128, 154, 145, 0.17);
+}
+
+.completion-dialog:not(.completion-earned) > .completion-actions .button-gold:disabled {
+  cursor: not-allowed;
+  filter: saturate(0.45);
+  opacity: 0.5;
+}
+
+@media (max-width: 720px) {
+  .completion-dialog:not(.completion-earned) {
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+    padding: 22px 16px 18px;
+  }
+
+  .completion-proof-heading {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 10px;
+    padding-right: 32px;
+  }
+
+  .completion-proof-heading .completion-check {
+    width: 40px;
+    height: 40px;
+  }
+
+  .completion-proof-heading .dialog-title {
+    font-size: clamp(27px, 8.6vw, 34px);
+  }
+
+  .completion-proof-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .completion-proof-steps span {
+    justify-content: flex-start;
+  }
+
+  .completion-proof-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .completion-proof-summary {
+    order: 1;
+  }
+
+  .completion-proof-verification {
+    order: 2;
+  }
+
+  .completion-dialog:not(.completion-earned) > .completion-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .completion-dialog:not(.completion-earned) > .completion-actions .button {
+    width: 100%;
+    justify-content: center;
+  }
+}

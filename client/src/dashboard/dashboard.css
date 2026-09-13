@@ -2232,3 +2232,122 @@
   from { opacity: 0; transform: translateY(13px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Dashboard character-card stability pass ----------------------------------
+   Keep the portrait, identity, stats and XP meter in distinct layout tracks so
+   names, attribute cards and the quote cannot collide at laptop widths. */
+.dashboard-character-main {
+  grid-template-columns: clamp(118px, 9vw, 146px) minmax(0, 1fr);
+  align-items: center;
+}
+
+.dashboard-character-portrait {
+  grid-row: 1 / 3;
+}
+
+.dashboard-character-copy {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dashboard-character-copy h2,
+.dashboard-character-title,
+.dashboard-character-badge {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-character-title {
+  align-items: flex-start;
+  line-height: 1.45;
+}
+
+.dashboard-attribute-summary {
+  grid-column: 2;
+  width: 100%;
+  min-width: 0;
+  margin-top: 2px;
+}
+
+.dashboard-attribute-cell {
+  overflow: hidden;
+}
+
+.dashboard-attribute-cell span,
+.dashboard-attribute-cell small {
+  min-width: 0;
+}
+
+.dashboard-attribute-cell small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-character-progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(96px, 118px);
+  align-items: end;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.dashboard-character-progress .growth-meter {
+  min-width: 0;
+}
+
+.dashboard-character-progress blockquote {
+  position: static;
+  max-width: 118px;
+  align-self: end;
+  padding-bottom: 1px;
+  color: rgba(239, 230, 213, 0.42);
+  line-height: 1.35;
+}
+
+@media (max-width: 1180px) {
+  .dashboard-character-progress {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-character-progress blockquote {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-character-main {
+    grid-template-columns: 96px minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .dashboard-character-portrait {
+    grid-row: auto;
+  }
+
+  .dashboard-attribute-summary {
+    grid-column: 1 / -1;
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 470px) {
+  .dashboard-character-main {
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 11px;
+  }
+
+  .dashboard-character-portrait {
+    width: 80px;
+    height: 80px;
+  }
+
+  .dashboard-attribute-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .dashboard-attribute-cell {
+    min-height: 50px;
+    padding: 7px 5px;
+  }
+}

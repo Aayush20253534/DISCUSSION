@@ -64,7 +64,7 @@ function verdictCopy(result) {
   return 'Evidence is unclear'
 }
 
-export default function QuestVerification({ quest, disabled = false, onVerified }) {
+export default function QuestVerification({ quest, disabled = false, required = false, onVerified }) {
   const status = useQuestVerificationStatus()
   const inputRef = useRef(null)
   const previewRef = useRef('')
@@ -144,8 +144,12 @@ export default function QuestVerification({ quest, disabled = false, onVerified 
         <div className="quest-verification-heading">
           <span className="quest-verification-icon"><Camera size={17} /></span>
           <div>
-            <strong>AI evidence check</strong>
-            <p>Add `GROQ_API_KEY` or `GEMINI_API_KEY` on the server to enable optional visual proof.</p>
+            <strong>{required ? 'Evidence verification required' : 'AI evidence check'}</strong>
+            <p>
+              {required
+                ? 'Quest completion is locked until an AI verifier is configured and the evidence passes.'
+                : 'Add `GROQ_API_KEY` or `GEMINI_API_KEY` on the server to enable visual proof.'}
+            </p>
           </div>
         </div>
       </section>
@@ -156,10 +160,16 @@ export default function QuestVerification({ quest, disabled = false, onVerified 
       <div className="quest-verification-heading">
         <span className="quest-verification-icon"><Sparkles size={17} /></span>
         <div>
-          <strong>Verify with AI</strong>
-          <p>Optional. Add a photo or screenshot that shows what you completed.</p>
+          <strong>{required ? 'Required evidence verification' : 'Verify with AI'}</strong>
+          <p>
+            {required
+              ? 'Add a photo or screenshot that clearly proves the task was completed.'
+              : 'Add a photo or screenshot that shows what you completed.'}
+          </p>
         </div>
-        <span className="quest-verification-optional">OPTIONAL</span>
+        <span className={`quest-verification-optional ${required ? 'required' : ''}`}>
+          {required ? 'REQUIRED' : 'OPTIONAL'}
+        </span>
       </div>
 
       {!file ? (
@@ -240,7 +250,8 @@ export default function QuestVerification({ quest, disabled = false, onVerified 
 
       {error && <p className="form-message" role="alert">{error}</p>}
       <p className="quest-verification-privacy">
-        AtlasBorn does not store the evidence image. It is resized in your browser and sent to Gemini only for this check.
+        AtlasBorn does not store the evidence image. It is resized in your browser and sent only to
+        the configured AI verifier for this check.
       </p>
     </section>
   )

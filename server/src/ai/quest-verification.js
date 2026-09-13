@@ -56,7 +56,7 @@ function systemPrompt() {
 
 function userPrompt(quest) {
   return JSON.stringify({
-    task: 'Evaluate the attached image as optional evidence for this quest.',
+    task: 'Evaluate the attached image as required evidence for this quest completion.',
     quest: {
       title: quest.title,
       description: quest.description,
@@ -481,7 +481,12 @@ export function createQuestVerificationToken(config, { userId, questId, revision
 }
 
 export function verifyQuestVerificationToken(config, token, expected) {
-  if (!token) return false
+  if (!token)
+    throw new AppError(
+      409,
+      'QUEST_VERIFICATION_REQUIRED',
+      'Verified evidence is required before this quest can be completed.',
+    )
   let payload
   try {
     payload = jwt.verify(token, config.JWT_SECRET, {

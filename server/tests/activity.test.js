@@ -8,6 +8,7 @@ import { parseEnv } from '../src/config/env.js'
 import { completeQuest } from '../src/progression/complete.js'
 import { testDatabase } from './helpers/database.js'
 import { createTestMailer } from './helpers/email.js'
+import { verifiedCompletionBody } from './helpers/verification.js'
 
 const origin = 'http://localhost:5173'
 const config = parseEnv({ NODE_ENV: 'test', JWT_SECRET: 'activity-test-secret-'.repeat(5) })
@@ -293,9 +294,10 @@ test('live completion and concurrent retries refresh activity without duplicate 
       attribute: 'VITALITY',
     }).expect(201)
   ).body.data.quest
+  const completionBody = verifiedCompletionBody(config, client.user.id, quest, 1)
   const results = await Promise.all([
-    mutate(client, 'post', `/quests/${quest.id}/complete`, { revision: 1 }),
-    mutate(client, 'post', `/quests/${quest.id}/complete`, { revision: 1 }),
+    mutate(client, 'post', `/quests/${quest.id}/complete`, completionBody),
+    mutate(client, 'post', `/quests/${quest.id}/complete`, completionBody),
   ])
   assert.deepEqual(results.map((result) => result.status).sort(), [200, 201])
   const data = await activity(client)

@@ -46,15 +46,20 @@ test('attributes level independently with increasing costs and rewards have a fi
   assert.ok(Object.isFrozen(QUEST_REWARDS.HARD))
 })
 
-test('completion accepts only a revision; history pagination and filters are bounded', () => {
-  assert.equal(questCompleteSchema.safeParse({ revision: 1 }).success, true)
+test('completion requires a verification token and history pagination and filters are bounded', () => {
+  assert.equal(
+    questCompleteSchema.safeParse({ revision: 1, verificationToken: 'v'.repeat(32) }).success,
+    true,
+  )
   for (const value of [
     {},
-    { revision: 0 },
-    { revision: '1' },
-    { revision: 1, xp: 900 },
-    { revision: 1, completedAt: '2026-01-01' },
-    { revision: 1, userId: 'someone' },
+    { revision: 1 },
+    { revision: 0, verificationToken: 'v'.repeat(32) },
+    { revision: '1', verificationToken: 'v'.repeat(32) },
+    { revision: 1, verificationToken: 'short' },
+    { revision: 1, verificationToken: 'v'.repeat(32), xp: 900 },
+    { revision: 1, verificationToken: 'v'.repeat(32), completedAt: '2026-01-01' },
+    { revision: 1, verificationToken: 'v'.repeat(32), userId: 'someone' },
   ])
     assert.equal(questCompleteSchema.safeParse(value).success, false)
   assert.deepEqual(completionHistorySchema.parse({}), { attribute: 'ALL', page: 1, limit: 8 })

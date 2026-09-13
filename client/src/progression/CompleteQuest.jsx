@@ -40,6 +40,9 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
   const receipt = result?.completion
   const daily = current.recurrence === 'DAILY'
   const levelUp = receipt && receipt.levelAfter > receipt.levelBefore
+  const verificationPassed = Boolean(
+    verificationToken && verificationResult?.verdict === 'VERIFIED',
+  )
   const attribute = ATTRIBUTES.find(
     (item) => item.key === (receipt?.attribute || current.attribute),
   )
@@ -49,6 +52,13 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
   }, [])
   async function submit() {
     if (busy || conflict || missing || current.status === 'ARCHIVED' || !current.eligibleToday) return
+    if (!verificationPassed) {
+      setMessage('Verified evidence is required before this quest can be recorded.')
+      contentRef.current
+        ?.querySelector('.quest-verification')
+        ?.scrollIntoView({ block: 'center', behavior: moving ? 'smooth' : 'auto' })
+      return
+    }
     setMessage('')
     try {
       const data = await mutation.mutateAsync({
@@ -205,7 +215,7 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
               {receipt.aiVerified && (
                 <div className="completion-ai-verified">
                   <ShieldCheck size={16} />
-                  Evidence verified by Gemini
+                  Evidence verified by AI
                 </div>
               )}
               <div className="earned-rewards" aria-label="Recorded rewards">
@@ -247,33 +257,72 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
             </>
           ) : (
             <>
-              <span className="completion-check" aria-hidden="true">
-                <Check size={25} />
-              </span>
-              <span className="eyebrow">MAKE THIS MOMENT COUNT</span>
-              <Dialog.Title className="dialog-title">Ready to call it done?</Dialog.Title>
-              <Dialog.Description className="dialog-description">
-                {daily
-                  ? 'Record today’s real-world effort. This daily quest can award rewards once for the current scheduled day.'
-                  : 'Mark this quest complete once you’ve done the real-world task. Its details will become a lasting record.'}
-              </Dialog.Description>
-              <div className="completion-intention">
-                <AttributeTag attribute={current.attribute} />
-                <h2>{current.title}</h2>
-                {current.description && <p>{current.description}</p>}
-                <RewardPreview difficulty={current.difficulty} attribute={current.attribute} />
+              <div className="completion-proof-heading">
+                <span className="completion-check" aria-hidden="true">
+                  <ShieldCheck size={25} />
+                </span>
+                <div>
+                  <span className="eyebrow">PROOF BEFORE PROGRESS</span>
+                  <Dialog.Title className="dialog-title">Verify the effort. Then claim the reward.</Dialog.Title>
+                  <Dialog.Description className="dialog-description">
+                    Add visual evidence of the real-world task and pass the AI check. Completion is
+                    locked until the evidence is verified.
+                  </Dialog.Description>
+                </div>
               </div>
-              <QuestVerification
-                key={`${current.id}:${current.revision}:${verificationSession}`}
-                quest={current}
-                disabled={busy || conflict || missing || current.status === 'ARCHIVED' || !current.eligibleToday}
-                onVerified={handleVerification}
-              />
-              <p className="completion-note">
-                {daily
-                  ? `Rewards are credited once per scheduled day in ${current.scheduleTimezone?.replaceAll('_', ' ') || 'the quest schedule timezone'}. Changing account timezone later cannot reopen the same scheduled day.`
-                  : 'Rewards are credited once. You can remove the journal entry later; the completion and earned progress will stay in your history.'}
-              </p>
+
+              <div className="completion-proof-steps" aria-label="Quest completion steps">
+                <span className="done"><Check size={14} /> Quest chosen</span>
+                <span className={verificationPassed ? 'done' : 'current'}>
+                  <ShieldCheck size={14} /> Evidence verified
+                </span>
+                <span className={verificationPassed ? 'current' : ''}>
+                  <Sparkles size={14} /> Record rewards
+                </span>
+              </div>
+
+              <div className="completion-proof-layout">
+                <div className="completion-proof-summary">
+                  <span className="completion-section-label">QUEST TO PROVE</span>
+                  <div className="completion-intention">
+                    <AttributeTag attribute={current.attribute} />
+                    <h2>{current.title}</h2>
+                    {current.description && <p>{current.description}</p>}
+                    <RewardPreview difficulty={current.difficulty} attribute={current.attribute} />
+                  </div>
+                  <p className="completion-note">
+                    {daily
+                      ? `Verified rewards are credited once per scheduled day in ${current.scheduleTimezone?.replaceAll('_', ' ') || 'the quest schedule timezone'}.`
+                      : 'Verified rewards are credited once. Your completion remains in history even if the journal entry is later removed.'}
+                  </p>
+                </div>
+
+                <div className={`completion-proof-verification ${verificationPassed ? 'verified' : ''}`}>
+                  <div className="completion-verification-gate">
+                    <div>
+                      <span className="completion-section-label">REQUIRED EVIDENCE</span>
+                      <strong>{verificationPassed ? 'Proof accepted' : 'Verification required'}</strong>
+                    </div>
+                    <span className={`completion-gate-badge ${verificationPassed ? 'verified' : ''}`}>
+                      <ShieldCheck size={14} />
+                      {verificationPassed ? 'VERIFIED' : 'LOCKED'}
+                    </span>
+                  </div>
+                  <QuestVerification
+                    key={`${current.id}:${current.revision}:${verificationSession}`}
+                    quest={current}
+                    required
+                    disabled={
+                      busy ||
+                      conflict ||
+                      missing ||
+                      current.status === 'ARCHIVED' ||
+                      !current.eligibleToday
+                    }
+                    onVerified={handleVerification}
+                  />
+                </div>
+              </div>
               {message && (
                 <p className="form-message" role="alert">
                   {message}
@@ -303,7 +352,8 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
                     conflict ||
                     missing ||
                     current.status === 'ARCHIVED' ||
-                    !current.eligibleToday
+                    !current.eligibleToday ||
+                    !verificationPassed
                   }
                   onClick={submit}
                 >
@@ -319,13 +369,11 @@ export default function CompleteQuest({ quest, onClose, returnFocusRef, closeLab
                         ? 'Retry completion'
                         : current.status === 'COMPLETED' || current.completedToday
                           ? 'Already recorded'
-                          : verificationResult?.verdict === 'VERIFIED'
+                          : verificationPassed
                             ? daily
                               ? 'Record verified day'
                               : 'Record verified quest'
-                            : daily
-                              ? 'Record today'
-                              : 'Mark complete'}
+                            : 'Verify evidence to continue'}
                     </>
                   )}
                 </button>

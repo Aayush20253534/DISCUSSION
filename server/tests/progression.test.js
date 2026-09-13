@@ -7,6 +7,7 @@ import { createApp } from '../src/app.js'
 import { parseEnv } from '../src/config/env.js'
 import { testDatabase } from './helpers/database.js'
 import { createTestMailer } from './helpers/email.js'
+import { verifiedCompletionBody } from './helpers/verification.js'
 
 const origin = 'http://localhost:5173'
 const config = parseEnv({ NODE_ENV: 'test', JWT_SECRET: 'progression-test-secret-'.repeat(4) })
@@ -55,8 +56,13 @@ async function quest(client, overrides = {}) {
     }).expect(201)
   ).body.data.quest
 }
-const complete = (client, item, body = { revision: item.revision }) =>
-  mutate(client, 'post', `/quests/${item.id}/complete`, body)
+const complete = (client, item, body = { revision: item.revision }) => {
+  const payload =
+    Number.isInteger(body?.revision) && body.revision > 0 && !body.verificationToken
+      ? verifiedCompletionBody(config, client.user.id, item, body.revision, body)
+      : body
+  return mutate(client, 'post', `/quests/${item.id}/complete`, payload)
+}
 const progress = async (client) =>
   (await client.agent.get('/api/v1/progress').expect(200)).body.data
 const history = (client, query = {}) => client.agent.get('/api/v1/progress/history').query(query)

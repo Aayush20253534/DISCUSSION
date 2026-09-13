@@ -3653,3 +3653,76 @@
     transition: none;
   }
 }
+
+/* Quest contract reward panel: explicitly reset the older global
+   .reward-preview card rules so the preview stays compact and legible. */
+.quest-contract-preview .quest-form-rewards {
+  margin-top: 16px;
+  padding: 13px;
+  border: 1px solid rgba(104, 143, 111, 0.34);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(39, 66, 48, 0.72), rgba(23, 49, 40, 0.72));
+}
+
+.quest-contract-preview .quest-form-rewards > span:first-child {
+  margin-bottom: 9px;
+  color: #9fb0aa;
+}
+
+.quest-contract-preview .reward-preview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #dfc894;
+  font-size: 9px;
+}
+
+.quest-contract-preview .reward-preview > span {
+  min-width: 0;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border: 1px solid rgba(136, 166, 146, 0.2);
+  border-radius: 6px;
+  background: rgba(6, 24, 27, 0.4);
+  color: #e7cd91;
+  white-space: nowrap;
+}
+
+.quest-contract-preview .reward-preview > span svg {
+  flex: 0 0 auto;
+}
+
+.quest-contract-preview .reward-preview small {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding-top: 2px;
+  color: #b8c9bd;
+  font-size: 8px;
+  line-height: 1.45;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .quest-contract-preview .quest-form-rewards {
+    padding: 11px;
+  }
+
+  .quest-contract-preview .reward-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .quest-contract-preview .reward-preview small {
+    grid-column: auto;
+  }
+}

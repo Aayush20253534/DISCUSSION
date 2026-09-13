@@ -44,12 +44,15 @@ The submission repository must be public and must contain at least three real ch
 
 ## 3. Deploy the Render Blueprint
 
-Create a Render Blueprint from the repository's root `render.yaml` and select the `main` branch. During first sync, Render prompts for the three variables marked `sync: false`:
+Create a Render Blueprint from the repository's root `render.yaml` and select the `main` branch. During first sync, Render prompts for the variables marked `sync: false`:
 
 ```text
 DATABASE_URL   Neon's pooled URL
 DIRECT_URL     Neon's direct URL
-JWT_SECRET     A private high-entropy secret of at least 64 characters
+JWT_SECRET          A private high-entropy secret of at least 64 characters
+MAILJET_API_KEY      Your Mailjet public API key
+MAILJET_SECRET_KEY   Your Mailjet private API key
+MAILJET_FROM_EMAIL   A verified Mailjet sender address
 ```
 
 Generate a fresh production JWT secret locally if you do not want to reuse the development secret:

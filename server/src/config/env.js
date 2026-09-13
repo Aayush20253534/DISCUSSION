@@ -72,6 +72,24 @@ const schema = z
     ),
     ACCESS_TOKEN_MINUTES: z.coerce.number().int().min(1).max(30).default(15),
     SESSION_DAYS: z.coerce.number().int().min(1).max(30).default(7),
+    EMAIL_OTP_MINUTES: z.coerce.number().int().min(3).max(30).default(10),
+    EMAIL_OTP_RESEND_SECONDS: z.coerce.number().int().min(15).max(300).default(60),
+    MAILJET_API_KEY: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().min(1).optional(),
+    ),
+    MAILJET_SECRET_KEY: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().min(1).optional(),
+    ),
+    MAILJET_FROM_EMAIL: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().email().optional(),
+    ),
+    MAILJET_FROM_NAME: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().trim().min(1).max(80).optional(),
+    ),
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
   })
   .superRefine((value, context) => {
@@ -125,6 +143,9 @@ const schema = z
 
 function withPlatformDefaults(source) {
   const normalized = { ...source }
+  // Also accept Mailjet's conventional variable names when a host provides them directly.
+  normalized.MAILJET_API_KEY ||= normalized.MJ_APIKEY_PUBLIC
+  normalized.MAILJET_SECRET_KEY ||= normalized.MJ_APIKEY_PRIVATE
   if (normalized.RENDER === 'true' && normalized.RENDER_EXTERNAL_URL) {
     normalized.CLIENT_ORIGIN ||= normalized.RENDER_EXTERNAL_URL
     normalized.API_ORIGIN ||= normalized.RENDER_EXTERNAL_URL

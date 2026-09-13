@@ -8,6 +8,7 @@ import { createApp } from '../src/app.js'
 import { parseEnv } from '../src/config/env.js'
 import { hashToken, signAccess, verifyAccess } from '../src/auth/security.js'
 import { testDatabase } from './helpers/database.js'
+import { completeEmailVerification, createTestMailer } from './helpers/email.js'
 
 const secret = 'test-only-not-for-deployment-'.repeat(4)
 const origin = 'http://localhost:5173'
@@ -19,7 +20,7 @@ const input = {
 }
 const profile = { displayName: 'Satya the Scholar', avatarKey: 'scholar', timezone: 'Asia/Kolkata' }
 const config = parseEnv({ NODE_ENV: 'test', JWT_SECRET: secret })
-let database, app
+let database, app, mailer
 before(async () => {
   database = await testDatabase()
 })
@@ -27,8 +28,10 @@ after(async () => {
   await database?.close()
 })
 beforeEach(async () => {
+  await database.prisma.emailVerification.deleteMany()
   await database.prisma.user.deleteMany()
-  app = createApp({ config, database, logger: () => {} })
+  mailer = createTestMailer()
+  app = createApp({ config, database, logger: () => {}, mailer })
 })
 function cookie(response, name) {
   const entry = response.headers['set-cookie']?.find((value) => value.startsWith(`${name}=`))
@@ -50,11 +53,12 @@ function mutate(client, method, path, body = {}) {
 }
 async function signedUp(data = input) {
   const client = await browser()
-  const response = await mutate(client, 'post', '/auth/signup', data).expect(201)
+  const started = await mutate(client, 'post', '/auth/signup', data).expect(202)
+  const response = await completeEmailVerification(client, mutate, started, mailer)
   return { ...client, response, user: response.body.data.user }
 }
 
-test('signup normalizes email, stores Argon2id and a refresh hash, and returns only public fields', async () => {
+test('verified signup normalizes email, stores Argon2id and a refresh hash, and returns only public fields', async () => {
   const client = await signedUp({ ...input, email: ' HERO@EXAMPLE.TEST ' })
   assert.equal(client.user.email, input.email)
   assert.equal(client.user.character, null)
@@ -85,6 +89,57 @@ test('signup normalizes email, stores Argon2id and a refresh hash, and returns o
   assert.equal(me.body.data.user.id, client.user.id)
   await mutate(client, 'post', '/auth/signup', input).expect(409)
   assert.equal(await database.prisma.user.count(), 1)
+})
+
+test('signup stays pending until the emailed OTP is verified and supports controlled resend', async () => {
+  const client = await browser()
+  const started = await mutate(client, 'post', '/auth/signup', {
+    ...input,
+    email: ' OTP-HERO@EXAMPLE.TEST ',
+  }).expect(202)
+  const verification = started.body.data.verification
+  assert.equal(verification.email, 'otp-hero@example.test')
+  assert.equal(await database.prisma.user.count(), 0)
+  assert.equal(await database.prisma.session.count(), 0)
+
+  const pending = await database.prisma.emailVerification.findUnique({
+    where: { id: verification.id },
+  })
+  assert.ok(pending)
+  assert.notEqual(pending.otpHash, mailer.codeFor(verification.email))
+  assert.match(pending.otpHash, /^[0-9a-f]{64}$/)
+
+  const incorrect = await mutate(client, 'post', '/auth/verify-email', {
+    verificationId: verification.id,
+    otp: '000000',
+  }).expect(422)
+  assert.equal(incorrect.body.error.code, 'INVALID_OTP')
+  assert.equal(
+    (await database.prisma.emailVerification.findUnique({ where: { id: verification.id } })).attempts,
+    1,
+  )
+
+  await database.prisma.emailVerification.update({
+    where: { id: verification.id },
+    data: { lastSentAt: new Date(Date.now() - (config.EMAIL_OTP_RESEND_SECONDS + 1) * 1000) },
+  })
+  const resent = await mutate(client, 'post', '/auth/resend-verification', {
+    verificationId: verification.id,
+  }).expect(200)
+  assert.equal(resent.body.data.verification.id, verification.id)
+  assert.equal(
+    (await database.prisma.emailVerification.findUnique({ where: { id: verification.id } })).attempts,
+    0,
+  )
+
+  const verified = await mutate(client, 'post', '/auth/verify-email', {
+    verificationId: verification.id,
+    otp: mailer.codeFor(verification.email),
+  }).expect(201)
+  assert.equal(verified.body.data.user.email, verification.email)
+  assert.equal(await database.prisma.emailVerification.count(), 0)
+  assert.equal(await database.prisma.user.count(), 1)
+  assert.equal(await database.prisma.session.count(), 1)
 })
 
 test('onboarding is atomic, initializes five attributes, and replay cannot reset progress or another account', async () => {
@@ -306,14 +361,25 @@ test('production uses Secure __Host cookies and no-store responses', async () =>
     DATABASE_URL: 'postgresql://test:test@localhost/test',
     CLIENT_ORIGIN: 'https://life.example',
   })
-  const production = createApp({ config: prod, database, logger: () => {} })
+  const productionMailer = createTestMailer()
+  const production = createApp({ config: prod, database, logger: () => {}, mailer: productionMailer })
   const csrf = await request(production).get(`${prefix}/auth/csrf`).expect(200)
-  const registered = await request(production)
+  const started = await request(production)
     .post(`${prefix}/auth/signup`)
     .set('Origin', 'https://life.example')
     .set('Cookie', cookie(csrf, '__Host-life_csrf'))
     .set('X-CSRF-Token', csrf.body.data.csrfToken)
     .send(input)
+    .expect(202)
+  const registered = await request(production)
+    .post(`${prefix}/auth/verify-email`)
+    .set('Origin', 'https://life.example')
+    .set('Cookie', cookie(csrf, '__Host-life_csrf'))
+    .set('X-CSRF-Token', csrf.body.data.csrfToken)
+    .send({
+      verificationId: started.body.data.verification.id,
+      otp: productionMailer.codeFor(input.email),
+    })
     .expect(201)
   assert.match(registered.headers['cache-control'], /no-store/)
   for (const header of registered.headers['set-cookie']) {
@@ -335,7 +401,8 @@ test('cross-origin production auth uses SameSite=None while preserving signed CS
     API_ORIGIN: 'https://life-api.example',
     PUBLIC_APP_URL: browserOrigin,
   })
-  const production = createApp({ config: prod, database, logger: () => {} })
+  const productionMailer = createTestMailer()
+  const production = createApp({ config: prod, database, logger: () => {}, mailer: productionMailer })
   const csrf = await request(production).get(`${prefix}/auth/csrf`).expect(200)
   const csrfCookie = cookie(csrf, '__Host-life_csrf')
   const csrfHeader = csrf.headers['set-cookie'].find((value) =>
@@ -345,12 +412,23 @@ test('cross-origin production auth uses SameSite=None while preserving signed CS
   assert.match(csrfHeader, /SameSite=None/)
   assert.ok(!csrfHeader.includes('Domain='))
 
-  const registered = await request(production)
+  const crossOriginInput = { ...input, email: 'cross-origin@example.test' }
+  const started = await request(production)
     .post(`${prefix}/auth/signup`)
     .set('Origin', browserOrigin)
     .set('Cookie', csrfCookie)
     .set('X-CSRF-Token', csrf.body.data.csrfToken)
-    .send({ ...input, email: 'cross-origin@example.test' })
+    .send(crossOriginInput)
+    .expect(202)
+  const registered = await request(production)
+    .post(`${prefix}/auth/verify-email`)
+    .set('Origin', browserOrigin)
+    .set('Cookie', csrfCookie)
+    .set('X-CSRF-Token', csrf.body.data.csrfToken)
+    .send({
+      verificationId: started.body.data.verification.id,
+      otp: productionMailer.codeFor(crossOriginInput.email),
+    })
     .expect(201)
 
   for (const header of registered.headers['set-cookie']) {

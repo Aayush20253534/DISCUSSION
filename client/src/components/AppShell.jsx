@@ -2,40 +2,27 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
-  BookOpen,
-  CalendarDays,
   ChevronDown,
-  ChevronRight,
   Compass,
   HelpCircle,
-  LogOut,
   Map,
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
   Settings,
-  ShoppingBag,
-  Sparkles,
-  UserRound,
   X,
 } from 'lucide-react'
 import { useQuestSync } from '../quests/hooks.js'
 import { useEconomySync } from '../economy/hooks.js'
 import { equippedItem } from '../economy/equipment.js'
 import Portrait from './Portrait.jsx'
+import AdventureSidebar, { adventureNavigation } from './AdventureSidebar.jsx'
+import './adventure-shell.css'
 import { useAuth } from '../auth/useAuth.js'
 import { Modal, PageSkeleton } from './ui.jsx'
 import PublicShell from '../public/PublicShell.jsx'
 import { applyPageMeta } from '../lib/meta.js'
 import { useInteractionFeedback } from '../interactions/interaction-context.js'
-
-const navigation = [
-  { to: '/', label: 'Overview', icon: Map },
-  { to: '/quests', label: 'Quest journal', icon: BookOpen },
-  { to: '/activity', label: 'Activity', icon: CalendarDays },
-  { to: '/character', label: 'Character', icon: UserRound },
-  { to: '/marketplace', label: 'Marketplace', icon: ShoppingBag },
-]
 
 export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, setSoundEnabled }) {
   const auth = useAuth()
@@ -44,7 +31,6 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   useQuestSync()
   useEconomySync()
   const equippedFrame = equippedItem(user, 'AVATAR_FRAME')
-  const equippedTitle = equippedItem(user, 'CHARACTER_TITLE')
   const equippedTheme = equippedItem(user, 'THEME')
   const equippedThemeKey = equippedTheme?.assetKey
   const [collapsed, setCollapsed] = useState(false)
@@ -56,6 +42,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const mainRef = useRef(null)
   const guideReturnFocusRef = useRef(null)
   const previousPath = useRef(pathname)
+  const adventureShell = Boolean(user)
   const dashboardWorld = Boolean(user && pathname === '/')
   const questWorld = Boolean(user && pathname === '/quests')
   const immersiveWorld = dashboardWorld || questWorld
@@ -70,7 +57,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
     const publicMarketing = !user && (pathname === '/' || pathname === '/how-it-works')
     if (!publicMarketing) {
       const title =
-        navigation.find(({ to }) => to === pathname)?.label ||
+        adventureNavigation.find(({ to }) => to === pathname)?.label ||
         (pathname === '/inventory'
           ? 'Inventory'
           : pathname === '/settings'
@@ -118,100 +105,19 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   }
 
   return (
-    <div className={`app-shell ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
+    <div className={`app-shell ${adventureShell ? 'adventure-shell' : ''} ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
-      <aside className="sidebar">
-        <NavLink to="/" className="brand" aria-label="Life RPG home" onClick={() => setMobileMenuOpen(false)}>
-          <span className="brand-mark">
-            <Compass size={34} strokeWidth={1.25} />
-          </span>
-          <span className="brand-word">
-            <strong>LIFE RPG</strong>
-            <small>THE ADVENTURER&apos;S ATLAS</small>
-          </span>
-        </NavLink>
-        <div className="sidebar-section-label">YOUR ADVENTURE</div>
-        <nav className="primary-nav" aria-label="Main navigation">
-          {navigation.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              aria-label={label}
-              title={collapsed ? label : undefined}
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Icon size={20} strokeWidth={1.6} />
-              <span>{label}</span>
-            </NavLink>
-          ))}
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="journey-note">
-            <span className="journey-divider" aria-hidden="true">◇</span>
-            <p>
-              Every great story
-              <br />
-              starts with a
-              <br />
-              small step.
-            </p>
-          </div>
-          {user && (
-            <button
-              type="button"
-              className="nav-link sidebar-signout dashboard-sidebar-signout"
-              onClick={signOut}
-              disabled={signingOut}
-              aria-label={signingOut ? 'Signing out' : 'Sign out'}
-              title={collapsed ? (signingOut ? 'Signing out…' : 'Sign out') : undefined}
-            >
-              <LogOut size={18} strokeWidth={1.6} />
-              <span>{signingOut ? 'Signing out…' : 'Sign out'}</span>
-            </button>
-          )}
-          {signOutError && user && (
-            <p className="sidebar-signout-error" role="alert">{signOutError}</p>
-          )}
-          <nav className="sidebar-support-nav" aria-label="Support navigation">
-            <NavLink
-              to="/settings"
-              title={collapsed ? 'Preferences' : undefined}
-              aria-label="Preferences"
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Settings size={19} />
-              <span>Preferences</span>
-            </NavLink>
-            <button
-              className="nav-link"
-              onClick={(event) => { guideReturnFocusRef.current = event.currentTarget; setGuideOpen(true) }}
-              aria-label="Open field guide"
-            >
-              <HelpCircle size={19} />
-              <span>Field guide</span>
-            </button>
-          </nav>
-          <NavLink
-            to="/character"
-            className="sidebar-profile"
-            onClick={() => setMobileMenuOpen(false)}
-            aria-label={user ? 'View your character' : 'Sign in to create a character'}
-          >
-            <Portrait avatarKey={user?.character?.avatarKey} frameKey={equippedFrame?.assetKey} />
-            <span>
-              <strong>{user?.displayName || 'Your story starts here'}</strong>
-              <small>{user ? equippedTitle?.name || 'Your adventurer' : 'Create your character'}</small>
-            </span>
-            <ChevronRight size={15} />
-          </NavLink>
-        </div>
-      </aside>
-      {immersiveWorld && (
+      <AdventureSidebar
+        collapsed={collapsed}
+        user={user}
+        signingOut={signingOut}
+        signOutError={signOutError}
+        onSignOut={signOut}
+        onNavigate={() => setMobileMenuOpen(false)}
+      />
+      {adventureShell && (
         <button
           type="button"
           className="mobile-sidebar-scrim"
@@ -223,7 +129,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
       <div className="workspace">
         <header className="topbar">
           <div className="topbar-left">
-            {immersiveWorld && (
+            {adventureShell && (
               <button
                 className="icon-button mobile-menu-button"
                 aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
@@ -239,7 +145,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
               aria-expanded={!collapsed}
               onClick={() => setCollapsed(!collapsed)}
             >
-              {immersiveWorld ? (
+              {adventureShell ? (
                 <Map className="topbar-map-icon" size={18} strokeWidth={1.5} />
               ) : collapsed ? (
                 <PanelLeftOpen size={19} />
@@ -267,7 +173,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
             >
               <HelpCircle size={19} />
             </button>
-            {user && immersiveWorld && (
+            {user && adventureShell && (
               <>
                 <NavLink to="/settings" className="icon-button topbar-settings" aria-label="Open settings">
                   <Settings size={19} />
@@ -320,7 +226,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
         </footer>
       </div>
       <nav className="mobile-nav" aria-label="Mobile navigation">
-        {[...navigation, { to: '/settings', label: 'Preferences', icon: Settings }].map(
+        {[...adventureNavigation, { to: '/settings', label: 'Preferences', icon: Settings }].map(
           ({ to, label, icon: Icon }) => (
             <NavLink
               key={to}

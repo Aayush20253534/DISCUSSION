@@ -1,9 +1,11 @@
-import { randomUUID } from 'node:crypto'
+import { createHmac, randomInt, randomUUID, timingSafeEqual } from 'node:crypto'
 import { Router } from 'express'
 import { rateLimit } from 'express-rate-limit'
 import {
   ATTRIBUTES,
   signupSchema,
+  emailVerificationSchema,
+  resendVerificationSchema,
   loginSchema,
   onboardingSchema,
   profileSettingsSchema,
@@ -11,6 +13,7 @@ import {
 } from '@life-rpg/shared'
 import { createAuthentication } from './middleware.js'
 import { AppError, validate } from '../lib/errors.js'
+import { createMailjetMailer } from './mailer.js'
 import {
   createSecurity,
   hashPassword,
@@ -99,10 +102,29 @@ function publicSession(session, currentSessionId) {
   }
 }
 
-export function createAccountRouter({ config, database }) {
+export function createAccountRouter({ config, database, mailer }) {
   const router = Router()
   const security = createSecurity(config)
   const db = database.prisma
+  const email = mailer || createMailjetMailer(config)
+  const verificationCodeHash = (address, code) =>
+    createHmac('sha256', config.JWT_SECRET)
+      .update(`email-verification:${address}:${code}`)
+      .digest('hex')
+  const verificationCodeMatches = (expected, address, code) => {
+    const actual = verificationCodeHash(address, code)
+    const left = Buffer.from(expected || '', 'utf8')
+    const right = Buffer.from(actual, 'utf8')
+    return left.length === right.length && timingSafeEqual(left, right)
+  }
+  const newVerificationCode = () => String(randomInt(100000, 1000000))
+  const verificationPayload = (record) => ({
+    id: record.id,
+    email: record.email,
+    expiresInSeconds: config.EMAIL_OTP_MINUTES * 60,
+    resendAfterSeconds: config.EMAIL_OTP_RESEND_SECONDS,
+  })
+
   const { requireConfigured, sessionFromAccess, requireAuth } = createAuthentication({
     config,
     database,
@@ -156,24 +178,55 @@ export function createAccountRouter({ config, database }) {
   })
   router.post('/auth/signup', security.requireCsrf, limiter(5), async (req, res) => {
     const input = validate(signupSchema, req.body)
+    const existing = await db.user.findUnique({ where: { email: input.email }, select: { id: true } })
+    if (existing)
+      throw new AppError(
+        409,
+        'EMAIL_IN_USE',
+        'An account with that email already exists. Try signing in.',
+        { email: 'This email is already registered.' },
+      )
+
     const passwordHash = await hashPassword(input.password)
-    const { session, refresh } = makeSession(randomUUID(), req)
-    let user
+    const otp = newVerificationCode()
+    const now = new Date()
+    const expiresAt = new Date(now.getTime() + config.EMAIL_OTP_MINUTES * 60000)
+    const otpHash = verificationCodeHash(input.email, otp)
+    let verification
     try {
-      const [createdUser] = await db.$transaction([
-        db.user.create({
-          data: {
-            id: session.userId,
-            email: input.email,
-            displayName: input.displayName,
-            passwordHash,
-          },
-          select: publicSelect,
-        }),
-        db.session.create({ data: session }),
-      ])
-      user = createdUser
+      verification = await db.emailVerification.upsert({
+        where: { email: input.email },
+        create: {
+          id: randomUUID(),
+          email: input.email,
+          displayName: input.displayName,
+          passwordHash,
+          otpHash,
+          attempts: 0,
+          expiresAt,
+          lastSentAt: now,
+        },
+        update: {
+          displayName: input.displayName,
+          passwordHash,
+          otpHash,
+          attempts: 0,
+          expiresAt,
+          lastSentAt: now,
+        },
+        select: { id: true, email: true },
+      })
+      await email.sendEmailVerification({
+        email: input.email,
+        displayName: input.displayName,
+        otp,
+        expiresInMinutes: config.EMAIL_OTP_MINUTES,
+      })
     } catch (error) {
+      if (verification)
+        await db.emailVerification
+          .deleteMany({ where: { id: verification.id, otpHash } })
+          .catch(() => {})
       if (error.code === 'P2002')
         throw new AppError(
           409,
@@ -183,8 +236,132 @@ export function createAccountRouter({ config, database }) {
         )
       throw error
     }
+
+    res.status(202).json({ data: { verification: verificationPayload(verification) } })
+  })
+
+  router.post('/auth/verify-email', security.requireCsrf, limiter(12), async (req, res) => {
+    const input = validate(emailVerificationSchema, req.body)
+    const verification = await db.emailVerification.findUnique({
+      where: { id: input.verificationId },
+    })
+    const now = new Date()
+    if (!verification || verification.expiresAt <= now) {
+      if (verification) await db.emailVerification.delete({ where: { id: verification.id } })
+      throw new AppError(410, 'VERIFICATION_EXPIRED', 'That code has expired. Create a new one.', {
+        otp: 'Request a new verification code.',
+      })
+    }
+    if (verification.attempts >= 5) {
+      await db.emailVerification.delete({ where: { id: verification.id } })
+      throw new AppError(429, 'OTP_ATTEMPTS_EXCEEDED', 'Too many incorrect codes. Start signup again.')
+    }
+    if (!verificationCodeMatches(verification.otpHash, verification.email, input.otp)) {
+      const attempts = verification.attempts + 1
+      if (attempts >= 5) {
+        await db.emailVerification.delete({ where: { id: verification.id } })
+        throw new AppError(429, 'OTP_ATTEMPTS_EXCEEDED', 'Too many incorrect codes. Start signup again.')
+      }
+      await db.emailVerification.update({
+        where: { id: verification.id },
+        data: { attempts },
+      })
+      throw new AppError(422, 'INVALID_OTP', 'That verification code is incorrect.', {
+        otp: 'Check the 6-digit code in your email.',
+      })
+    }
+
+    const { session, refresh } = makeSession(randomUUID(), req)
+    let user
+    try {
+      user = await db.$transaction(async (tx) => {
+        const createdUser = await tx.user.create({
+          data: {
+            id: session.userId,
+            email: verification.email,
+            displayName: verification.displayName,
+            passwordHash: verification.passwordHash,
+          },
+          select: publicSelect,
+        })
+        await tx.session.create({ data: session })
+        await tx.emailVerification.delete({ where: { id: verification.id } })
+        return createdUser
+      })
+    } catch (error) {
+      if (error.code === 'P2002') {
+        await db.emailVerification.deleteMany({ where: { id: verification.id } })
+        throw new AppError(
+          409,
+          'EMAIL_IN_USE',
+          'An account with that email already exists. Try signing in.',
+        )
+      }
+      throw error
+    }
+
     security.setSession(res, session, refresh)
     res.status(201).json({ data: { user } })
+  })
+
+  router.post('/auth/resend-verification', security.requireCsrf, limiter(6), async (req, res) => {
+    const input = validate(resendVerificationSchema, req.body)
+    const verification = await db.emailVerification.findUnique({
+      where: { id: input.verificationId },
+    })
+    const now = new Date()
+    if (!verification || verification.expiresAt <= now) {
+      if (verification) await db.emailVerification.delete({ where: { id: verification.id } })
+      throw new AppError(410, 'VERIFICATION_EXPIRED', 'This verification has expired. Start signup again.')
+    }
+    const existing = await db.user.findUnique({
+      where: { email: verification.email },
+      select: { id: true },
+    })
+    if (existing) {
+      await db.emailVerification.delete({ where: { id: verification.id } })
+      throw new AppError(409, 'EMAIL_IN_USE', 'This email is already registered. Try signing in.')
+    }
+    const resendAt = verification.lastSentAt.getTime() + config.EMAIL_OTP_RESEND_SECONDS * 1000
+    if (resendAt > now.getTime()) {
+      const seconds = Math.max(1, Math.ceil((resendAt - now.getTime()) / 1000))
+      throw new AppError(429, 'OTP_RESEND_TOO_SOON', `You can request another code in ${seconds}s.`)
+    }
+
+    const otp = newVerificationCode()
+    const otpHash = verificationCodeHash(verification.email, otp)
+    const expiresAt = new Date(now.getTime() + config.EMAIL_OTP_MINUTES * 60000)
+    await db.emailVerification.update({
+      where: { id: verification.id },
+      data: { otpHash, attempts: 0, expiresAt, lastSentAt: now },
+    })
+    try {
+      await email.sendEmailVerification({
+        email: verification.email,
+        displayName: verification.displayName,
+        otp,
+        expiresInMinutes: config.EMAIL_OTP_MINUTES,
+      })
+    } catch (error) {
+      await db.emailVerification
+        .updateMany({
+          where: { id: verification.id, otpHash },
+          data: {
+            otpHash: verification.otpHash,
+            attempts: verification.attempts,
+            expiresAt: verification.expiresAt,
+            lastSentAt: verification.lastSentAt,
+          },
+        })
+        .catch(() => {})
+      throw error
+    }
+
+    res.json({
+      data: {
+        verification: verificationPayload({ id: verification.id, email: verification.email }),
+      },
+    })
   })
   router.post('/auth/login', security.requireCsrf, limiter(10, true), async (req, res) => {
     const input = validate(loginSchema, req.body)

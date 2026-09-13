@@ -12,6 +12,7 @@ export default function AuthLayout({
   description,
   children,
   variant = 'default',
+  cardClassName = '',
 }) {
   const reducedMotion = useReducedMotion()
   const motionConfig = useContext(MotionConfigContext)
@@ -62,7 +63,7 @@ export default function AuthLayout({
         </p>
 
         <motion.section
-          className={`auth-card login-portal-card ${signupPortal ? 'signup-portal-card' : ''}`}
+          className={`auth-card login-portal-card ${signupPortal ? 'signup-portal-card' : ''} ${cardClassName}`.trim()}
           initial={animate ? { opacity: 0 } : false}
           animate={{ opacity: 1 }}
           transition={{ duration: animate ? 0.32 : 0, ease: 'easeOut' }}

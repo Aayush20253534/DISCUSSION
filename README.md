@@ -128,9 +128,15 @@ TRUST_PROXY_HOPS=0
 JWT_SECRET=
 ACCESS_TOKEN_MINUTES=15
 SESSION_DAYS=7
+EMAIL_OTP_MINUTES=10
+EMAIL_OTP_RESEND_SECONDS=60
+MAILJET_API_KEY=
+MAILJET_SECRET_KEY=
+MAILJET_FROM_EMAIL=
+MAILJET_FROM_NAME=Life RPG
 ```
 
-`DATABASE_URL` is used by the running application. `DIRECT_URL` is used by the migration wrapper. `JWT_SECRET` must remain private and is required whenever database-backed authentication is enabled.
+`DATABASE_URL` is used by the running application. `DIRECT_URL` is used by the migration wrapper. `JWT_SECRET` must remain private and is required whenever database-backed authentication is enabled. Signup email verification uses Mailjet Send API v3.1; `MAILJET_FROM_EMAIL` must be a verified Mailjet sender.
 
 The browser normally needs no environment variables because production uses same-origin API requests. `client/.env.example` exists only for the optional `VITE_API_BASE_URL` override.
 
@@ -191,7 +197,7 @@ For a first deployment:
 
 1. Push the finished repository to public GitHub on `main`.
 2. Create a Render Blueprint from `render.yaml`.
-3. Supply `DATABASE_URL`, `DIRECT_URL` and a private 64+ character `JWT_SECRET` when Render prompts for secrets.
+3. Supply `DATABASE_URL`, `DIRECT_URL`, a private 64+ character `JWT_SECRET`, and the Mailjet API/sender values when Render prompts for secrets.
 4. Let the Blueprint install dependencies, build the Vite app, apply committed migrations and start Express.
 5. Wait for `/health/ready` to become healthy.
 6. Run the live verification command:

@@ -60,6 +60,17 @@ export const signupSchema = z
     password: passwordSchema,
   })
   .strict()
+export const emailVerificationSchema = z
+  .object({
+    verificationId: z.string().uuid('Email verification is invalid or expired.'),
+    otp: z.string().trim().regex(/^\d{6}$/, 'Enter the 6-digit verification code.'),
+  })
+  .strict()
+export const resendVerificationSchema = z
+  .object({
+    verificationId: z.string().uuid('Email verification is invalid or expired.'),
+  })
+  .strict()
 export const loginSchema = z
   .object({
     email: emailSchema,

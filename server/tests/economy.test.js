@@ -5,10 +5,11 @@ import request from 'supertest'
 import { createApp } from '../src/app.js'
 import { parseEnv } from '../src/config/env.js'
 import { testDatabase } from './helpers/database.js'
+import { completeEmailVerification, createTestMailer } from './helpers/email.js'
 
 const origin = 'http://localhost:5173'
 const config = parseEnv({ NODE_ENV: 'test', JWT_SECRET: 'economy-test-secret-'.repeat(4) })
-let database, app
+let database, app, mailer
 
 before(async () => {
   database = await testDatabase()
@@ -17,8 +18,10 @@ after(async () => {
   await database?.close()
 })
 beforeEach(async () => {
+  await database.prisma.emailVerification.deleteMany()
   await database.prisma.user.deleteMany()
-  app = createApp({ config, database, logger: () => {} })
+  mailer = createTestMailer()
+  app = createApp({ config, database, logger: () => {}, mailer })
 })
 
 const mutate = (client, method, path, body = {}) =>
@@ -31,13 +34,12 @@ async function actor(name = 'hero', onboard = true) {
   const agent = request.agent(app)
   const csrf = (await agent.get('/api/v1/auth/csrf').expect(200)).body.data.csrfToken
   const client = { agent, csrf }
-  client.user = (
-    await mutate(client, 'post', '/auth/signup', {
-      email: `${name}@example.test`,
-      displayName: name,
-      password: 'An excellent adventure awaits',
-    }).expect(201)
-  ).body.data.user
+  const started = await mutate(client, 'post', '/auth/signup', {
+    email: `${name}@example.test`,
+    displayName: name,
+    password: 'An excellent adventure awaits',
+  }).expect(202)
+  client.user = (await completeEmailVerification(client, mutate, started, mailer)).body.data.user
   if (onboard)
     await mutate(client, 'put', '/me/onboarding', {
       displayName: name,

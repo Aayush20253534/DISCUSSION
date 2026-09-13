@@ -15,7 +15,7 @@ import { createAccountRouter } from './auth/router.js'
 import { createEconomyRouter } from './economy/router.js'
 import { createDashboardRouter } from './dashboard/router.js'
 
-export function createApp({ config, database, staticDirectory, logger = log, clock }) {
+export function createApp({ config, database, staticDirectory, logger = log, clock, mailer }) {
   const app = express()
   app.disable('x-powered-by')
   if (config.TRUST_PROXY_HOPS) app.set('trust proxy', config.TRUST_PROXY_HOPS)
@@ -145,7 +145,7 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
       }),
     })
   })
-  app.use(API_PREFIX, createAccountRouter({ config, database }))
+  app.use(API_PREFIX, createAccountRouter({ config, database, mailer }))
   app.use(`${API_PREFIX}/quests`, createQuestRouter({ config, database, clock }))
   app.use(`${API_PREFIX}/activity`, createActivityRouter({ config, database, clock }))
   app.use(`${API_PREFIX}/progress`, createProgressionRouter({ config, database }))

@@ -14,6 +14,7 @@ test('economy contracts accept bounded catalog, inventory, equipment and wallet 
   assert.deepEqual(catalogQuerySchema.parse({}), { type: 'ALL' })
   assert.deepEqual(inventoryQuerySchema.parse({ type: 'THEME' }), { type: 'THEME' })
   assert.equal(equipmentSlotSchema.parse('CHARACTER_TITLE'), 'CHARACTER_TITLE')
+  assert.equal(equipmentSlotSchema.parse('COMPANION'), 'COMPANION')
   assert.deepEqual(purchaseSchema.parse({}), {})
   assert.equal(itemTypeToSlot('PROFILE_BADGE'), 'PROFILE_BADGE')
   assert.deepEqual(walletHistorySchema.parse({ page: '2', limit: '20' }), { page: 2, limit: 20 })

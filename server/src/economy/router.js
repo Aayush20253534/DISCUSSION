@@ -8,6 +8,7 @@ import {
   purchaseSchema,
   shopItemIdSchema,
   walletHistorySchema,
+  todayInTimezone,
 } from '@life-rpg/shared'
 import { createAuthentication } from '../auth/middleware.js'
 import { createSecurity } from '../auth/security.js'
@@ -22,6 +23,7 @@ import {
   serializeShopItem,
   shopItemSelect,
 } from './presentation.js'
+import { buildMarketplaceContext } from './marketplace.js'
 
 const notFound = () => new AppError(404, 'SHOP_ITEM_NOT_FOUND', 'This reward is no longer available.')
 const inventoryNotFound = () =>
@@ -55,12 +57,14 @@ export function createEconomyRouter({ config, database }) {
 
   router.get('/shop/catalog', async (req, res) => {
     const query = validate(catalogQuerySchema, req.query)
-    const where = { active: true, ...(query.type !== 'ALL' && { type: query.type }) }
-    const [character, items, owned, equipment] = await db.$transaction(
+    const [account, items, owned, equipment, completedQuests, activeDates] = await db.$transaction(
       [
-        db.character.findUnique({ where: { id: req.characterId }, select: { gold: true } }),
+        db.user.findUnique({
+          where: { id: req.auth.userId },
+          select: { timezone: true, character: { select: { gold: true, totalXp: true } } },
+        }),
         db.shopItem.findMany({
-          where,
+          where: { active: true },
           select: shopItemSelect,
           orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
         }),
@@ -72,17 +76,54 @@ export function createEconomyRouter({ config, database }) {
           where: { userId: req.auth.userId },
           select: { slot: true, inventoryItem: { select: { shopItemId: true } } },
         }),
+        db.questCompletion.count({ where: { userId: req.auth.userId } }),
+        db.questCompletion.findMany({
+          where: { userId: req.auth.userId },
+          distinct: ['completedDate'],
+          select: { completedDate: true },
+          orderBy: { completedDate: 'asc' },
+        }),
       ],
       { isolationLevel: 'RepeatableRead' },
     )
     const ownedIds = new Set(owned.map((row) => row.shopItemId))
     const equippedIds = new Set(equipment.map((row) => row.inventoryItem.shopItemId))
+    const today = todayInTimezone(account.timezone)
+    const context = buildMarketplaceContext({
+      items,
+      ownedIds,
+      totalXp: account.character.totalXp,
+      completedQuests,
+      activeDates: activeDates.map((row) => row.completedDate.toISOString().slice(0, 10)),
+      today,
+    })
+    const decorate = (item) => ({
+      ...serializeShopItem(item, { owned: ownedIds.has(item.id), equipped: equippedIds.has(item.id) }),
+      ...context.byId.get(item.id),
+    })
+    const itemById = new Map(items.map((item) => [item.id, item]))
+    const featuredIds = new Set([
+      ...context.dailyIds,
+      ...(context.weeklyLegendId ? [context.weeklyLegendId] : []),
+      ...context.wanderingMerchant.itemIds,
+    ])
+    const visible = query.type === 'ALL' ? items : items.filter((item) => item.type === query.type)
     res.json({
       data: {
-        balance: character.gold,
-        items: items.map((item) =>
-          serializeShopItem(item, { owned: ownedIds.has(item.id), equipped: equippedIds.has(item.id) }),
-        ),
+        balance: account.character.gold,
+        items: visible.map(decorate),
+        marketplace: {
+          today,
+          profile: context.profile,
+          collections: context.collections,
+          dailyDeals: context.dailyIds.map((id) => decorate(itemById.get(id))),
+          weeklyLegend: context.weeklyLegendId ? decorate(itemById.get(context.weeklyLegendId)) : null,
+          wanderingMerchant: {
+            active: context.wanderingMerchant.active,
+            items: context.wanderingMerchant.itemIds.map((id) => decorate(itemById.get(id))),
+          },
+          featuredItems: [...featuredIds].map((id) => decorate(itemById.get(id))).filter(Boolean),
+        },
       },
     })
   })
@@ -91,17 +132,29 @@ export function createEconomyRouter({ config, database }) {
     const itemId = validate(shopItemIdSchema, req.params.id)
     validate(purchaseSchema, req.body)
     const data = await db.$transaction(async (tx) => {
-      // Gold is a single wallet. Lock the character row so purchases and quest rewards cannot
-      // race each other into a stale balance or a double spend.
       const locked = await tx.$queryRaw`
         SELECT id FROM characters WHERE id = ${req.characterId}::uuid AND user_id = ${req.auth.userId}::uuid FOR UPDATE
       `
       if (!locked.length)
         throw new AppError(403, 'ONBOARDING_REQUIRED', 'Create your character before opening the market.')
 
-      const item = await tx.shopItem.findFirst({ where: { id: itemId, active: true }, select: shopItemSelect })
+      const [account, allItems, ownedRows, completedQuests, activeDates] = await Promise.all([
+        tx.user.findUnique({
+          where: { id: req.auth.userId },
+          select: { timezone: true, character: { select: { gold: true, totalXp: true } } },
+        }),
+        tx.shopItem.findMany({ where: { active: true }, select: shopItemSelect }),
+        tx.inventoryItem.findMany({ where: { userId: req.auth.userId }, select: { id: true, shopItemId: true } }),
+        tx.questCompletion.count({ where: { userId: req.auth.userId } }),
+        tx.questCompletion.findMany({
+          where: { userId: req.auth.userId },
+          distinct: ['completedDate'],
+          select: { completedDate: true },
+          orderBy: { completedDate: 'asc' },
+        }),
+      ])
+      const item = allItems.find((candidate) => candidate.id === itemId)
       if (!item) throw notFound()
-      const character = await tx.character.findUnique({ where: { id: req.characterId }, select: { gold: true } })
       const existing = await tx.inventoryItem.findUnique({
         where: { userId_shopItemId: { userId: req.auth.userId, shopItemId: item.id } },
         select: inventoryItemSelect,
@@ -109,36 +162,49 @@ export function createEconomyRouter({ config, database }) {
       if (existing)
         return {
           purchased: false,
-          balance: character.gold,
+          balance: account.character.gold,
           inventoryItem: serializeInventoryItem(existing),
           item: serializeShopItem(item, { owned: true }),
         }
-      if (character.gold < item.price)
+
+      const ownedIds = new Set(ownedRows.map((row) => row.shopItemId))
+      const context = buildMarketplaceContext({
+        items: allItems,
+        ownedIds,
+        totalXp: account.character.totalXp,
+        completedQuests,
+        activeDates: activeDates.map((row) => row.completedDate.toISOString().slice(0, 10)),
+        today: todayInTimezone(account.timezone),
+      })
+      const marketState = context.byId.get(item.id)
+      if (!marketState.available)
+        throw new AppError(409, 'MERCHANT_AWAY', 'This treasure is only sold while the wandering merchant is in camp.')
+      if (marketState.locked)
+        throw new AppError(409, 'ITEM_LOCKED', 'Your journey has not unlocked this treasure yet.', {
+          requirements: marketState.requirements.filter((requirement) => !requirement.met).map((requirement) => requirement.label),
+        })
+      if (account.character.gold < marketState.price)
         throw new AppError(
           409,
           'INSUFFICIENT_GOLD',
-          `You need ${item.price - character.gold} more gold for this reward.`,
-          { balance: String(character.gold), price: String(item.price) },
+          `You need ${marketState.price - account.character.gold} more gold for this reward.`,
+          { balance: String(account.character.gold), price: String(marketState.price) },
         )
 
       const updated = await tx.character.update({
         where: { id: req.characterId },
-        data: { gold: { decrement: item.price } },
+        data: { gold: { decrement: marketState.price } },
         select: { gold: true },
       })
       const inventoryItem = await tx.inventoryItem.create({
-        data: {
-          userId: req.auth.userId,
-          shopItemId: item.id,
-          pricePaid: item.price,
-        },
+        data: { userId: req.auth.userId, shopItemId: item.id, pricePaid: marketState.price },
         select: inventoryItemSelect,
       })
       await tx.currencyTransaction.create({
         data: {
           userId: req.auth.userId,
           type: 'SHOP_PURCHASE',
-          amount: -item.price,
+          amount: -marketState.price,
           balanceAfter: updated.gold,
           inventoryItemId: inventoryItem.id,
         },
@@ -147,7 +213,7 @@ export function createEconomyRouter({ config, database }) {
         purchased: true,
         balance: updated.gold,
         inventoryItem: serializeInventoryItem(inventoryItem),
-        item: serializeShopItem(item, { owned: true }),
+        item: { ...serializeShopItem(item, { owned: true }), ...marketState },
       }
     })
     res.status(data.purchased ? 201 : 200).json({ data })

@@ -2599,3 +2599,415 @@
     animation: none !important;
   }
 }
+
+/* AI Quest Master */
+.quest-heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.quest-master-trigger {
+  border-color: rgba(214, 179, 105, 0.58);
+  color: #ebca83;
+  background: linear-gradient(135deg, rgba(67, 52, 31, 0.38), rgba(16, 35, 36, 0.46));
+}
+
+.quest-master-trigger:hover:not(:disabled) {
+  border-color: rgba(236, 201, 126, 0.9);
+  background: linear-gradient(135deg, rgba(83, 63, 34, 0.5), rgba(21, 43, 42, 0.58));
+}
+
+.quest-master-trigger:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.quest-master-dialog {
+  width: min(880px, calc(100% - 32px));
+  max-height: calc(100dvh - 30px);
+  padding: 34px;
+  border-color: rgba(213, 175, 104, 0.42);
+  background:
+    radial-gradient(circle at 84% 8%, rgba(149, 111, 52, 0.16), transparent 30%),
+    linear-gradient(145deg, rgba(6, 19, 25, 0.99), rgba(7, 24, 29, 0.985));
+  box-shadow: 0 34px 120px rgba(0, 0, 0, 0.68), inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.quest-master-dialog .dialog-title {
+  max-width: 720px;
+  color: #f0e6d5;
+  font-size: clamp(30px, 4vw, 42px);
+}
+
+.quest-master-dialog .dialog-description {
+  max-width: 760px;
+  margin-bottom: 23px;
+  color: #aabbb6;
+}
+
+.quest-master-form {
+  display: grid;
+  gap: 18px;
+}
+
+.quest-master-callout {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 15px;
+  border: 1px solid rgba(115, 151, 137, 0.28);
+  border-radius: 8px;
+  background: rgba(13, 31, 34, 0.62);
+}
+
+.quest-master-sigil {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(220, 184, 108, 0.52);
+  border-radius: 50%;
+  color: #e7c67d;
+  background: radial-gradient(circle, rgba(116, 83, 39, 0.28), rgba(8, 22, 27, 0.35));
+}
+
+.quest-master-callout strong {
+  color: #e9e5d9;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.quest-master-callout p {
+  margin: 3px 0 0;
+  color: #91a59f;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.quest-master-goal textarea,
+.quest-master-options select,
+.quest-master-tune input,
+.quest-master-tune select,
+.quest-master-tune textarea {
+  width: 100%;
+  border: 1px solid rgba(118, 151, 141, 0.36);
+  border-radius: 7px;
+  background: rgba(7, 22, 28, 0.86);
+  color: #e1e7e0;
+  color-scheme: dark;
+}
+
+.quest-master-goal textarea {
+  min-height: 128px;
+  resize: vertical;
+  padding: 13px 14px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.quest-master-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.quest-master-options label,
+.quest-master-tune label {
+  display: grid;
+  gap: 7px;
+  color: #aebdb7;
+  font-size: 9px;
+  letter-spacing: 0.35px;
+}
+
+.quest-master-options select,
+.quest-master-tune input,
+.quest-master-tune select,
+.quest-master-tune textarea {
+  min-height: 40px;
+  padding: 9px 10px;
+  font: inherit;
+  font-size: 11px;
+}
+
+.quest-master-generate {
+  min-height: 44px;
+  justify-self: start;
+  min-width: 210px;
+}
+
+.quest-master-privacy {
+  margin: -7px 0 0;
+  color: #748985;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.quest-master-plan {
+  display: grid;
+  gap: 14px;
+}
+
+.quest-master-planbar,
+.quest-master-selectbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.quest-master-planbar {
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(132, 156, 147, 0.15);
+}
+
+.quest-master-planbar > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #d5b971;
+  font-size: 9px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.quest-master-planbar .text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quest-master-selectbar {
+  color: #8fa29d;
+  font-size: 9px;
+}
+
+.quest-master-selectbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.quest-master-selectbar input,
+.quest-master-check input {
+  accent-color: #d7b365;
+}
+
+.quest-master-drafts {
+  display: grid;
+  gap: 9px;
+  max-height: min(52dvh, 510px);
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+
+.quest-master-draft {
+  padding: 13px 14px;
+  border: 1px solid rgba(116, 148, 138, 0.2);
+  border-radius: 8px;
+  background: linear-gradient(100deg, rgba(13, 30, 33, 0.82), rgba(8, 22, 28, 0.7));
+  transition: border-color 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+}
+
+.quest-master-draft.selected {
+  border-color: rgba(210, 174, 101, 0.46);
+  background: linear-gradient(100deg, rgba(28, 39, 36, 0.9), rgba(11, 27, 31, 0.78));
+}
+
+.quest-master-draft.saved {
+  opacity: 0.58;
+}
+
+.quest-master-draft-head {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 30px;
+  align-items: start;
+  gap: 11px;
+}
+
+.quest-master-check {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.quest-master-check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.quest-master-check span {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(151, 176, 167, 0.32);
+  border-radius: 50%;
+  color: #9eafa9;
+  font-size: 9px;
+}
+
+.quest-master-draft.selected .quest-master-check span,
+.quest-master-draft.saved .quest-master-check span {
+  border-color: rgba(222, 185, 105, 0.72);
+  color: #e8c675;
+  background: rgba(92, 69, 35, 0.28);
+}
+
+.quest-master-draft-copy {
+  min-width: 0;
+}
+
+.quest-master-draft-copy strong {
+  display: block;
+  color: #e7e7df;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.quest-master-draft-copy p {
+  margin: 4px 0 0;
+  color: #9cafaa;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.quest-master-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 9px 0 0 41px;
+  color: #8fa39d;
+  font-size: 8px;
+}
+
+.quest-master-meta > span:not(.attribute-tag) {
+  padding-left: 9px;
+  border-left: 1px solid rgba(139, 163, 154, 0.18);
+}
+
+.quest-master-rationale {
+  margin: 8px 0 0 41px;
+  color: #798d88;
+  font-size: 8px;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.quest-master-tune {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 13px 0 0 41px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(137, 162, 153, 0.15);
+}
+
+.quest-master-tune .quest-master-wide {
+  grid-column: 1 / -1;
+}
+
+.quest-master-tune textarea {
+  resize: vertical;
+}
+
+.quest-master-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 3px;
+}
+
+.quest-master-actions .button {
+  min-height: 40px;
+}
+
+@media (max-width: 760px) {
+  .quest-heading-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .quest-heading-actions .button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .quest-master-dialog {
+    width: min(100% - 16px, 880px);
+    max-height: calc(100dvh - 16px);
+    padding: 27px 18px 20px;
+  }
+
+  .quest-master-options {
+    grid-template-columns: 1fr;
+  }
+
+  .quest-master-drafts {
+    max-height: 48dvh;
+  }
+
+  .quest-master-tune {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-left: 0;
+  }
+
+  .quest-master-meta,
+  .quest-master-rationale {
+    margin-left: 0;
+  }
+
+  .quest-master-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .quest-master-actions .button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .quest-heading-actions {
+    flex-direction: column;
+  }
+
+  .quest-heading-actions .button {
+    width: 100%;
+  }
+
+  .quest-master-dialog .dialog-title {
+    font-size: 29px;
+  }
+
+  .quest-master-callout {
+    align-items: flex-start;
+  }
+
+  .quest-master-draft-head {
+    grid-template-columns: 28px minmax(0, 1fr) 28px;
+    gap: 8px;
+  }
+
+  .quest-master-tune {
+    grid-template-columns: 1fr;
+  }
+
+  .quest-master-planbar,
+  .quest-master-selectbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

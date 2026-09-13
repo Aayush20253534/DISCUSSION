@@ -188,12 +188,17 @@ enum ShopItemType {
   PROFILE_BADGE
   CHARACTER_TITLE
   THEME
+  OUTFIT
+  COMPANION
+  AURA
 }
 
 enum ItemRarity {
   COMMON
   RARE
   EPIC
+  LEGENDARY
+  MYTHIC
 }
 
 enum EquipmentSlot {
@@ -201,6 +206,9 @@ enum EquipmentSlot {
   PROFILE_BADGE
   CHARACTER_TITLE
   THEME
+  OUTFIT
+  COMPANION
+  AURA
 }
 
 enum CurrencyTransactionType {

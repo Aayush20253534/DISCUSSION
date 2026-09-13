@@ -37,7 +37,8 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   const questWorld = Boolean(user && pathname === '/quests')
   const activityWorld = Boolean(user && pathname === '/activity')
   const characterWorld = Boolean(user && pathname === '/character')
-  const immersiveWorld = dashboardWorld || questWorld || activityWorld || characterWorld
+  const marketplaceWorld = Boolean(user && pathname === '/marketplace')
+  const immersiveWorld = dashboardWorld || questWorld || activityWorld || characterWorld || marketplaceWorld
   useEffect(() => {
     const key = equippedThemeKey
     if (key) document.documentElement.dataset.rewardTheme = key
@@ -96,7 +97,7 @@ export default function AppShell({ gentleMotion, setGentleMotion, soundEnabled, 
   }
 
   return (
-    <div className={`app-shell ${adventureShell ? 'adventure-shell' : ''} ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${activityWorld ? 'activity-world' : ''} ${characterWorld ? 'character-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
+    <div className={`app-shell ${adventureShell ? 'adventure-shell' : ''} ${collapsed ? 'sidebar-collapsed' : ''} ${dashboardWorld ? 'dashboard-world' : ''} ${questWorld ? 'quest-world' : ''} ${activityWorld ? 'activity-world' : ''} ${characterWorld ? 'character-world' : ''} ${marketplaceWorld ? 'marketplace-world' : ''} ${mobileMenuOpen ? 'mobile-sidebar-open' : ''}`}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>

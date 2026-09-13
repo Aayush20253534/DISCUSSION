@@ -5,10 +5,13 @@ export const SHOP_ITEM_TYPES = Object.freeze([
   { key: 'PROFILE_BADGE', name: 'Profile badges', slot: 'PROFILE_BADGE' },
   { key: 'CHARACTER_TITLE', name: 'Character titles', slot: 'CHARACTER_TITLE' },
   { key: 'THEME', name: 'Themes', slot: 'THEME' },
+  { key: 'OUTFIT', name: 'Outfits', slot: 'OUTFIT' },
+  { key: 'COMPANION', name: 'Companions', slot: 'COMPANION' },
+  { key: 'AURA', name: 'Auras', slot: 'AURA' },
 ])
 
 export const EQUIPMENT_SLOTS = Object.freeze(SHOP_ITEM_TYPES.map(({ slot }) => slot))
-export const ITEM_RARITIES = Object.freeze(['COMMON', 'RARE', 'EPIC'])
+export const ITEM_RARITIES = Object.freeze(['COMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC'])
 export const shopItemTypeSchema = z.enum(SHOP_ITEM_TYPES.map(({ key }) => key))
 export const equipmentSlotSchema = z.enum(EQUIPMENT_SLOTS)
 export const shopItemIdSchema = z.string().uuid('Choose a valid reward.')

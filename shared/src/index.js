@@ -87,6 +87,8 @@ export const onboardingSchema = z
 
 export * from './quests.js'
 
+export * from './ai.js'
+
 export * from './progression.js'
 
 export * from './activity.js'

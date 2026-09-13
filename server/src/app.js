@@ -14,8 +14,9 @@ import { createQuestRouter } from './quests/router.js'
 import { createAccountRouter } from './auth/router.js'
 import { createEconomyRouter } from './economy/router.js'
 import { createDashboardRouter } from './dashboard/router.js'
+import { createAiRouter } from './ai/router.js'
 
-export function createApp({ config, database, staticDirectory, logger = log, clock, mailer }) {
+export function createApp({ config, database, staticDirectory, logger = log, clock, mailer, questMaster }) {
   const app = express()
   app.disable('x-powered-by')
   if (config.TRUST_PROXY_HOPS) app.set('trust proxy', config.TRUST_PROXY_HOPS)
@@ -150,6 +151,7 @@ export function createApp({ config, database, staticDirectory, logger = log, clo
   app.use(`${API_PREFIX}/activity`, createActivityRouter({ config, database, clock }))
   app.use(`${API_PREFIX}/progress`, createProgressionRouter({ config, database }))
   app.use(`${API_PREFIX}/dashboard`, createDashboardRouter({ config, database, clock }))
+  app.use(`${API_PREFIX}/ai`, createAiRouter({ config, database, clock, logger, questMaster }))
   app.use(API_PREFIX, createEconomyRouter({ config, database }))
   // Unknown API routes must never return the SPA's HTML.
   app.use('/api', (req, res) =>

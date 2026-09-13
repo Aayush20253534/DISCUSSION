@@ -90,6 +90,18 @@ const schema = z
       (value) => (value === '' ? undefined : value),
       z.string().trim().min(1).max(80).optional(),
     ),
+    AI_PROVIDER: z.enum(['auto', 'groq', 'gemini']).default('auto'),
+    GROQ_API_KEY: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().min(1).optional(),
+    ),
+    GEMINI_API_KEY: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().min(1).optional(),
+    ),
+    GROQ_QUEST_MODEL: z.string().trim().min(1).max(120).default('openai/gpt-oss-20b'),
+    GEMINI_QUEST_MODEL: z.string().trim().min(1).max(120).default('gemini-2.5-flash-lite'),
+    AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(3000).max(30000).default(12000),
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
   })
   .superRefine((value, context) => {

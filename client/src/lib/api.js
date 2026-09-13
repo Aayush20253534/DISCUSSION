@@ -18,7 +18,7 @@ export class ApiError extends Error {
   }
 }
 
-async function request(path, { method = 'GET', body, signal, csrfToken } = {}) {
+async function request(path, { method = 'GET', body, signal, csrfToken, timeoutMs = 15000 } = {}) {
   let response
   try {
     response = await fetch(`${baseUrl}${path}`, {
@@ -31,8 +31,8 @@ async function request(path, { method = 'GET', body, signal, csrfToken } = {}) {
       },
       ...(method !== 'GET' && { body: JSON.stringify(body || {}) }),
       signal: signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(15000)])
-        : AbortSignal.timeout(15000),
+        ? AbortSignal.any([signal, AbortSignal.timeout(timeoutMs)])
+        : AbortSignal.timeout(timeoutMs),
     })
   } catch (error) {
     if (signal?.aborted) throw error
@@ -102,7 +102,8 @@ async function apiRequest(path, options) {
   }
 }
 export const apiGet = (path, signal) => apiRequest(path, { method: 'GET', signal })
-export const apiSend = (path, body, method = 'POST') => apiRequest(path, { method, body })
+export const apiSend = (path, body, method = 'POST', options = {}) =>
+  apiRequest(path, { method, body, ...options })
 export const authAction = (action, body) =>
   authLock(async () => {
     try {

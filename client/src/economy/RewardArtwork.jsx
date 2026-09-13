@@ -1,4 +1,20 @@
-import { Award, Crown, Leaf, Moon, Palette, Sparkles, Sun, Trees } from 'lucide-react'
+import {
+  Award,
+  Bird,
+  Cat,
+  Crown,
+  Flame,
+  Footprints,
+  Gem,
+  Leaf,
+  Moon,
+  Palette,
+  Shield,
+  Sparkles,
+  Stars,
+  Sun,
+  Trees,
+} from 'lucide-react'
 
 const icons = {
   moonlit: Moon,
@@ -11,6 +27,19 @@ const icons = {
   'keeper-momentum': Crown,
   'quietly-unstoppable': Sparkles,
   verdant: Leaf,
+  'arcane-robes': Stars,
+  'ember-cloak': Flame,
+  'celestial-wayfarer': Sparkles,
+  'forest-fox': Cat,
+  'moon-wolf': Footprints,
+  'arcane-owl': Bird,
+  'ember-drake': Flame,
+  'celestial-raven': Bird,
+  'ember-aura': Flame,
+  'starlight-aura': Stars,
+  'resolve-aura': Crown,
+  'celestial-wanderer': Gem,
+  'flame-endures': Shield,
 }
 
 export default function RewardArtwork({ item, compact = false }) {

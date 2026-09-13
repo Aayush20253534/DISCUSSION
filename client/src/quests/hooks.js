@@ -37,6 +37,20 @@ export function useQuestSummary() {
   useAccountError(query.error)
   return query
 }
+
+export function useQuestMasterStatus() {
+  const { user } = useAuth()
+  const query = useQuery({
+    queryKey: ['ai', user?.id, 'quest-master-status'],
+    queryFn: ({ signal }) => apiGet('/api/v1/ai/quest-master/status', signal),
+    enabled: Boolean(user?.character),
+    staleTime: 300000,
+    retry: false,
+  })
+  useAccountError(query.error)
+  return query
+}
+
 export function useQuestSync() {
   const { user } = useAuth()
   const client = useQueryClient()

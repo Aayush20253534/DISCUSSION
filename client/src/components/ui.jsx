@@ -27,7 +27,7 @@ export function AttributeTag({ attribute }) {
   )
 }
 
-export function Modal({ open, onOpenChange, title, description, children, returnFocusRef, returnFocusSelector }) {
+export function Modal({ open, onOpenChange, title, description, children, returnFocusRef, returnFocusSelector, className = '' }) {
   const { moving } = useInteractionFeedback()
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -42,7 +42,7 @@ export function Modal({ open, onOpenChange, title, description, children, return
         </Dialog.Overlay>
         <Dialog.Content asChild>
           <motion.div
-            className="dialog-content"
+            className={`dialog-content ${className}`.trim()}
             initial={moving ? { opacity: 0, marginTop: 14 } : false}
             animate={{ opacity: 1, marginTop: 0 }}
             transition={

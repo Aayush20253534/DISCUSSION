@@ -134,9 +134,15 @@ MAILJET_API_KEY=
 MAILJET_SECRET_KEY=
 MAILJET_FROM_EMAIL=
 MAILJET_FROM_NAME=Life RPG
+AI_PROVIDER=auto
+GROQ_API_KEY=
+GEMINI_API_KEY=
+GROQ_QUEST_MODEL=openai/gpt-oss-20b
+GEMINI_QUEST_MODEL=gemini-2.5-flash-lite
+AI_REQUEST_TIMEOUT_MS=12000
 ```
 
-`DATABASE_URL` is used by the running application. `DIRECT_URL` is used by the migration wrapper. `JWT_SECRET` must remain private and is required whenever database-backed authentication is enabled. Signup email verification uses Mailjet Send API v3.1; `MAILJET_FROM_EMAIL` must be a verified Mailjet sender.
+`DATABASE_URL` is used by the running application. `DIRECT_URL` is used by the migration wrapper. `JWT_SECRET` must remain private and is required whenever database-backed authentication is enabled. Signup email verification uses Mailjet Send API v3.1; `MAILJET_FROM_EMAIL` must be a verified Mailjet sender. AI Quest Master is enabled when at least one of `GROQ_API_KEY` or `GEMINI_API_KEY` is set. In `auto` mode the server tries Groq first and falls back to Gemini; AI may suggest quest details, but XP, gold, levels and progression remain server-authoritative.
 
 The browser normally needs no environment variables because production uses same-origin API requests. `client/.env.example` exists only for the optional `VITE_API_BASE_URL` override.
 
@@ -197,7 +203,7 @@ For a first deployment:
 
 1. Push the finished repository to public GitHub on `main`.
 2. Create a Render Blueprint from `render.yaml`.
-3. Supply `DATABASE_URL`, `DIRECT_URL`, a private 64+ character `JWT_SECRET`, and the Mailjet API/sender values when Render prompts for secrets.
+3. Supply `DATABASE_URL`, `DIRECT_URL`, a private 64+ character `JWT_SECRET`, the Mailjet API/sender values, and at least one of `GROQ_API_KEY` or `GEMINI_API_KEY` when Render prompts for secrets.
 4. Let the Blueprint install dependencies, build the Vite app, apply committed migrations and start Express.
 5. Wait for `/health/ready` to become healthy.
 6. Run the live verification command:

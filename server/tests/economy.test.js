@@ -72,10 +72,10 @@ test('catalog is seeded, cosmetic-only and reports ownership without leaking sto
   const response = await catalog(client).expect(200)
   assert.match(response.headers['cache-control'], /no-store/)
   assert.equal(response.body.data.balance, 0)
-  assert.equal(response.body.data.items.length, 12)
+  assert.equal(response.body.data.items.length, 25)
   assert.deepEqual(
     [...new Set(response.body.data.items.map((item) => item.type))].sort(),
-    ['AVATAR_FRAME', 'CHARACTER_TITLE', 'PROFILE_BADGE', 'THEME'].sort(),
+    ['AVATAR_FRAME', 'AURA', 'CHARACTER_TITLE', 'COMPANION', 'OUTFIT', 'PROFILE_BADGE', 'THEME'].sort(),
   )
   assert.ok(response.body.data.items.every((item) => item.price > 0 && !item.owned && !item.equipped))
   for (const item of response.body.data.items)
@@ -205,5 +205,5 @@ test('deleting the owner cascades private inventory, equipment and ledger but pr
   assert.equal(await database.prisma.inventoryItem.count(), 0)
   assert.equal(await database.prisma.characterEquipment.count(), 0)
   assert.equal(await database.prisma.currencyTransaction.count(), 0)
-  assert.equal(await database.prisma.shopItem.count(), 12)
+  assert.equal(await database.prisma.shopItem.count(), 25)
 })

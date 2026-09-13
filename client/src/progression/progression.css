@@ -1886,3 +1886,34 @@
 [data-motion='off'] .character-world .dashboard-lantern-glow {
   animation: none !important;
 }
+
+/* Marketplace V2 cosmetic loadout on the Character chronicle. */
+.character-world .character-cosmetic-loadout {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 12px 0 2px;
+}
+.character-world .character-cosmetic-loadout > span {
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid rgba(213, 175, 104, .18);
+  border-radius: 7px;
+  background: rgba(7, 18, 22, .48);
+  color: #d8d2c2;
+  font-size: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.character-world .character-cosmetic-loadout small {
+  display: block;
+  margin-bottom: 4px;
+  color: #a18e64;
+  font-size: 6px;
+  letter-spacing: .12em;
+}
+@media (max-width: 560px) {
+  .character-world .character-cosmetic-loadout { grid-template-columns: 1fr; }
+}

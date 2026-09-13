@@ -31,9 +31,15 @@ import { useAuth } from '../auth/useAuth.js'
 import { AttributeIcon, PageHeading } from '../components/ui.jsx'
 import QuestRow from '../quests/QuestRow.jsx'
 import QuestEditor from '../quests/QuestEditor.jsx'
+import QuestMaster from '../quests/QuestMaster.jsx'
 import CompleteQuest from '../progression/CompleteQuest.jsx'
 import QuestDetails from '../quests/QuestDetails.jsx'
-import { useQuestMutation, useQuests, useQuestSummary } from '../quests/hooks.js'
+import {
+  useQuestMasterStatus,
+  useQuestMutation,
+  useQuests,
+  useQuestSummary,
+} from '../quests/hooks.js'
 import { useInteractionFeedback } from '../interactions/interaction-context.js'
 import '../quests.css'
 import '../progression/progression.css'
@@ -99,11 +105,13 @@ function QuestJournal() {
   const query = useQuests({ ...filters, q: debouncedSearch })
   const summary = useQuestSummary()
   const mutation = useQuestMutation()
+  const questMasterStatus = useQuestMasterStatus()
   const [editor, setEditor] = useState(() => (params.get('new') === '1' ? {} : null))
   const [detailId, setDetailId] = useState(() =>
     questIdSchema.safeParse(params.get('quest')).success ? params.get('quest') : null,
   )
   const [completing, setCompleting] = useState(null)
+  const [questMasterOpen, setQuestMasterOpen] = useState(false)
   const [notice, setNotice] = useState('')
   const [actionError, setActionError] = useState('')
   function changeFilters(updates) {
@@ -180,14 +188,30 @@ function QuestJournal() {
         }
         description="Make a little room for what matters. One clear next step at a time."
       >
-        <button
-          className="button button-gold new-quest-button"
-          data-quest-focus
-          onClick={() => setEditor({})}
-        >
-          <Plus size={17} />
-          New quest
-        </button>
+        <div className="quest-heading-actions">
+          <button
+            className="button button-outline quest-master-trigger"
+            data-quest-master-trigger
+            disabled={questMasterStatus.isSuccess && !questMasterStatus.data.available}
+            title={
+              questMasterStatus.isSuccess && !questMasterStatus.data.available
+                ? 'Add GROQ_API_KEY or GEMINI_API_KEY on the server to enable AI Quest Master.'
+                : 'Turn a goal into a questline'
+            }
+            onClick={() => setQuestMasterOpen(true)}
+          >
+            <Sparkles size={16} />
+            AI Quest Master
+          </button>
+          <button
+            className="button button-gold new-quest-button"
+            data-quest-focus
+            onClick={() => setEditor({})}
+          >
+            <Plus size={17} />
+            New quest
+          </button>
+        </div>
       </PageHeading>
       <div className="journal-summary" aria-label="Your quest counts">
         {[
@@ -605,6 +629,17 @@ function QuestJournal() {
           </section>
         </aside>
       </div>
+      <QuestMaster
+        open={questMasterOpen}
+        onOpenChange={setQuestMasterOpen}
+        onSaved={(count) => {
+          setQuestMasterOpen(false)
+          setNotice(
+            `${count} AI-planned quest${count === 1 ? '' : 's'} added to your journal.`,
+          )
+          changeFilters({ ...defaults })
+        }}
+      />
       {completing && <CompleteQuest quest={completing} onClose={() => setCompleting(null)} />}
       {editor && <QuestEditor {...editor} onClose={closeEditor} onSaved={saved} />}
       {detailId && (

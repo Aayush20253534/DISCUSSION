@@ -42,6 +42,9 @@ export default function Character() {
   const equippedFrame = equippedItem(user, 'AVATAR_FRAME')
   const equippedTitle = equippedItem(user, 'CHARACTER_TITLE')
   const equippedBadge = equippedItem(user, 'PROFILE_BADGE')
+  const equippedOutfit = equippedItem(user, 'OUTFIT')
+  const equippedCompanion = equippedItem(user, 'COMPANION')
+  const equippedAura = equippedItem(user, 'AURA')
   const completedCount = progress.data?.completedCount ?? 0
 
   return (
@@ -84,6 +87,13 @@ export default function Character() {
             {equippedTitle?.name || 'Seeker of small wonders'}
           </span>
           {equippedBadge && <span className="equipped-badge">✦ {equippedBadge.name}</span>}
+          {(equippedOutfit || equippedCompanion || equippedAura) && (
+            <div className="character-cosmetic-loadout" aria-label="Equipped visual rewards">
+              {equippedOutfit && <span><small>OUTFIT</small>{equippedOutfit.name}</span>}
+              {equippedCompanion && <span><small>COMPANION</small>{equippedCompanion.name}</span>}
+              {equippedAura && <span><small>AURA</small>{equippedAura.name}</span>}
+            </div>
+          )}
           <p className="character-lore-copy">
             A curious soul crossing one small threshold at a time. The map changes because you do.
           </p>

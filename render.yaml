@@ -30,3 +30,7 @@ services:
         sync: false
       - key: MAILJET_FROM_NAME
         value: Life RPG
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

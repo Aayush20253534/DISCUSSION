@@ -10,6 +10,7 @@ Browser
   ▼
 Render web service
   ├─ Express API (/api/v1/*)
+  ├─ user-scoped Redis data cache ──► Upstash Redis
   ├─ health/readiness endpoints
   └─ Vite production assets + SPA fallback
            │
@@ -52,7 +53,9 @@ DIRECT_URL     Neon's direct URL
 JWT_SECRET          A private high-entropy secret of at least 64 characters
 MAILJET_API_KEY      Your Mailjet public API key
 MAILJET_SECRET_KEY   Your Mailjet private API key
-MAILJET_FROM_EMAIL   A verified Mailjet sender address
+MAILJET_FROM_EMAIL        A verified Mailjet sender address
+UPSTASH_REDIS_REST_URL   Upstash Redis REST endpoint
+UPSTASH_REDIS_REST_TOKEN Upstash Redis REST token
 ```
 
 Generate a fresh production JWT secret locally if you do not want to reuse the development secret:
@@ -90,6 +93,21 @@ Start Command: npm start
 A build command that starts directly with `npm run db:generate` or `prisma generate` is invalid on a clean Render build host because dependencies have not been installed yet.
 
 `/health/ready` is configured as the service health check. A deployment is not healthy merely because Node started; Neon must also be reachable.
+
+### Optional Redis acceleration
+
+The authenticated dashboard, quest journal, activity history, progression views, marketplace, inventory, wallet and account snapshot use a per-user Upstash Redis cache. Browser/CDN caching remains disabled with `Cache-Control: no-store`; Redis is only a server-side optimization.
+
+Create an Upstash Redis database and add its REST credentials to Render:
+
+```dotenv
+UPSTASH_REDIS_REST_URL=https://...upstash.io
+UPSTASH_REDIS_REST_TOKEN=...
+REDIS_CACHE_TTL_SECONDS=75
+REDIS_CACHE_TIMEOUT_MS=300
+```
+
+Writes invalidate the complete user cache immediately. Redis is fail-open: if it is missing, unavailable or slower than the timeout, the request falls back to PostgreSQL instead of failing the page. Read responses expose `X-Data-Cache` as `HIT`, `MISS`, `COALESCED`, or `BYPASS` for deployment diagnostics.
 
 ## 4. Render platform defaults
 

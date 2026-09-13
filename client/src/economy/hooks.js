@@ -10,8 +10,8 @@ function useEconomyQuery(kind, path, enabled = true) {
     queryKey: ['economy', user?.id, kind, path],
     queryFn: ({ signal }) => apiGet(path, signal),
     enabled: Boolean(user?.character) && enabled,
-    staleTime: 15000,
-    refetchInterval: 60000,
+    staleTime: 45000,
+    refetchInterval: 120000,
     retry: false,
   })
   useAccountError(query.error)

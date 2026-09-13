@@ -9,8 +9,8 @@ export function useProgress() {
     queryKey: ['progress', user?.id, 'summary'],
     queryFn: ({ signal }) => apiGet('/api/v1/progress', signal),
     enabled: Boolean(user?.character),
-    staleTime: 15000,
-    refetchInterval: 60000,
+    staleTime: 45000,
+    refetchInterval: 120000,
     retry: false,
   })
   useAccountError(query.error)
@@ -23,8 +23,8 @@ export function useCompletionHistory(filters) {
     queryFn: ({ signal }) =>
       apiGet(`/api/v1/progress/history?${new URLSearchParams(filters)}`, signal),
     enabled: Boolean(user?.character),
-    staleTime: 15000,
-    refetchInterval: 60000,
+    staleTime: 45000,
+    refetchInterval: 120000,
     retry: false,
   })
   useAccountError(query.error)

@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser'
 import { rateLimit } from 'express-rate-limit'
 import { APP_NAME, API_PREFIX, ATTRIBUTES, worldSchema } from '@life-rpg/shared'
 import { log } from './lib/logger.js'
+import { createRedisCache } from './lib/cache.js'
 import { AppError } from './lib/errors.js'
 import { createActivityRouter } from './activity/router.js'
 import { createProgressionRouter } from './progression/router.js'
@@ -25,8 +26,10 @@ export function createApp({
   mailer,
   questMaster,
   questVerifier,
+  cache,
 }) {
   const app = express()
+  const dataCache = cache || createRedisCache(config, logger)
   app.disable('x-powered-by')
   if (config.TRUST_PROXY_HOPS) app.set('trust proxy', config.TRUST_PROXY_HOPS)
   app.use((req, res, next) => {
@@ -156,16 +159,16 @@ export function createApp({
       }),
     })
   })
-  app.use(API_PREFIX, createAccountRouter({ config, database, mailer, logger }))
-  app.use(`${API_PREFIX}/quests`, createQuestRouter({ config, database, clock }))
-  app.use(`${API_PREFIX}/activity`, createActivityRouter({ config, database, clock }))
-  app.use(`${API_PREFIX}/progress`, createProgressionRouter({ config, database }))
-  app.use(`${API_PREFIX}/dashboard`, createDashboardRouter({ config, database, clock }))
+  app.use(API_PREFIX, createAccountRouter({ config, database, mailer, logger, cache: dataCache }))
+  app.use(`${API_PREFIX}/quests`, createQuestRouter({ config, database, clock, cache: dataCache }))
+  app.use(`${API_PREFIX}/activity`, createActivityRouter({ config, database, clock, cache: dataCache }))
+  app.use(`${API_PREFIX}/progress`, createProgressionRouter({ config, database, cache: dataCache }))
+  app.use(`${API_PREFIX}/dashboard`, createDashboardRouter({ config, database, clock, cache: dataCache }))
   app.use(
     `${API_PREFIX}/ai`,
     createAiRouter({ config, database, clock, logger, questMaster, questVerifier }),
   )
-  app.use(API_PREFIX, createEconomyRouter({ config, database }))
+  app.use(API_PREFIX, createEconomyRouter({ config, database, cache: dataCache }))
   // Unknown API routes must never return the SPA's HTML.
   app.use('/api', (req, res) =>
     res.status(404).json({

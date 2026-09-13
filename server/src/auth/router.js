@@ -15,6 +15,7 @@ import {
 } from '@life-rpg/shared'
 import { createAuthentication } from './middleware.js'
 import { AppError, validate } from '../lib/errors.js'
+import { setCacheStatus } from '../lib/cache.js'
 import { createMailjetMailer } from './mailer.js'
 import {
   createSecurity,
@@ -104,7 +105,7 @@ function publicSession(session, currentSessionId) {
   }
 }
 
-export function createAccountRouter({ config, database, mailer, logger }) {
+export function createAccountRouter({ config, database, mailer, logger, cache }) {
   const router = Router()
   const security = createSecurity(config)
   const db = database.prisma
@@ -480,14 +481,28 @@ export function createAccountRouter({ config, database, mailer, logger }) {
     res.json({ data: { refreshed: true } })
   })
   router.get('/auth/me', requireAuth, async (req, res) => {
-    const user = await getUser(req.auth.userId)
-    if (!user) throw unauthorized()
-    res.json({ data: { user } })
+    const cached = await cache.getOrSet({
+      userId: req.auth.userId,
+      namespace: 'account',
+      key: 'public-user',
+      ttlSeconds: config.REDIS_CACHE_TTL_SECONDS,
+      load: () => getUser(req.auth.userId),
+    })
+    if (!cached.value) throw unauthorized()
+    setCacheStatus(res, cached.status)
+    res.json({ data: { user: cached.value } })
   })
   router.get('/me/character', requireAuth, async (req, res) => {
-    const user = await getUser(req.auth.userId)
-    if (!user) throw unauthorized()
-    res.json({ data: { character: user.character } })
+    const cached = await cache.getOrSet({
+      userId: req.auth.userId,
+      namespace: 'account',
+      key: 'public-user',
+      ttlSeconds: config.REDIS_CACHE_TTL_SECONDS,
+      load: () => getUser(req.auth.userId),
+    })
+    if (!cached.value) throw unauthorized()
+    setCacheStatus(res, cached.status)
+    res.json({ data: { character: cached.value.character } })
   })
   router.put('/me/onboarding', security.requireCsrf, requireAuth, async (req, res) => {
     const input = validate(onboardingSchema, req.body)
@@ -515,6 +530,7 @@ export function createAccountRouter({ config, database, mailer, logger }) {
       user = await getUser(req.auth.userId)
       if (!user?.character) throw error
     }
+    await cache.invalidateUser(req.auth.userId)
     res.json({ data: { user } })
   })
 
@@ -527,6 +543,7 @@ export function createAccountRouter({ config, database, mailer, logger }) {
     })
     // Daily quest schedule timezones remain immutable. A profile timezone change affects only
     // future account-local activity dates and display, so it cannot mint another daily reward.
+    await cache.invalidateUser(req.auth.userId)
     res.json({ data: { user } })
   })
 

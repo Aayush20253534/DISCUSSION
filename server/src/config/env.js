@@ -104,6 +104,16 @@ const schema = z
     GEMINI_QUEST_MODEL: z.string().trim().min(1).max(120).default('gemini-2.5-flash-lite'),
     GEMINI_VERIFICATION_MODEL: z.string().trim().min(1).max(120).default('gemini-2.5-flash'),
     AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(3000).max(30000).default(12000),
+    UPSTASH_REDIS_REST_URL: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().url().optional(),
+    ),
+    UPSTASH_REDIS_REST_TOKEN: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.string().min(1).optional(),
+    ),
+    REDIS_CACHE_TTL_SECONDS: z.coerce.number().int().min(10).max(300).default(75),
+    REDIS_CACHE_TIMEOUT_MS: z.coerce.number().int().min(50).max(1500).default(300),
     TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
   })
   .superRefine((value, context) => {
@@ -151,6 +161,25 @@ const schema = z
         code: 'custom',
         path: ['PUBLIC_APP_URL'],
         message: 'Use an HTTPS public origin in production',
+      })
+    }
+    const redisParts = [value.UPSTASH_REDIS_REST_URL, value.UPSTASH_REDIS_REST_TOKEN]
+    if (redisParts.filter(Boolean).length === 1) {
+      context.addIssue({
+        code: 'custom',
+        path: ['UPSTASH_REDIS_REST_URL'],
+        message: 'Set both UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN',
+      })
+    }
+    if (
+      value.NODE_ENV === 'production' &&
+      value.UPSTASH_REDIS_REST_URL &&
+      !value.UPSTASH_REDIS_REST_URL.startsWith('https://')
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['UPSTASH_REDIS_REST_URL'],
+        message: 'Use an HTTPS Redis REST URL in production',
       })
     }
   })

@@ -17,8 +17,8 @@ export function useQuests(filters) {
     queryKey: ['quests', user?.id, 'list', filters],
     queryFn: ({ signal }) => apiGet(`/api/v1/quests?${new URLSearchParams(filters)}`, signal),
     enabled: Boolean(user?.character),
-    staleTime: 15000,
-    refetchInterval: 60000,
+    staleTime: 45000,
+    refetchInterval: 120000,
     retry: false,
   })
   useAccountError(query.error)
@@ -30,8 +30,8 @@ export function useQuestSummary() {
     queryKey: ['quests', user?.id, 'summary'],
     queryFn: ({ signal }) => apiGet('/api/v1/quests/summary', signal),
     enabled: Boolean(user?.character),
-    staleTime: 15000,
-    refetchInterval: 60000,
+    staleTime: 45000,
+    refetchInterval: 120000,
     retry: false,
   })
   useAccountError(query.error)

@@ -7,9 +7,10 @@ import {
 } from '@life-rpg/shared'
 import { createAuthentication } from '../auth/middleware.js'
 import { AppError, validate } from '../lib/errors.js'
+import { routeCacheKey, setCacheStatus } from '../lib/cache.js'
 import { characterSelect, completionSelect, serializeCompletion } from './presentation.js'
 
-export function createProgressionRouter({ config, database }) {
+export function createProgressionRouter({ config, database, cache }) {
   const router = Router()
   const db = database.prisma
   const { requireConfigured, requireAuth } = createAuthentication({ config, database })
@@ -24,8 +25,14 @@ export function createProgressionRouter({ config, database }) {
     return character
   }
   router.get('/', async (req, res) => {
-    const data = await db.$transaction(
-      async (tx) => {
+    const cached = await cache.getOrSet({
+      userId: req.auth.userId,
+      namespace: 'progress',
+      key: 'summary',
+      ttlSeconds: config.REDIS_CACHE_TTL_SECONDS,
+      load: () =>
+        db.$transaction(
+          async (tx) => {
         const character = await characterFor(tx, req.auth.userId)
         const completedCount = await tx.questCompletion.count({
           where: { userId: req.auth.userId },
@@ -36,10 +43,12 @@ export function createProgressionRouter({ config, database }) {
           rewards: QUEST_REWARDS,
           rulesVersion: REWARD_RULES_VERSION,
         }
-      },
-      { isolationLevel: 'RepeatableRead' },
-    )
-    res.json({ data })
+          },
+          { isolationLevel: 'RepeatableRead' },
+        ),
+    })
+    setCacheStatus(res, cached.status)
+    res.json({ data: cached.value })
   })
   router.get('/history', async (req, res) => {
     const query = validate(completionHistorySchema, req.query)
@@ -47,8 +56,14 @@ export function createProgressionRouter({ config, database }) {
       userId: req.auth.userId,
       ...(query.attribute !== 'ALL' && { attribute: query.attribute }),
     }
-    const data = await db.$transaction(
-      async (tx) => {
+    const cached = await cache.getOrSet({
+      userId: req.auth.userId,
+      namespace: 'progress-history',
+      key: routeCacheKey(req),
+      ttlSeconds: Math.min(config.REDIS_CACHE_TTL_SECONDS * 2, 300),
+      load: () =>
+        db.$transaction(
+          async (tx) => {
         await characterFor(tx, req.auth.userId)
         const total = await tx.questCompletion.count({ where })
         const pages = Math.max(1, Math.ceil(total / query.limit))
@@ -64,10 +79,12 @@ export function createProgressionRouter({ config, database }) {
           completions: completions.map(serializeCompletion),
           pagination: { page, limit: query.limit, total, pages },
         }
-      },
-      { isolationLevel: 'RepeatableRead' },
-    )
-    res.json({ data })
+          },
+          { isolationLevel: 'RepeatableRead' },
+        ),
+    })
+    setCacheStatus(res, cached.status)
+    res.json({ data: cached.value })
   })
   return router
 }

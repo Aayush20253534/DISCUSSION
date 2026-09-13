@@ -9,8 +9,8 @@ function useActivityQuery(key, path) {
     queryKey: ['progress', user?.id, 'activity', ...key],
     queryFn: ({ signal }) => apiGet(path, signal),
     enabled: Boolean(user?.character),
-    staleTime: 15000,
-    refetchInterval: 30000,
+    staleTime: 45000,
+    refetchInterval: 120000,
     refetchOnWindowFocus: true,
     retry: false,
   })

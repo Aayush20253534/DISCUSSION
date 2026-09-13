@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { characterProgress, shiftCalendarDate, todayInTimezone } from '@life-rpg/shared'
 import { createAuthentication } from '../auth/middleware.js'
 import { AppError } from '../lib/errors.js'
+import { setCacheStatus } from '../lib/cache.js'
 import {
   calendarString,
   characterSelect,
@@ -26,7 +27,7 @@ function emptyStreaks() {
   }
 }
 
-export function createDashboardRouter({ config, database, clock = () => new Date() }) {
+export function createDashboardRouter({ config, database, clock = () => new Date(), cache }) {
   const router = Router()
   const db = database.prisma
   const { requireConfigured, requireAuth } = createAuthentication({ config, database })
@@ -40,8 +41,14 @@ export function createDashboardRouter({ config, database, clock = () => new Date
   router.get('/', async (req, res) => {
     const userId = req.auth.userId
     const now = new Date(clock())
-    const data = await db.$transaction(
-      async (tx) => {
+    const cached = await cache.getOrSet({
+      userId,
+      namespace: 'dashboard',
+      key: 'overview',
+      ttlSeconds: config.REDIS_CACHE_TTL_SECONDS,
+      load: () =>
+        db.$transaction(
+          async (tx) => {
         const account = await tx.user.findUnique({
           where: { id: userId },
           select: { timezone: true, character: { select: characterSelect } },
@@ -213,10 +220,12 @@ export function createDashboardRouter({ config, database, clock = () => new Date
             step: activeCount === 0 ? 'CREATE_QUEST' : 'COMPLETE_QUEST',
           },
         }
-      },
-      { isolationLevel: 'RepeatableRead' },
-    )
-    res.json({ data })
+          },
+          { isolationLevel: 'RepeatableRead' },
+        ),
+    })
+    setCacheStatus(res, cached.status)
+    res.json({ data: cached.value })
   })
 
   return router

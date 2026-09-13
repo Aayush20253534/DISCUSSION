@@ -26,6 +26,16 @@ test('development starts without credentials, production rejects incomplete conf
   assert.throws(() => parseEnv({ CLIENT_ORIGIN: '*' }), /CLIENT_ORIGIN/)
   assert.throws(() => parseEnv({ PUBLIC_APP_URL: 'https://example.com/path' }), /PUBLIC_APP_URL/)
   assert.throws(() => parseEnv({ TRUST_PROXY_HOPS: '-1' }), /TRUST_PROXY_HOPS/)
+  assert.throws(
+    () => parseEnv({ UPSTASH_REDIS_REST_URL: 'https://redis.example.test' }),
+    /UPSTASH_REDIS_REST_URL/,
+  )
+  const redis = parseEnv({
+    UPSTASH_REDIS_REST_URL: 'https://redis.example.test',
+    UPSTASH_REDIS_REST_TOKEN: 'test-token',
+  })
+  assert.equal(redis.REDIS_CACHE_TTL_SECONDS, 75)
+  assert.equal(redis.REDIS_CACHE_TIMEOUT_MS, 300)
 })
 
 test('Render production defaults use the public service URL without weakening local validation', () => {

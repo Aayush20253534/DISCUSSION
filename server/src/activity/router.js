@@ -8,13 +8,14 @@ import {
 } from '@life-rpg/shared'
 import { createAuthentication } from '../auth/middleware.js'
 import { AppError, validate } from '../lib/errors.js'
+import { routeCacheKey, setCacheStatus } from '../lib/cache.js'
 import {
   calendarString,
   completionSelect,
   serializeCompletion,
 } from '../progression/presentation.js'
 
-export function createActivityRouter({ config, database, clock = () => new Date() }) {
+export function createActivityRouter({ config, database, clock = () => new Date(), cache }) {
   const router = Router()
   const db = database.prisma
   const { requireConfigured, requireAuth } = createAuthentication({ config, database })
@@ -38,8 +39,14 @@ export function createActivityRouter({ config, database, clock = () => new Date(
   router.get('/', async (req, res) => {
     const query = validate(activityQuerySchema, req.query)
     const userId = req.auth.userId
-    const data = await db.$transaction(
-      async (tx) => {
+    const cached = await cache.getOrSet({
+      userId,
+      namespace: 'activity',
+      key: routeCacheKey(req),
+      ttlSeconds: Math.min(config.REDIS_CACHE_TTL_SECONDS * 2, 240),
+      load: () =>
+        db.$transaction(
+          async (tx) => {
         const { timezone, today } = await accountFor(tx, userId)
         const month = query.month || today.slice(0, 7)
         if (month > today.slice(0, 7)) rejectFuture()
@@ -113,15 +120,23 @@ export function createActivityRouter({ config, database, clock = () => new Date(
             { activeDays: 0, completions: 0, xp: 0, gold: 0 },
           ),
         }
-      },
-      { isolationLevel: 'RepeatableRead' },
-    )
-    res.json({ data })
+          },
+          { isolationLevel: 'RepeatableRead' },
+        ),
+    })
+    setCacheStatus(res, cached.status)
+    res.json({ data: cached.value })
   })
   router.get('/day', async (req, res) => {
     const query = validate(activityDaySchema, req.query)
-    const data = await db.$transaction(
-      async (tx) => {
+    const cached = await cache.getOrSet({
+      userId,
+      namespace: 'activity',
+      key: routeCacheKey(req),
+      ttlSeconds: Math.min(config.REDIS_CACHE_TTL_SECONDS * 2, 240),
+      load: () =>
+        db.$transaction(
+          async (tx) => {
         const { timezone, today } = await accountFor(tx, req.auth.userId)
         if (query.date > today) rejectFuture()
         const where = {
@@ -145,10 +160,12 @@ export function createActivityRouter({ config, database, clock = () => new Date(
           completions: completions.map(serializeCompletion),
           pagination: { total, page, pages, limit: query.limit },
         }
-      },
-      { isolationLevel: 'RepeatableRead' },
-    )
-    res.json({ data })
+          },
+          { isolationLevel: 'RepeatableRead' },
+        ),
+    })
+    setCacheStatus(res, cached.status)
+    res.json({ data: cached.value })
   })
   return router
 }

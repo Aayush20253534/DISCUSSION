@@ -12,6 +12,7 @@ import {
 import { createAuthentication } from '../auth/middleware.js'
 import { createSecurity } from '../auth/security.js'
 import { AppError, validate } from '../lib/errors.js'
+import { routeCacheKey, setCacheStatus } from '../lib/cache.js'
 import { verifyQuestVerificationToken } from '../ai/quest-verification.js'
 
 import { questSelect as select, serializeQuest as serialize } from './presentation.js'
@@ -34,7 +35,7 @@ const dailyDueError = () =>
     { dueDate: 'Daily quests repeat by schedule and cannot have a one-time due date.' },
   )
 
-export function createQuestRouter({ config, database, clock = () => new Date() }) {
+export function createQuestRouter({ config, database, clock = () => new Date(), cache }) {
   const router = Router()
   const db = database.prisma
   const security = createSecurity(config)
@@ -45,10 +46,18 @@ export function createQuestRouter({ config, database, clock = () => new Date() }
   })
   router.use(requireConfigured, requireAuth)
   router.use(async (req, _res, next) => {
-    const user = await db.user.findUnique({
-      where: { id: req.auth.userId },
-      select: { timezone: true, character: { select: { id: true } } },
+    const account = await cache.getOrSet({
+      userId: req.auth.userId,
+      namespace: 'account-context',
+      key: 'quests',
+      ttlSeconds: Math.min(config.REDIS_CACHE_TTL_SECONDS * 4, 300),
+      load: () =>
+        db.user.findUnique({
+          where: { id: req.auth.userId },
+          select: { timezone: true, character: { select: { id: true } } },
+        }),
     })
+    const user = account.value
     if (!user?.character)
       throw new AppError(
         403,
@@ -61,10 +70,16 @@ export function createQuestRouter({ config, database, clock = () => new Date() }
     next()
   })
   router.get('/summary', async (req, res) => {
-    const owned = { userId: req.auth.userId }
-    const active = { ...owned, status: 'ACTIVE' }
-    const today = dateValue(req.questToday)
-    const [
+    const cached = await cache.getOrSet({
+      userId: req.auth.userId,
+      namespace: 'quests-summary',
+      key: req.questToday,
+      ttlSeconds: config.REDIS_CACHE_TTL_SECONDS,
+      load: async () => {
+        const owned = { userId: req.auth.userId }
+        const active = { ...owned, status: 'ACTIVE' }
+        const today = dateValue(req.questToday)
+        const [
       activeCount,
       archivedCount,
       dueToday,
@@ -73,7 +88,7 @@ export function createQuestRouter({ config, database, clock = () => new Date() }
       completedCount,
       dailyCount,
       readyRows,
-    ] = await db.$transaction(
+        ] = await db.$transaction(
       [
         db.quest.count({ where: active }),
         db.quest.count({ where: { ...owned, status: 'ARCHIVED' } }),
@@ -98,8 +113,7 @@ export function createQuestRouter({ config, database, clock = () => new Date() }
       ],
       { isolationLevel: 'RepeatableRead' },
     )
-    res.json({
-      data: {
+        return {
         completed: completedCount,
         active: activeCount,
         archived: archivedCount,
@@ -110,8 +124,11 @@ export function createQuestRouter({ config, database, clock = () => new Date() }
         byAttribute: Object.fromEntries(byAttribute.map((row) => [row.attribute, row._count._all])),
         today: req.questToday,
         timezone: req.questTimezone,
+        }
       },
     })
+    setCacheStatus(res, cached.status)
+    res.json({ data: cached.value })
   })
   router.get('/', async (req, res) => {
     const query = validate(questListSchema, req.query)
@@ -136,8 +153,14 @@ export function createQuestRouter({ config, database, clock = () => new Date() }
       TITLE: [{ title: 'asc' }, { id: 'asc' }],
       COMPLETED: [{ completedAt: { sort: 'desc', nulls: 'last' } }, { id: 'desc' }],
     }[query.sort]
-    const result = await db.$transaction(
-      async (tx) => {
+    const cached = await cache.getOrSet({
+      userId: req.auth.userId,
+      namespace: 'quests-list',
+      key: routeCacheKey(req, req.questToday),
+      ttlSeconds: config.REDIS_CACHE_TTL_SECONDS,
+      load: () =>
+        db.$transaction(
+          async (tx) => {
         const total = await tx.quest.count({ where })
         const pages = Math.max(1, Math.ceil(total / query.limit))
         const page = Math.min(query.page, pages)
@@ -154,16 +177,28 @@ export function createQuestRouter({ config, database, clock = () => new Date() }
           today: req.questToday,
           timezone: req.questTimezone,
         }
-      },
-      { isolationLevel: 'RepeatableRead' },
-    )
-    res.json({ data: result })
+          },
+          { isolationLevel: 'RepeatableRead' },
+        ),
+    })
+    setCacheStatus(res, cached.status)
+    res.json({ data: cached.value })
   })
   router.get('/:id', async (req, res) => {
     const id = validate(questIdSchema, req.params.id)
-    const quest = await db.quest.findFirst({ where: { id, userId: req.auth.userId }, select })
-    if (!quest) throw notFound()
-    res.json({ data: { quest: serialize(quest, req.questNow) } })
+    const cached = await cache.getOrSet({
+      userId: req.auth.userId,
+      namespace: 'quest-detail',
+      key: `${id}:${req.questToday}`,
+      ttlSeconds: config.REDIS_CACHE_TTL_SECONDS,
+      load: async () => {
+        const quest = await db.quest.findFirst({ where: { id, userId: req.auth.userId }, select })
+        if (!quest) throw notFound()
+        return { quest: serialize(quest, req.questNow) }
+      },
+    })
+    setCacheStatus(res, cached.status)
+    res.json({ data: cached.value })
   })
   router.post('/', security.requireCsrf, async (req, res) => {
     const { requestId, ...input } = validate(questCreateSchema, req.body)
@@ -201,6 +236,7 @@ export function createQuestRouter({ config, database, clock = () => new Date() }
       quest = existing
       created = false
     }
+    if (created) await cache.invalidateUser(req.auth.userId)
     res.status(created ? 201 : 200).json({ data: { quest: serialize(quest, req.questNow) } })
   })
   router.post('/:id/complete', security.requireCsrf, async (req, res) => {
@@ -219,6 +255,7 @@ export function createQuestRouter({ config, database, clock = () => new Date() }
       aiVerified,
       now: req.questNow,
     })
+    if (data.newlyCompleted) await cache.invalidateUser(req.auth.userId)
     res.status(data.newlyCompleted ? 201 : 200).json({ data })
   })
   router.patch('/:id', security.requireCsrf, async (req, res) => {
@@ -274,6 +311,7 @@ export function createQuestRouter({ config, database, clock = () => new Date() }
       if (result.count !== 1) throw stale()
       return tx.quest.findFirst({ where: owned, select })
     })
+    await cache.invalidateUser(req.auth.userId)
     res.json({ data: { quest: serialize(quest, req.questNow) } })
   })
   router.delete('/:id', security.requireCsrf, async (req, res) => {
@@ -287,6 +325,7 @@ export function createQuestRouter({ config, database, clock = () => new Date() }
         throw stale()
       }
     })
+    await cache.invalidateUser(req.auth.userId)
     res.json({ data: { deleted: true, id } })
   })
   return router
